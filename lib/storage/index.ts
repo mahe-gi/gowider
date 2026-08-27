@@ -1,6 +1,8 @@
 import "server-only";
 import fs from "fs";
 import path from "path";
+import { Readable } from "stream";
+import { pipeline } from "stream/promises";
 import {
   PutObjectCommand,
   HeadObjectCommand,
@@ -28,6 +30,7 @@ export interface StorageProvider {
   checkObjectExists(key: string): Promise<ObjectMetadata>;
   getObjectStream(key: string): Promise<{ stream: NodeJS.ReadableStream; contentLength?: number; contentType?: string }>;
   readRange(key: string, start: number, endInclusive: number): Promise<Buffer>;
+  saveFromUrl(url: string, key: string, contentType?: string): Promise<boolean>;
   deleteObject(key: string): Promise<boolean>;
   createDownloadUrl(key: string, expiresInSeconds?: number): Promise<string>;
 }
@@ -87,6 +90,24 @@ class LocalStorageProvider implements StorageProvider {
     }
   }
 
+  async saveFromUrl(url: string, key: string, _contentType?: string): Promise<boolean> {
+    const filePath = path.join(LOCAL_STORAGE_DIR, key);
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    const response = await fetch(url);
+    if (!response.ok || !response.body) {
+      throw new Error(`Failed to fetch stream from URL: ${response.status} ${response.statusText}`);
+    }
+
+    const nodeReadable = Readable.fromWeb(response.body as any);
+    const writeStream = fs.createWriteStream(filePath);
+    await pipeline(nodeReadable, writeStream);
+    return true;
+  }
+
   async deleteObject(key: string): Promise<boolean> {
     const filePath = path.join(LOCAL_STORAGE_DIR, key);
     if (fs.existsSync(filePath)) {
@@ -97,7 +118,6 @@ class LocalStorageProvider implements StorageProvider {
   }
 
   async createDownloadUrl(key: string): Promise<string> {
-    // In local development, direct downloads stream from local direct-storage GET
     return `/api/uploads/direct-storage/${key}`;
   }
 }
@@ -174,6 +194,29 @@ class R2StorageProvider implements StorageProvider {
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     }
     return Buffer.concat(chunks);
+  }
+
+  async saveFromUrl(url: string, key: string, contentType = "video/mp4"): Promise<boolean> {
+    const response = await fetch(url);
+    if (!response.ok || !response.body) {
+      throw new Error(`Failed to fetch media from provider URL: ${response.status} ${response.statusText}`);
+    }
+
+    const s3 = getR2Client();
+    const bucket = getBucketName();
+    const contentLength = Number(response.headers.get("content-length")) || undefined;
+    const nodeReadable = Readable.fromWeb(response.body as any);
+
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: nodeReadable,
+      ContentType: contentType,
+      ContentLength: contentLength,
+    });
+
+    await s3.send(command);
+    return true;
   }
 
   async deleteObject(key: string): Promise<boolean> {

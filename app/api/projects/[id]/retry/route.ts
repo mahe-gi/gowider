@@ -9,7 +9,7 @@ import { projects, generationRuns } from "@/db/schema";
 import { calculateDubbingCost } from "@/lib/pricing/dubbing";
 import { reserveCreditsForRun } from "@/lib/wallet/reserve";
 import { getUserWallet } from "@/lib/wallet/service";
-import { dispatchGenerationRun } from "@/lib/inngest/dispatch";
+import { dispatchGenerationJob } from "@/lib/queue/dispatch";
 
 const retrySchema = z.object({
   targetLanguages: z.array(z.string()).min(1, "Select at least 1 language to retry."),
@@ -111,7 +111,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .set({ status: "processing", updatedAt: new Date() })
       .where(eq(projects.id, project.id));
 
-    const dispatchResult = await dispatchGenerationRun(runId);
+    const dispatchResult = await dispatchGenerationJob(runId);
 
     return NextResponse.json({
       success: true,

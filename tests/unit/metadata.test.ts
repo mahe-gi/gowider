@@ -87,6 +87,7 @@ describe("Media Metadata Parser (ISO BMFF / QuickTime)", () => {
       createUploadTarget: async () => "",
       checkObjectExists: async () => ({ exists: true, sizeBytes: totalSize }),
       getObjectStream: async () => ({ stream: null as any }),
+      saveFromUrl: async () => true,
       readRange: async (key: string, start: number, endInclusive: number) => {
         const length = endInclusive - start + 1;
         const result = Buffer.alloc(length);
@@ -232,6 +233,7 @@ describe("Media Metadata Parser (ISO BMFF / QuickTime)", () => {
           return buffer.subarray(0, bytesRead);
         },
         deleteObject: async () => true,
+        saveFromUrl: async () => true,
         createDownloadUrl: async () => "",
       };
 

@@ -10,7 +10,7 @@ import {
   type PaymentOrder,
 } from "@/db/schema";
 import { reserveCreditsForRun } from "@/lib/wallet/reserve";
-import { dispatchGenerationRun } from "@/lib/inngest/dispatch";
+import { dispatchGenerationJob } from "@/lib/queue/dispatch";
 
 export interface FinalizePaymentResult {
   success: boolean;
@@ -149,7 +149,7 @@ export async function finalizeCapturedPayment(params: {
         });
 
         if (reservation.success) {
-          const dispatchRes = await dispatchGenerationRun(run.id);
+          const dispatchRes = await dispatchGenerationJob(run.id);
           if (dispatchRes.success) {
             autoResumedRunId = run.id;
           }

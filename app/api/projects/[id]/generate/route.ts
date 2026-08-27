@@ -8,7 +8,7 @@ import { projects, generationRuns } from "@/db/schema";
 import { calculateDubbingCost } from "@/lib/pricing/dubbing";
 import { reserveCreditsForRun } from "@/lib/wallet/reserve";
 import { getUserWallet } from "@/lib/wallet/service";
-import { dispatchGenerationRun } from "@/lib/inngest/dispatch";
+import { dispatchGenerationJob } from "@/lib/queue/dispatch";
 import { checkRateLimit } from "@/lib/security/rate-limit";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -141,13 +141,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       );
     }
 
-    // 7. Dispatch Inngest Generation Event
+    // 7. Dispatch BullMQ Generation Job
     await db
       .update(projects)
       .set({ status: "processing", updatedAt: new Date() })
       .where(eq(projects.id, project.id));
 
-    const dispatchResult = await dispatchGenerationRun(runId);
+    const dispatchResult = await dispatchGenerationJob(runId);
 
     return NextResponse.json({
       success: true,

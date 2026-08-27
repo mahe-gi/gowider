@@ -1,0 +1,84 @@
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gowider-web
+    restart: unless-stopped
+    ports:
+      # Bound to localhost loopback for host reverse proxy (Caddy / Nginx)
+      - "127.0.0.1:3000:3000"
+    environment:
+      - NODE_ENV=production
+      # Base Application URL
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://gowider.com}
+      # Managed external PostgreSQL (Neon, AWS RDS, Supabase, etc.)
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required}
+      # Internal Redis queue on private Docker network
+      - REDIS_URL=redis://redis:6379
+      # Cloudflare R2 Remote Storage
+      - STORAGE_DRIVER=${STORAGE_DRIVER:-r2}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID:-}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID:-}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY:-}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME:-}
+      # Authentication (Web Container Only)
+      - AUTH_SECRET=${AUTH_SECRET:?AUTH_SECRET is required}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      # Payments (Checkout & Webhook Validation)
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-}
+      - RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET:-}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gowider-worker
+    restart: unless-stopped
+    command: ["npm", "run", "worker"]
+    # No exposed ports - background processing only
+    environment:
+      - NODE_ENV=production
+      # Managed external PostgreSQL
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required}
+      # Internal Redis queue on private Docker network
+      - REDIS_URL=redis://redis:6379
+      # Cloudflare R2 Remote Storage
+      - STORAGE_DRIVER=${STORAGE_DRIVER:-r2}
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID:-}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID:-}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY:-}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME:-}
+      # AI Voice Localization Provider (Worker Container Only)
+      - SARVAM_API_KEY=${SARVAM_API_KEY:?SARVAM_API_KEY is required}
+      # Payments Auto-Reconciliation
+      - RAZORPAY_KEY_ID=${RAZORPAY_KEY_ID:-}
+      - RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET:-}
+      - GENERATION_WORKER_CONCURRENCY=${GENERATION_WORKER_CONCURRENCY:-3}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    container_name: gowider-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --appendfsync everysec --maxmemory-policy noeviction
+    # No ports exposed to internet or host - internal Docker network only
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  redis_data:

@@ -21,10 +21,23 @@ export async function createDubbingJob(params: {
     disable_watermark: true,
   };
 
-  return sarvamFetch<SarvamCreateJobResponse>("/dubbing/jobs/", {
+  const response = await sarvamFetch<any>("/dubbing/jobs", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+
+  const job_id = response.data?.job_id || response.job_id;
+  const upload_url = response.data?.upload_url || response.upload_url;
+
+  if (!job_id || !upload_url) {
+    throw new Error(`Invalid response from Sarvam job creation: ${JSON.stringify(response)}`);
+  }
+
+  return {
+    job_id,
+    upload_url,
+    message: response.message,
+  };
 }
 
 export async function streamUploadToSarvam(params: {
@@ -33,7 +46,7 @@ export async function streamUploadToSarvam(params: {
   contentLength: number;
   contentType: string;
 }): Promise<void> {
-  // Convert Node.js readable stream to web standard stream if needed
+  // Upload to Azure SAS Blob URL with required x-ms-blob-type header
   const response = await fetch(params.uploadUrl, {
     method: "PUT",
     body: params.stream,

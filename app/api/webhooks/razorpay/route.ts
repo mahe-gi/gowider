@@ -5,7 +5,7 @@ import { eq, and } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { paymentWebhookEvents } from "@/db/schema";
 import { env } from "@/lib/env";
-import { inngest } from "@/lib/inngest/client";
+import { dispatchPaymentJob } from "@/lib/queue/dispatch";
 
 export async function POST(req: Request) {
   try {
@@ -55,15 +55,17 @@ export async function POST(req: Request) {
       )
       .limit(1);
 
+    let eventRecordId: string;
+
     if (existingEvent) {
       if (existingEvent.status === "processed") {
         return NextResponse.json({ received: true, alreadyProcessed: true });
       }
-      // If previously received or failed, we re-attempt Inngest dispatch
+      eventRecordId = existingEvent.id;
     } else {
-      // Record new event receipt
+      eventRecordId = `wevt_${nanoid(16)}`;
       await db.insert(paymentWebhookEvents).values({
-        id: `wevt_${nanoid(16)}`,
+        id: eventRecordId,
         provider: "razorpay",
         providerEventId: deterministicEventId,
         eventType,
@@ -73,49 +75,31 @@ export async function POST(req: Request) {
       });
     }
 
-    // 4. Dispatch Durable Inngest Work for Payment Capture
+    // 4. Dispatch BullMQ Payment Job
     if (eventType === "order.paid" || eventType === "payment.captured") {
-      const amountPaise = Number(paymentEntity.amount || orderEntity.amount || 0);
-
       if (providerOrderId && providerPaymentId) {
-        try {
-          await inngest.send({
-            name: "payment.webhook.received",
-            data: {
-              providerOrderId,
-              providerPaymentId,
-              amountPaise,
-              webhookEventId: deterministicEventId,
-            },
-          });
+        const dispatchRes = await dispatchPaymentJob({
+          webhookEventId: eventRecordId,
+          providerPaymentId,
+        });
 
+        if (dispatchRes.success) {
           await db
             .update(paymentWebhookEvents)
             .set({
               status: "dispatched",
               dispatchAttempts: (existingEvent?.dispatchAttempts || 0) + 1,
             })
-            .where(
-              and(
-                eq(paymentWebhookEvents.provider, "razorpay"),
-                eq(paymentWebhookEvents.providerEventId, deterministicEventId)
-              )
-            );
-        } catch (dispatchErr: any) {
-          console.error("❌ Failed to dispatch Inngest payment webhook event:", dispatchErr);
+            .where(eq(paymentWebhookEvents.id, eventRecordId));
+        } else {
           await db
             .update(paymentWebhookEvents)
             .set({
               status: "dispatch_pending",
-              lastError: dispatchErr.message,
+              lastError: dispatchRes.errorMessage,
               dispatchAttempts: (existingEvent?.dispatchAttempts || 0) + 1,
             })
-            .where(
-              and(
-                eq(paymentWebhookEvents.provider, "razorpay"),
-                eq(paymentWebhookEvents.providerEventId, deterministicEventId)
-              )
-            );
+            .where(eq(paymentWebhookEvents.id, eventRecordId));
         }
       }
     }

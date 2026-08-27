@@ -3,16 +3,20 @@ import { z } from "zod";
 const envSchema = z.object({
   // Server Environment
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
+  NEXT_PUBLIC_APP_URL: z.string().url().default("https://gowider.com"),
 
   // Storage Driver Configuration
   STORAGE_DRIVER: z.enum(["local", "r2"]).default("local"),
 
-  // Database (PostgreSQL / Neon)
+  // Database (PostgreSQL)
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
 
-  // Authentication (Auth.js / NextAuth v5)
-  AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters"),
+  // Redis Queue (BullMQ)
+  REDIS_URL: z.string().default("redis://127.0.0.1:6379"),
+  GENERATION_WORKER_CONCURRENCY: z.coerce.number().default(3),
+
+  // Authentication (Auth.js / NextAuth v5) - Web Container Only
+  AUTH_SECRET: z.string().min(32, "AUTH_SECRET must be at least 32 characters").optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 
@@ -22,17 +26,13 @@ const envSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET_NAME: z.string().optional(),
 
-  // Sarvam AI
+  // Sarvam AI - Background Worker Container Only
   SARVAM_API_KEY: z.string().optional(),
 
   // Razorpay
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
-
-  // Inngest
-  INNGEST_EVENT_KEY: z.string().optional(),
-  INNGEST_SIGNING_KEY: z.string().optional(),
 
   // Business / Pricing
   GOWIDER_DUBBING_PRICE_PER_MINUTE_PAISE: z.coerce.number().default(4000), // Default ₹40/min

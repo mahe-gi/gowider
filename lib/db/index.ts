@@ -1,9 +1,6 @@
 import "server-only";
-import { neon } from "@neondatabase/serverless";
-import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
-import { drizzle as drizzlePostgres } from "drizzle-orm/postgres-js";
+import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-
 import * as schema from "@/db/schema";
 import { env } from "@/lib/env";
 
@@ -11,13 +8,17 @@ if (!env.DATABASE_URL) {
   throw new Error("DATABASE_URL is not configured.");
 }
 
-const isNeon = env.DATABASE_URL.includes("neon.tech");
+// Standard PostgreSQL SSL configuration (determined by sslmode=require in connection string or explicit DB_SSL env)
+const requiresSsl =
+  env.DATABASE_URL.includes("sslmode=require") ||
+  env.DATABASE_URL.includes("ssl=true") ||
+  process.env.DB_SSL === "true";
 
-export const db = isNeon
-  ? drizzleNeon(neon(env.DATABASE_URL), { schema })
-  : drizzlePostgres(
-      postgres(env.DATABASE_URL, {
-        max: 10,
-      }),
-      { schema }
-    );
+const client = postgres(env.DATABASE_URL, {
+  max: 10,
+  idle_timeout: 20,
+  connect_timeout: 10,
+  ssl: requiresSsl ? "require" : undefined,
+});
+
+export const db = drizzle(client, { schema });
