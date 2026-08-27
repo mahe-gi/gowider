@@ -11,7 +11,7 @@ export function Hero() {
             {/* Pill Tag */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF1EE] border border-[#FF441F]/20 text-[#FF441F] text-xs sm:text-sm font-semibold tracking-tight shadow-2xs">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Voice-Cloned Indic AI Dubbing</span>
+              <span>AI video localization</span>
             </div>
 
             {/* Main Headline */}

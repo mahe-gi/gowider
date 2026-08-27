@@ -310,3 +310,49 @@
 - **Why:** Eliminate unsupported permanent storage promises, fix Google icon rendering, and simplify reassurance copy.
 - **Related task:** Fix Auth Modal Copy.
 - **Verification:** Manual browser verification + TypeScript check + Next.js build.
+
+## Dual-Driver Database Support (Local Docker Postgres + Serverless Neon)
+
+### `lib/db/index.ts`
+- **Action:** Modified
+- **What changed:** Added dual-driver support selecting `postgres-js` for local standard PostgreSQL (`postgresql://...`) and `neon-http` for Neon serverless (`neon.tech`).
+- **Why:** Allow Auth.js `signIn()` callback and API endpoints to query local Docker PostgreSQL (`gowider-postgres`) during development without breaking serverless production.
+- **Related task:** Dual-Driver DB Setup & Auth.js signIn DB Work.
+- **Verification:** Live query test `select count(*) from users` against Docker Postgres + TypeScript + Vitest (23 passed).
+
+## Provider & Generic-AI Branding Scrub
+
+### `components/hero.tsx`
+- **Action:** Modified
+- **What changed:** Replaced `"Voice-Cloned Indic AI Dubbing"` badge with `"AI video localization"`.
+- **Why:** Present GoWider's concrete product capability rather than third-party/generic positioning.
+- **Related task:** Complete Provider/Generic-AI Branding Scrub.
+- **Verification:** Verified 0 occurrences of vendor branding in component + build.
+
+### `components/voice-section.tsx`
+- **Action:** Modified
+- **What changed:** Replaced `"Sarvam Dubbing Engine · Bulbul v3"` with `"Neural Voice & Cadence Matching"`, and `"Voice-Cloned"` labels with `"Voice Preserved"`.
+- **Why:** Keep the voice cloning explanation native and focused on user benefit without exposing model names.
+- **Related task:** Complete Provider/Generic-AI Branding Scrub.
+- **Verification:** Verified 0 occurrences of vendor branding in component + build.
+
+### `components/footer.tsx`
+- **Action:** Modified
+- **What changed:** Removed `"Powered by Sarvam AI Dubbing"` and `"Private Cloud Storage (R2)"`; replaced with `"Your videos stay private"` and `"Multilingual Video Localization"`.
+- **Why:** Eliminate infrastructure/vendor exposure from consumer footer.
+- **Related task:** Complete Provider/Generic-AI Branding Scrub.
+- **Verification:** Verified 0 occurrences in footer + build.
+
+### `components/result-studio.tsx`
+- **Action:** Modified
+- **What changed:** Replaced `"Download Dubbed Video (MP4)"` with `"Download Localized Video (MP4)"` and cleaned error messaging to `"We couldn't finish this version. Your unused credits were returned."`.
+- **Why:** Keep result studio and error messages provider-neutral and product-owned.
+- **Related task:** Complete Provider/Generic-AI Branding Scrub.
+- **Verification:** Verified UI rendering + build.
+
+### `lib/constants.ts`
+- **Action:** Modified
+- **What changed:** Updated `HUMAN_STATUS_LABELS` to remove internal pipeline names (e.g. `"Preparing your Reel…"` instead of `"Preparing Sarvam pipeline…"`).
+- **Why:** Ensure status messages throughout the app reflect user-facing product milestones.
+- **Related task:** Complete Provider/Generic-AI Branding Scrub.
+- **Verification:** Verified 0 occurrences in constants + build.

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileText, RefreshCw, CheckCircle2, AlertCircle, Play } from "lucide-react";
+import { Download, FileText, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
 import { LanguageTabs } from "./language-tabs";
 import { SUPPORTED_LANGUAGES, LanguageCode } from "@/lib/constants";
 
@@ -111,7 +111,7 @@ export function ResultStudio({
                 {currentOutput?.status === "failed" ? (
                   <>
                     <AlertCircle className="w-10 h-10 text-[#FF552E]" />
-                    <p className="text-sm font-semibold">Dubbing failed for this language.</p>
+                    <p className="text-sm font-semibold">Localization failed for this language.</p>
                     <button
                       onClick={() => onRetryLanguage(activeTab)}
                       disabled={isRetrying}
@@ -165,7 +165,7 @@ export function ResultStudio({
                 className="w-full py-3.5 px-5 rounded-2xl bg-[#111111] hover:bg-[#222222] text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Download className="w-4 h-4 text-[#FF441F]" />
-                <span>Download Dubbed Video (MP4)</span>
+                <span>Download Localized Video (MP4)</span>
               </a>
 
               <a
@@ -183,7 +183,7 @@ export function ResultStudio({
           {!isOriginal && currentOutput?.status === "failed" && (
             <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#FCA5A5] space-y-3">
               <p className="text-xs text-[#991B1B]">
-                {currentOutput.errorMessage || "Generation for this language failed during processing."}
+                {currentOutput.errorMessage || "We couldn't finish this version. Your unused credits were returned."}
               </p>
               <button
                 type="button"

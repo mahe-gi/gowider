@@ -13,8 +13,8 @@ export function Footer() {
         </div>
 
         <div className="flex items-center gap-6">
-          <span>Powered by Sarvam AI Dubbing</span>
-          <span>Private Cloud Storage (R2)</span>
+          <span>Your videos stay private</span>
+          <span>Multilingual Video Localization</span>
         </div>
       </div>
     </footer>

@@ -5,13 +5,12 @@ export const BRAND = {
   displayName: "GoWider",
   tagline: "ONE REEL. EVERY AUDIENCE.",
   description:
-    "Turn one short video into localized Indian-language versions with voice cloning, synchronized timing, and emotion.",
+    "Turn one short video into localized Indian-language versions while preserving your voice, emotion, and timing.",
   accentColor: "#FF441F",
   darkColor: "#111111",
 } as const;
 
-// Strict Sarvam Supported Dubbing Languages
-// Critical Fix: Odia is 'or-IN' (NOT 'od-IN' which causes Sarvam 422), Assamese is 'as-IN'
+// Supported Localization Languages (12 Indic Languages)
 export const SUPPORTED_LANGUAGES = {
   "en-IN": { label: "English", native: "English" },
   "hi-IN": { label: "Hindi", native: "हिन्दी" },
@@ -62,16 +61,16 @@ export const TOP_UP_PACKAGES_PAISE = [
 export const GUEST_COOKIE_NAME = "gowider_guest_session";
 export const GUEST_SESSION_EXPIRY_DAYS = 1; // 24 hours
 
-// Human Friendly Status Labels
+// Human-Friendly GoWider Status Labels
 export const HUMAN_STATUS_LABELS: Record<string, string> = {
   draft: "Draft created",
-  uploading: "Uploading video…",
+  uploading: "Uploading your Reel…",
   ready: "Ready for localization",
   awaiting_payment: "Awaiting credit top-up",
   queued: "Queued for processing",
-  uploading_to_sarvam: "Preparing Sarvam pipeline…",
-  processing: "Localizing voices and emotion…",
-  exporting: "Generating video and subtitles…",
+  uploading_to_sarvam: "Preparing your Reel…",
+  processing: "Localizing your Reel…",
+  exporting: "Preparing your versions…",
   completed: "Ready to go wider",
   partial_failure: "Partially ready",
   failed: "Localization failed",
