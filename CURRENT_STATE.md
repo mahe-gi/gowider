@@ -1,39 +1,27 @@
 # Current State
 
 ## Last Updated
-2026-08-27 20:17 IST
+2026-08-27 22:06 IST
 
-## Current Goal
-Production Correctness & Security Remediation (Completed)
+## Video Verification Status
+**LOCAL REAL VIDEO VERIFIED**: Random-access range-reading ISO BMFF parser (`parseMediaFromStorage`) successfully extracts authoritative `mvhd` duration from video containers where `moov` is placed after a >2MB `mdat` or near EOF. Tested against real 29.3 MB video (`Snapchat-1609521332.mp4` / `ioPdNKBW1PAf.mp4`), correctly extracting server-authoritative duration (46.02s rounded to 47s).
 
-## Remediation Checklist
-- [x] Production users cannot seed free credits (POST /api/wallet removed; dev CLI script created)
-- [x] Payment finalization atomic (single DB transaction + idempotency lock)
-- [x] Duplicate payment cannot double credit (unique constraint + transaction check)
-- [x] Payment amount verified (expected order.amountPaise === provider amountPaise)
-- [x] Authorized payment does not credit wallet (explicit captured check required)
-- [x] Reservation transactional & idempotent (atomic DB lock + unique run check)
-- [x] Settlement transactional & retry-safe (settledAt timestamp + unspent release ledger)
-- [x] Multi-language output bug fixed ((projectId, targetLanguage) compound unique upsert)
-- [x] Duplicate generation cannot duplicate Sarvam job (run.sarvamJobId check + resume)
-- [x] Failed Inngest dispatch not silently ignored (dispatchState = 'failed' + dispatchError)
-- [x] Queued dispatch can be reconciled (reconciliation cron re-dispatches with same runId)
-- [x] Sarvam polling uses durable checkpoints/sleeps (Inngest step.sleep("15s"))
-- [x] Server independently verifies video duration (ISO BMFF atom parser lib/media/metadata.ts)
-- [x] Webhook dedupe cannot permanently lose an event (deterministic ID + lifecycle states)
-- [x] R2 cleanup actually deletes eligible media (deleteR2Object called on expired assets)
-- [x] Stuck generation runs reconciled (auto-recovery in reconciliation cron)
-- [x] Pending payments reconciled (provider query in reconciliation cron)
-- [x] Production env fails closed (strict validation for production credentials)
-- [x] No production mock secrets/fake DB URL in production boot
-- [x] Production rate limiting exists (PostgreSQL-backed checkRateLimit)
-- [x] Security headers/CSP exist (Razorpay, Google, and R2 origins allowlisted in next.config.ts)
-- [x] Unit tests pass (23/23 Vitest tests passed)
-- [x] Next.js build passes (14/14 static pages generated in 2.2s)
-- [x] FILE_CHANGES.md updated for every single file
-- [x] CURRENT_STATE.md reflects reality
+## Domain Verification Status
 
-## Verification Level
-- **CODE VERIFIED**: TypeScript compilation (`npx tsc --noEmit` -> 0 errors), 23/23 Vitest unit tests passed.
-- **LOCAL VERIFIED**: Next.js 15 production build compiled in 2.2s (14/14 routes).
-- **TEST PROVIDER / INTEGRATION**: Code structured with idempotency locks and fail-closed security for deployment against Neon, Cloudflare R2, Razorpay Test Mode, Inngest Cloud, and Sarvam AI Dubbing API.
+- **Media Verification:** LOCAL REAL VIDEO VERIFIED (Fail-closed random-access parser, zero client-fallback)
+- **Local Storage Provider:** LOCAL REAL VIDEO VERIFIED (Random access `readRange` via filesystem file descriptors)
+- **R2 Storage Provider:** CODE VERIFIED (S3 `GetObjectCommand` with `Range: bytes=x-y`; awaiting live R2 credentials)
+- **Authentication (Google OAuth):** LOCAL VERIFIED
+- **Marketing Landing (`/`):** LOCAL VERIFIED
+- **Creator Dashboard (`/dashboard`):** LOCAL VERIFIED
+- **Dedicated Studio (`/studio/new`):** LOCAL VERIFIED
+- **Projects Library (`/projects`):** LOCAL VERIFIED
+- **Project Workspace (`/project/[id]`):** LOCAL VERIFIED
+- **Billing & Activity Ledger (`/billing`):** LOCAL VERIFIED
+- **Account Settings (`/account`):** LOCAL VERIFIED
+- **Legal & Compliance Pages (`/privacy`, `/terms`, `/refund-policy`, `/contact`):** LOCAL VERIFIED
+- **User Isolation & IDOR Protection:** UNIT & INTEGRATION VERIFIED
+- **Pricing & Wallet Invariants:** UNIT VERIFIED
+- **Razorpay Payments:** LOCAL & API VERIFIED (Test Order `order_TUqMZj5sWtEaaj`)
+- **Background Generation (Inngest):** CODE VERIFIED
+- **Production Readiness:** NOT READY (Requires Cloudflare R2 bucket keys for remote storage and `SARVAM_API_KEY` for live voice dubbing)

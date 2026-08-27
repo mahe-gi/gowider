@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileText, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import Link from "next/link";
+import { Download, FileText, RefreshCw, CheckCircle2, AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import { LanguageTabs } from "./language-tabs";
 import { SUPPORTED_LANGUAGES, LanguageCode } from "@/lib/constants";
 
@@ -34,6 +35,49 @@ export function ResultStudio({
 
   const sourceLangInfo =
     SUPPORTED_LANGUAGES[sourceLanguage as LanguageCode] || { label: "Original", native: "Original" };
+
+  // If there are no outputs and overall project failed
+  if (outputs.length === 0) {
+    return (
+      <div className="w-full max-w-2xl mx-auto space-y-6 animate-in fade-in duration-300">
+        <div className="p-8 sm:p-12 rounded-3xl bg-white border border-[#121212]/10 shadow-lg text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#DC2626]">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#111111]">
+              Localization could not be completed
+            </h2>
+            <p className="text-sm text-[#55524C] max-w-md mx-auto leading-relaxed">
+              We encountered an issue while connecting to the neural voice dubbing provider. All reserved credits have been released back to your available balance.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#F4F0E8] border border-[#121212]/06 text-xs text-[#55524C] font-mono">
+            <span>₹0 charged · Credits refunded to wallet</span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#111111] hover:bg-[#222222] text-white text-xs font-semibold shadow-xs transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Dashboard</span>
+            </Link>
+            <Link
+              href="/studio/new"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-[#FF441F] hover:bg-[#E63814] text-white text-xs font-bold shadow-xs transition-colors"
+            >
+              <span>Try Another Reel</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const tabs = [
     {

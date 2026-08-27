@@ -7,9 +7,10 @@ import { signIn } from "next-auth/react";
 interface AuthSheetProps {
   isOpen: boolean;
   onClose: () => void;
+  callbackUrl?: string;
 }
 
-export function AuthSheet({ isOpen, onClose }: AuthSheetProps) {
+export function AuthSheet({ isOpen, onClose, callbackUrl = "/dashboard" }: AuthSheetProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -17,7 +18,7 @@ export function AuthSheet({ isOpen, onClose }: AuthSheetProps) {
   async function handleGoogleSignIn() {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl: window.location.href });
+      await signIn("google", { callbackUrl });
     } catch (err) {
       console.error("Sign-in error:", err);
       setIsLoading(false);

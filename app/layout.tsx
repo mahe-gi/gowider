@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { BRAND } from "@/lib/constants";
 import { OfflineBanner } from "@/components/offline-banner";
+import { AuthProvider } from "@/components/auth-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,10 +29,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: `${BRAND.displayName} — ${BRAND.tagline}`,
     description: BRAND.description,
-    images: [{ url: "/brand/logo.png" }],
+    images: [{ url: "/brand/logo-wordmark.png" }],
   },
   icons: {
-    icon: "/brand/logo.png",
+    icon: "/brand/logo-wordmark.png",
   },
 };
 
@@ -43,8 +44,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}>
       <body className="min-h-screen flex flex-col bg-[#FBF9F5] text-[#111111] antialiased">
-        <OfflineBanner />
-        {children}
+        <AuthProvider>
+          <OfflineBanner />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

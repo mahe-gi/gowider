@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import { auth } from "@/lib/auth/auth";
-import { getOrCreateGuestSession } from "@/lib/auth/guest";
 import { createPresignedUploadUrl } from "@/lib/r2/uploads";
 import { db } from "@/lib/db";
 import { projects } from "@/db/schema";
@@ -19,6 +18,16 @@ const presignSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: { code: "UNAUTHORIZED", message: "Sign in to upload Reels." } },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
+
     const body = await req.json();
     const validated = presignSchema.safeParse(body);
 
@@ -29,19 +38,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const session = await auth();
-    let userId: string | undefined = session?.user?.id;
-    let guestSessionId: string | undefined;
-
-    if (!userId) {
-      const guest = await getOrCreateGuestSession();
-      guestSessionId = guest.sessionId;
-    }
-
-    const clientIdentifier = userId || guestSessionId || "anonymous";
-
-    // Rate Limit: Max 20 presigns per 5 minutes per user/guest
-    const rateCheck = await checkRateLimit(`rate:presign:${clientIdentifier}`, 20, 300);
+    // Rate Limit: Max 20 presigns per 5 minutes per user
+    const rateCheck = await checkRateLimit(`rate:presign:${userId}`, 20, 300);
     if (!rateCheck.success) {
       return NextResponse.json(
         { error: { code: "RATE_LIMITED", message: "Upload rate limit exceeded. Please wait a moment." } },
@@ -52,21 +50,19 @@ export async function POST(req: Request) {
     const projectId = `proj_${nanoid(16)}`;
     const randomFileId = nanoid(12);
     const ext = validated.data.contentType === "video/quicktime" ? "mov" : "mp4";
-    const ownerScope = userId || guestSessionId || "anonymous";
-    const sourceR2Key = `sources/${ownerScope}/${projectId}/${randomFileId}.${ext}`;
+    const sourceR2Key = `sources/${userId}/${projectId}/${randomFileId}.${ext}`;
 
-    // Generate short-lived presigned PUT URL
+    // Generate short-lived upload target URL (R2 presigned PUT or authenticated local storage target)
     const uploadUrl = await createPresignedUploadUrl({
       key: sourceR2Key,
       contentType: validated.data.contentType,
       expiresInSeconds: 600, // 10 minutes
     });
 
-    // Create draft project in PostgreSQL
+    // Create draft project in PostgreSQL owned by session user
     await db.insert(projects).values({
       id: projectId,
-      userId: userId || null,
-      guestSessionId: guestSessionId || null,
+      userId,
       displayName: validated.data.fileName,
       sourceR2Key,
       sourceFileName: validated.data.fileName,

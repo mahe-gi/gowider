@@ -16,7 +16,10 @@ export async function GET(
     const access = await assertProjectAccess(projectId, session?.user?.id);
 
     if (!access.hasAccess || !access.project) {
-      return NextResponse.json({ error: { code: "FORBIDDEN", message: "Access denied." } }, { status: 403 });
+      return NextResponse.json(
+        { error: { code: "NOT_FOUND", message: "Project not found or access denied." } },
+        { status: 404 }
+      );
     }
 
     const [output] = await db

@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
 import { ProcessingStatus } from "@/components/processing-status";
 import { ResultStudio } from "@/components/result-studio";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -19,7 +20,7 @@ export default function ProjectStudioPage({ params }: { params: Promise<{ id: st
     try {
       const res = await fetch(`/api/projects/${projectId}`);
       if (!res.ok) {
-        throw new Error("Failed to load project details.");
+        throw new Error("Project not found or access denied.");
       }
       const data = await res.json();
       if (data.success) {
@@ -78,11 +79,12 @@ export default function ProjectStudioPage({ params }: { params: Promise<{ id: st
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-[#FBF9F5]">
-        <Navigation />
+        <Navigation variant="app" />
         <div className="flex-1 flex flex-col items-center justify-center space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-[#FF441F]" />
           <p className="text-sm font-medium text-[#55524C]">Loading Studio…</p>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -90,17 +92,18 @@ export default function ProjectStudioPage({ params }: { params: Promise<{ id: st
   if (error || !projectData) {
     return (
       <div className="min-h-screen flex flex-col bg-[#FBF9F5]">
-        <Navigation />
+        <Navigation variant="app" />
         <div className="flex-1 flex flex-col items-center justify-center p-4 text-center space-y-4">
           <p className="text-base font-semibold text-[#111111]">{error || "Project not found."}</p>
           <Link
-            href="/"
+            href="/dashboard"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#111111] text-white text-sm font-semibold hover:bg-[#222222] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Return to Home</span>
+            <span>Return to Dashboard</span>
           </Link>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -112,17 +115,17 @@ export default function ProjectStudioPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FBF9F5]">
-      <Navigation />
+      <Navigation variant="app" />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-28 pb-16 space-y-8">
         {/* Back Link */}
         <div>
           <Link
-            href="/"
+            href="/dashboard"
             className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#55524C] hover:text-[#111111] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Studio</span>
+            <span>Back to Dashboard</span>
           </Link>
         </div>
 
@@ -145,6 +148,8 @@ export default function ProjectStudioPage({ params }: { params: Promise<{ id: st
           />
         )}
       </main>
+
+      <Footer />
     </div>
   );
 }

@@ -5,6 +5,9 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
 
+  // Storage Driver Configuration
+  STORAGE_DRIVER: z.enum(["local", "r2"]).default("local"),
+
   // Database (PostgreSQL / Neon)
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
 
@@ -13,7 +16,7 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
 
-  // Cloudflare R2 Storage
+  // Cloudflare R2 Storage (Required when STORAGE_DRIVER=r2)
   R2_ACCOUNT_ID: z.string().optional(),
   R2_ACCESS_KEY_ID: z.string().optional(),
   R2_SECRET_ACCESS_KEY: z.string().optional(),
@@ -44,7 +47,21 @@ function parseEnv() {
       throw new Error("Application failed to start due to missing core environment variables.");
     }
   }
-  return parsed.data || (process.env as any);
+
+  const data = parsed.data || (process.env as any);
+
+  // Production Storage Driver Invariant: Refuse local storage in production
+  if (
+    process.env.NODE_ENV === "production" &&
+    process.env.NEXT_PHASE !== "phase-production-build" &&
+    data.STORAGE_DRIVER === "local"
+  ) {
+    throw new Error(
+      "❌ FATAL: STORAGE_DRIVER cannot be 'local' in production. Configure STORAGE_DRIVER=r2 with Cloudflare R2 credentials."
+    );
+  }
+
+  return data;
 }
 
 export const env = parseEnv();

@@ -356,3 +356,266 @@
 - **Why:** Ensure status messages throughout the app reflect user-facing product milestones.
 - **Related task:** Complete Provider/Generic-AI Branding Scrub.
 - **Verification:** Verified 0 occurrences in constants + build.
+
+## Local Razorpay Test Configuration
+
+### `.env.local`
+- **Action:** Modified (Git Ignored)
+- **What changed:** Added `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, and `RAZORPAY_WEBHOOK_SECRET` for local checkout and wallet top-up testing.
+- **Why:** Enable local testing of the creator top-up modal and payment verification.
+- **Related task:** Payment Integration.
+- **Verification:** Verified live order creation against Razorpay Test API (`order_TUqMZj5sWtEaaj` created).
+
+## End-to-End Product Implementation & Authenticated Experience
+
+### `components/auth-provider.tsx`
+- **Action:** Created
+- **What changed:** Wrapped application in `SessionProvider` from `next-auth/react`.
+- **Why:** Provide shared Auth.js session context across client components.
+- **Related task:** Auth state foundation.
+- **Verification:** Unit tests + Next.js build.
+
+### `app/layout.tsx`
+- **Action:** Modified
+- **What changed:** Wrapped root body in `<AuthProvider>`.
+- **Why:** Enable `useSession()` across navigation and page components.
+- **Related task:** Auth state foundation.
+- **Verification:** Tested live session hydration on dev server.
+
+### `app/api/me/route.ts`
+- **Action:** Created
+- **What changed:** Implemented `GET` (returns profile, wallet, and stats) and `PATCH` (validates and updates `displayName`).
+- **Why:** Provide user profile and settings management endpoints.
+- **Related task:** Account management.
+- **Verification:** Endpoint integration and TypeScript compilation.
+
+### `components/profile-menu.tsx`
+- **Action:** Created
+- **What changed:** Built interactive profile dropdown with avatar, user name, email, links to Dashboard, My Reels, Billing, Account, and Sign out.
+- **Why:** Replaced static avatar placeholder with keyboard-accessible navigation menu.
+- **Related task:** Profile navigation.
+- **Verification:** Verified outside click, Escape key close, and sign out callback.
+
+### `components/navigation.tsx`
+- **Action:** Modified
+- **What changed:** Integrated `useSession()` directly, rendered `ProfileMenu` for authenticated creators, and fetched real wallet balances.
+- **Why:** Eliminate inconsistent navbar state across routes and remove hardcoded "Creator" identity.
+- **Related task:** Authenticated navigation.
+- **Verification:** Tested navigation on `/`, `/dashboard`, `/projects`, `/account`, and `/billing`.
+
+### `app/dashboard/page.tsx`
+- **Action:** Created
+- **What changed:** Implemented authenticated creator home with real user greeting, available credits card, active processing jobs card, recent Reels grid, empty states, and localizing CTA.
+- **Why:** Resolve missing `/dashboard` 404 and give returning users a dedicated creator home.
+- **Related task:** Dashboard.
+- **Verification:** Server-side `auth()` check + build verification.
+
+### `components/account-view.tsx` & `app/account/page.tsx`
+- **Action:** Created
+- **What changed:** Implemented account settings page with Google avatar, editable display name, read-only email, and member-since timestamp.
+- **Why:** Provide profile management without fake social or custom password bloat.
+- **Related task:** Account page.
+- **Verification:** Tested name edit and state saving.
+
+### `components/billing-view.tsx` & `app/billing/page.tsx`
+- **Action:** Created
+- **What changed:** Implemented billing page with available/reserved/total credit breakdown, top-up modal trigger, and translated transaction ledger.
+- **Why:** Provide users with transparent credit accounting and self-service top-up.
+- **Related task:** Billing page.
+- **Verification:** Verified ledger item translation and credit modal integration.
+
+### `app/projects/page.tsx`
+- **Action:** Modified
+- **What changed:** Updated library to use server-side `auth()`, shared navigation header, and clean project status cards.
+- **Why:** Fix disconnected navbar and surface real user projects consistently.
+- **Related task:** Projects library.
+- **Verification:** Production build + route rendering.
+
+### `app/page.tsx` & `components/auth-sheet.tsx`
+- **Action:** Modified
+- **What changed:** Implemented post-auth resumption (`/?resumeProject=...&intent=generate`), claim guest project via `/api/auth/guest-merge`, and auto-trigger generation upon OAuth return.
+- **Why:** Prevent user from losing their uploaded Reel and configuration when logging in at the Generate step.
+- **Related task:** Post-auth continuation.
+- **Verification:** Tested parameter cleanup and generation trigger.
+
+### `app/api/uploads/direct-storage/[...key]/route.ts` & `lib/r2/uploads.ts`
+- **Action:** Created / Modified
+- **What changed:** Added resilient local storage fallback for direct uploads when cloud R2 credentials are not configured in local development.
+- **Why:** Prevent browser network errors during local offline testing while retaining direct S3 presigned PUT in production.
+- **Related task:** Storage resilience.
+- **Verification:** Tested upload stream parsing and Vitest unit tests.
+
+## Remote Image Configuration Fix
+
+### `next.config.ts`
+- **Action:** Modified
+- **What changed:** Added `images.remotePatterns` for `*.googleusercontent.com`, `lh3.googleusercontent.com`, and `*.razorpay.com`.
+- **Why:** Allow Next.js `<Image />` component to render Google account profile pictures.
+- **Related task:** Profile navigation & authenticated UI.
+- **Verification:** Verified dev server restart and image loading.
+
+### `components/profile-menu.tsx` & `components/account-view.tsx`
+- **Action:** Modified
+- **What changed:** Added `unoptimized` flag and fallback initials onError handler to avatar image rendering.
+- **Why:** Ensure robust avatar display even if network drops or remote URL structure changes.
+- **Related task:** Profile navigation.
+- **Verification:** Verified UI rendering without unconfigured host errors.
+
+## Profile Dropdown Z-Index & Hero Stacking Fix
+
+### `components/navigation.tsx` & `components/profile-menu.tsx`
+- **Action:** Modified
+- **What changed:** Elevated header z-index to `z-50` and profile popover menu to `z-[60]`.
+- **Why:** Prevent 3D phone mockup cards in the Hero section from rendering in front of or obscuring the profile dropdown.
+- **Related task:** UI Stacking & Profile Menu.
+- **Verification:** Verified dropdown floats cleanly in front of all page elements.
+
+### `components/hero-reel-transform.tsx`
+- **Action:** Modified
+- **What changed:** Scoped card stacking indices (`z-10` to `z-30`) and scrubbed remaining badges (`Hindi Version`, `Voice Preserved`).
+- **Why:** Maintain strict brand neutrality and prevent z-index collisions with fixed top navigation.
+- **Related task:** Brand Polish & Stacking Context.
+- **Verification:** TypeScript compilation and UI inspection.
+
+## Auth-First V1 Architectural Pivot & User Isolation Hardening
+
+### `lib/env.ts`
+- **Action:** Modified
+- **What changed:** Added `STORAGE_DRIVER` (`local` or `r2`) to schema and enforced a production guard that throws if `STORAGE_DRIVER === 'local'` when `NODE_ENV === 'production'`.
+- **Why:** Prevent silent or accidental fallback to server filesystem in production.
+- **Related task:** Storage architecture & configuration.
+- **Verification:** Unit tests + Next.js build.
+
+### `lib/storage/index.ts`
+- **Action:** Created
+- **What changed:** Implemented unified `StorageProvider` abstraction with `LocalStorageProvider` (dev filesystem) and `R2StorageProvider` (S3 presigned PUT/GET).
+- **Why:** Decouple application logic from the underlying storage mechanism.
+- **Related task:** Storage architecture.
+- **Verification:** Unit tests (`tests/unit/storage-security.test.ts`).
+
+### `lib/r2/uploads.ts` & `lib/r2/outputs.ts`
+- **Action:** Modified
+- **What changed:** Delegated all upload target creation, existence checks, stream parsing, and download presigning to `storage`.
+- **Why:** Unify all media operations across local and production environments.
+- **Related task:** Storage architecture.
+- **Verification:** Unit tests (`tests/unit/upload-flow.test.ts`).
+
+### `app/api/uploads/direct-storage/[...key]/route.ts`
+- **Action:** Modified
+- **What changed:** Enforced authentication (`auth()`), strict path traversal validation (`path.resolve`, no `..`, prefix matching), stream-to-disk writing (no memory buffer), and size limits.
+- **Why:** Secure local storage development endpoints against arbitrary filesystem writes and DoS attacks.
+- **Related task:** Local storage security.
+- **Verification:** Tested local upload stream and path validation.
+
+### `lib/auth/ownership.ts`
+- **Action:** Modified
+- **What changed:** Stripped guest session fallbacks from `assertProjectAccess`; strictly enforced `project.userId === userId`.
+- **Why:** Eliminate cross-user project leaks and IDOR vulnerabilities.
+- **Related task:** User isolation.
+- **Verification:** Unit tests (`tests/unit/user-isolation.test.ts`).
+
+### `app/api/uploads/presign/route.ts` & `app/api/uploads/complete/route.ts`
+- **Action:** Modified
+- **What changed:** Enforced `session.user.id` requirement on presign and complete routes; removed anonymous/guest project creation.
+- **Why:** Eliminate anonymous storage abuse and orphan project records.
+- **Related task:** Auth-first architecture.
+- **Verification:** Integration tests and build.
+
+### `app/api/projects/[id]/download/[language]/[format]/route.ts`
+- **Action:** Modified
+- **What changed:** Standardized unauthorized access responses to return `404 NOT_FOUND` rather than `403 FORBIDDEN`.
+- **Why:** Prevent malicious actors from probing valid project IDs.
+- **Related task:** IDOR prevention.
+- **Verification:** Route tests.
+
+### `app/page.tsx`
+- **Action:** Modified
+- **What changed:** Converted homepage into a clean marketing landing page; removed upload dropzone, studio state, wallet state, and OAuth resume handlers.
+- **Why:** Separate public marketing from authenticated creator workflows.
+- **Related task:** Landing page refactor.
+- **Verification:** Visual verification on port 3000.
+
+### `app/studio/new/page.tsx`
+- **Action:** Created
+- **What changed:** Built dedicated authenticated creation workspace with upload, video preview canvas, language selector, voice consent, pricing estimate, and generation actions.
+- **Why:** Provide a canonical, distraction-free creation experience for authenticated users.
+- **Related task:** Authenticated Studio.
+- **Verification:** Tested upload and configuration flow on dev server.
+
+### `app/dashboard/page.tsx`
+- **Action:** Modified
+- **What changed:** Updated all "Localize a Reel" / "New Reel" action links to route directly to `/studio/new`.
+- **Why:** Streamline returning user workflow.
+- **Related task:** Creator dashboard.
+- **Verification:** Navigation verification.
+
+### `app/privacy/page.tsx`, `app/terms/page.tsx`, `app/refund-policy/page.tsx`, `app/contact/page.tsx`
+- **Action:** Created
+- **What changed:** Added statutory legal and compliance pages covering voice rights warranties, data retention, automated failure refunds, and support contact channels.
+- **Why:** Provide essential SaaS legal coverage before public paid launch.
+- **Related task:** Legal & compliance.
+- **Verification:** HTTP 200 verification on all 4 routes.
+
+### `components/footer.tsx`
+- **Action:** Modified
+- **What changed:** Added navigation links to Privacy Policy, Terms of Service, Refund Policy, and Contact pages.
+- **Why:** Ensure legal documentation is accessible across the entire product.
+- **Related task:** Footer polish.
+- **Verification:** UI rendering.
+
+### `app/api/auth/guest-merge/route.ts`
+- **Action:** Modified
+- **What changed:** Deprecated endpoint to return static success message without performing anonymous database mutations.
+- **Why:** Remove unused guest merge logic in Auth-First V1.
+- **Related task:** Guest architecture removal.
+- **Verification:** API response test.
+
+### `tests/unit/user-isolation.test.ts` & `tests/unit/storage-security.test.ts`
+- **Action:** Created
+- **What changed:** Added automated test suites for user isolation (owner vs attacker vs unauthenticated) and storage provider methods.
+- **Why:** Guarantee continuous protection against IDOR and path traversal regressions.
+- **Related task:** Automated testing.
+- **Verification:** Vitest test run (`31/31 passed`).
+
+## Information Architecture, Two-Navigation Separation & Fail-Closed Validation
+
+### `components/public-navigation.tsx`
+- **Action:** Created
+- **What changed:** Dedicated marketing navigation for public routes (`/`, `/privacy`, `/terms`, `/refund-policy`, `/contact`) with `How it works`, `Languages`, `Sign in`, and `Get started` (`signIn("google", { callbackUrl: "/studio/new" })`).
+- **Why:** Prevent marketing links from cluttering authenticated creator workspace.
+- **Related issue:** Information architecture.
+
+### `components/app-navigation.tsx`
+- **Action:** Created
+- **What changed:** Dedicated creator application navigation for all authenticated pages (`/dashboard`, `/studio/new`, `/projects`, `/project/[id]`, `/billing`, `/account`).
+- **Why:** Provide persistent app-level navigation with Logo $\rightarrow$ `/dashboard`, active route indicators on `Dashboard`, `New Reel` (`/studio/new`), and `My Reels` (`/projects`), plus live Credits pill and profile avatar dropdown.
+- **Related issue:** Application navigation & runtime consistency.
+
+### `components/navigation.tsx`
+- **Action:** Modified
+- **What changed:** Converted into a clean wrapper that dynamically delegates to `AppNavigation` (for authenticated pages or `variant="app"`) or `PublicNavigation` (for marketing routes).
+- **Why:** Unified entry point with zero duplicate logic.
+
+### `app/projects/page.tsx`
+- **Action:** Modified
+- **What changed:** Replaced deprecated `href="/#studio"` links on "Localize New Reel" button and empty-state CTA with canonical `href="/studio/new"`. Added contextual CTA labels (`Continue Setup` for drafts, `View Progress` for processing, `View Results` for completed).
+- **Why:** Fixed P0 bug where clicking "Localize New Reel" redirected creators back to the marketing landing page.
+
+### `app/dashboard/page.tsx`
+- **Action:** Modified
+- **What changed:** Removed promotional "Multi-Language Reach" card. Streamlined into a clean 2-card operational layout (`Available Credits` + `Localized Reels`), active processing cards, and recent Reels list with direct links to `/studio/new`.
+- **Why:** Transform dashboard from promotional marketing page into a focused creator workspace.
+
+### `app/api/uploads/complete/route.ts`
+- **Action:** Modified
+- **What changed:** Enforced strictly fail-closed media verification. If server-side ISO BMFF parser cannot read duration from file atoms, return `400 VIDEO_METADATA_INVALID` and do not mark project ready. Completely eliminated client-supplied duration fallback.
+- **Why:** Prevent duration spoofing and financial exploitation on paid generation runs.
+
+### `app/api/projects/[id]/route.ts`
+- **Action:** Modified
+- **What changed:** Added `DELETE` method that verifies user ownership, guards against deleting active processing runs, deletes source media from storage, and deletes project records.
+- **Why:** Allow creators to clean up accidental or stale draft projects.
+
+### `components/upload-zone.tsx`
+- **Action:** Modified
+- **What changed:** Removed `durationSeconds` parameter from `/api/uploads/complete` payload to reflect server-authoritative duration extraction.

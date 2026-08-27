@@ -6,8 +6,6 @@ import {
   projects,
   generationRuns,
   projectOutputs,
-  type GenerationRun,
-  type Project,
 } from "@/db/schema";
 import { getR2ObjectStream } from "@/lib/r2/uploads";
 import { copyUrlToR2 } from "@/lib/r2/outputs";
@@ -27,7 +25,43 @@ export const generationWorkflow = inngest.createFunction(
     concurrency: {
       limit: 3, // Conservative concurrency limit to protect Sarvam API rate limits
     },
-    retries: 2,
+    retries: 1,
+    onFailure: async ({ event, error }) => {
+      const { generationRunId } = event.data.event.data;
+      console.error(`💥 Inngest generation workflow failed for run ${generationRunId}:`, error);
+
+      const [run] = await db
+        .select()
+        .from(generationRuns)
+        .where(eq(generationRuns.id, generationRunId))
+        .limit(1);
+
+      if (run && (run.status === "queued" || run.status === "processing" || run.status === "uploading_to_sarvam")) {
+        await releaseFullReservation({
+          userId: run.userId,
+          projectId: run.projectId,
+          generationRunId: run.id,
+          reservedCostPaise: run.reservedCostPaise,
+          reason: error.message || "Background localization workflow failed",
+        });
+
+        await db
+          .update(generationRuns)
+          .set({
+            status: "failed",
+            errorCode: "WORKFLOW_FAILED",
+            errorMessage: error.message || "Background localization workflow failed",
+            completedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(generationRuns.id, run.id));
+
+        await db
+          .update(projects)
+          .set({ status: "failed", updatedAt: new Date() })
+          .where(eq(projects.id, run.projectId));
+      }
+    },
   },
   { event: "generation.requested" },
   async ({ event, step }) => {
@@ -66,12 +100,13 @@ export const generationWorkflow = inngest.createFunction(
 
     // Step 2: Create or Resume Sarvam Dubbing Job
     const sarvamJob = await step.run("create-or-resume-sarvam-job", async () => {
-      // If job already has a persisted Sarvam job ID, reuse it
       if (run.sarvamJobId) {
         return {
           jobId: run.sarvamJobId,
           uploadUrl: null as string | null,
           alreadyCreated: true,
+          failed: false,
+          error: null as string | null,
         };
       }
 
@@ -80,7 +115,7 @@ export const generationWorkflow = inngest.createFunction(
         .set({
           status: "uploading_to_sarvam",
           currentStep: "uploading",
-          currentStepLabel: "Preparing video upload to Sarvam",
+          currentStepLabel: "Preparing video localization job",
           startedAt: new Date(),
           updatedAt: new Date(),
         })
@@ -89,33 +124,77 @@ export const generationWorkflow = inngest.createFunction(
       const sourceLang = project.sourceLanguage || "en-IN";
       const targetLangs = run.targetLanguages;
 
-      const jobResponse = await createDubbingJob({
-        sourceLanguage: sourceLang,
-        targetLanguages: targetLangs,
-      });
+      try {
+        const jobResponse = await createDubbingJob({
+          sourceLanguage: sourceLang,
+          targetLanguages: targetLangs,
+        });
 
-      await db
-        .update(generationRuns)
-        .set({
-          sarvamJobId: jobResponse.job_id,
-          updatedAt: new Date(),
-        })
-        .where(eq(generationRuns.id, run.id));
+        await db
+          .update(generationRuns)
+          .set({
+            sarvamJobId: jobResponse.job_id,
+            updatedAt: new Date(),
+          })
+          .where(eq(generationRuns.id, run.id));
 
-      return {
-        jobId: jobResponse.job_id,
-        uploadUrl: jobResponse.upload_url,
-        alreadyCreated: false,
-      };
+        return {
+          jobId: jobResponse.job_id,
+          uploadUrl: jobResponse.upload_url,
+          alreadyCreated: false,
+          failed: false,
+          error: null as string | null,
+        };
+      } catch (err: any) {
+        console.error(`Failed to create provider job for run ${run.id}:`, err.message);
+
+        // Immediate release of reserved funds on provider initialization failure
+        await releaseFullReservation({
+          userId: run.userId,
+          projectId: project.id,
+          generationRunId: run.id,
+          reservedCostPaise: run.reservedCostPaise,
+          reason: err.message || "Provider API initialization failed",
+        });
+
+        await db
+          .update(generationRuns)
+          .set({
+            status: "failed",
+            finalCostPaise: 0,
+            errorCode: "PROVIDER_INIT_FAILED",
+            errorMessage: err.message || "Failed to initialize provider localization job",
+            completedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(generationRuns.id, run.id));
+
+        await db
+          .update(projects)
+          .set({ status: "failed", updatedAt: new Date() })
+          .where(eq(projects.id, project.id));
+
+        return {
+          jobId: "",
+          uploadUrl: null,
+          alreadyCreated: false,
+          failed: true,
+          error: err.message as string,
+        };
+      }
     });
 
-    // Step 3: Stream Video from R2 to Sarvam Signed Upload URL (only if new job)
+    if (sarvamJob.failed) {
+      return { success: false, error: sarvamJob.error };
+    }
+
+    // Step 3: Stream Video to Provider Upload Target
     if (!sarvamJob.alreadyCreated && sarvamJob.uploadUrl) {
-      await step.run("stream-r2-to-sarvam", async () => {
+      await step.run("stream-source-to-provider", async () => {
         const { stream, contentLength, contentType } = await getR2ObjectStream(project.sourceR2Key);
 
         if (!stream || !contentLength) {
-          throw new Error(`Failed to retrieve stream from R2 object: ${project.sourceR2Key}`);
+          throw new Error(`Failed to retrieve stream from source object: ${project.sourceR2Key}`);
         }
 
         await streamUploadToSarvam({
@@ -126,8 +205,8 @@ export const generationWorkflow = inngest.createFunction(
         });
       });
 
-      // Step 4: Start Sarvam Job
-      await step.run("start-sarvam-job", async () => {
+      // Step 4: Start Provider Job
+      await step.run("start-provider-job", async () => {
         await startDubbingJob(sarvamJob.jobId);
 
         await db
@@ -135,7 +214,7 @@ export const generationWorkflow = inngest.createFunction(
           .set({
             status: "processing",
             currentStep: "dubbing",
-            currentStepLabel: "Localizing your Reel with Sarvam AI",
+            currentStepLabel: "Localizing your Reel with neural voice preservation",
             updatedAt: new Date(),
           })
           .where(eq(generationRuns.id, run.id));
@@ -150,7 +229,7 @@ export const generationWorkflow = inngest.createFunction(
       });
     }
 
-    // Step 5: Durable Polling for Sarvam Live Status (Step-level checkpoints with step.sleep)
+    // Step 5: Durable Polling for Provider Live Status
     let liveStatus: any = null;
     const maxPollAttempts = 40;
 
@@ -180,7 +259,6 @@ export const generationWorkflow = inngest.createFunction(
         break;
       }
 
-      // Durable Inngest sleep (15 seconds)
       await step.sleep(`wait-live-status-${attempt}`, "15s");
     }
 
@@ -192,7 +270,7 @@ export const generationWorkflow = inngest.createFunction(
           projectId: project.id,
           generationRunId: run.id,
           reservedCostPaise: run.reservedCostPaise,
-          reason: liveStatus.error_message || "Sarvam dubbing pipeline failed",
+          reason: liveStatus.error_message || "Localization pipeline failed",
         });
 
         await db
@@ -200,8 +278,8 @@ export const generationWorkflow = inngest.createFunction(
           .set({
             status: "failed",
             finalCostPaise: 0,
-            errorCode: liveStatus.error_code || "SARVAM_JOB_FAILED",
-            errorMessage: liveStatus.error_message || "Dubbing job failed",
+            errorCode: liveStatus.error_code || "JOB_FAILED",
+            errorMessage: liveStatus.error_message || "Localization job failed",
             completedAt: new Date(),
             updatedAt: new Date(),
           })
@@ -216,7 +294,7 @@ export const generationWorkflow = inngest.createFunction(
       return { success: false, status: "failed" };
     }
 
-    // Step 6: Durable Polling for Sarvam Export Status (`limit=100`)
+    // Step 6: Polling for Export Status
     let exportItems: any[] = [];
     const maxExportAttempts = 20;
 
@@ -250,8 +328,8 @@ export const generationWorkflow = inngest.createFunction(
       await step.sleep(`wait-export-status-${attempt}`, "10s");
     }
 
-    // Step 7: Archive Output Files to Private R2 & Update Distinct project_outputs Rows
-    const successfulOutputs = await step.run("archive-outputs-to-r2", async () => {
+    // Step 7: Archive Output Files
+    const successfulOutputs = await step.run("archive-outputs", async () => {
       const successfulLanguages: string[] = [];
 
       for (const lang of run.targetLanguages) {
@@ -289,7 +367,6 @@ export const generationWorkflow = inngest.createFunction(
         const isSuccess = !!videoR2Key;
         const outStatus = isSuccess ? "completed" : "failed";
 
-        // Query by exact (projectId, targetLanguage) compound identity
         const [existingOutput] = await db
           .select()
           .from(projectOutputs)
@@ -344,7 +421,6 @@ export const generationWorkflow = inngest.createFunction(
 
       const finalCostPaise = pricing.totalCostPaise;
 
-      // Charge only successful video outputs; release unspent reservation
       await settleGenerationRun({
         userId: run.userId,
         projectId: project.id,

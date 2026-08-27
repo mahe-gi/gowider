@@ -11,7 +11,7 @@ export function HeroReelTransform() {
       id: "hi" as const,
       lang: "Hindi",
       native: "हिन्दी",
-      badge: "Dubbed in Hindi",
+      badge: "Hindi Version",
       gradient: "from-[#FF552E]/90 to-[#9A1B00]",
       offset: "-translate-x-16 sm:-translate-x-32 -rotate-6 scale-90 sm:scale-95",
       zIndex: "z-10",
@@ -24,14 +24,14 @@ export function HeroReelTransform() {
       badge: "Original Reel · Telugu",
       gradient: "from-[#1F1E1D] to-[#0A0A0A]",
       offset: "translate-x-0 rotate-0 scale-100",
-      zIndex: "z-30",
+      zIndex: "z-20",
       delay: "0ms",
     },
     {
       id: "ta" as const,
       lang: "Tamil",
       native: "தமிழ்",
-      badge: "Dubbed in Tamil",
+      badge: "Tamil Version",
       gradient: "from-[#FF7A00]/90 to-[#B83E00]",
       offset: "translate-x-16 sm:translate-x-32 rotate-6 scale-90 sm:scale-95",
       zIndex: "z-10",
@@ -57,7 +57,7 @@ export function HeroReelTransform() {
                 card.offset
               } ${card.zIndex} ${
                 isSelected
-                  ? "ring-2 ring-[#FF441F] shadow-[0_20px_50px_rgba(255,68,31,0.25)] -translate-y-2 z-40"
+                  ? "ring-2 ring-[#FF441F] shadow-[0_20px_50px_rgba(255,68,31,0.25)] -translate-y-2 z-30"
                   : "hover:-translate-y-1 hover:brightness-105 opacity-90"
               } bg-gradient-to-b ${card.gradient} border-white/15 text-white`}
               style={{ transitionDelay: card.delay }}
@@ -86,7 +86,7 @@ export function HeroReelTransform() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[10px] text-white/60 font-mono">
                   <span className="flex items-center gap-1">
-                    <Volume2 className="w-3 h-3 text-[#FF552E]" /> AI Dubbed
+                    <Volume2 className="w-3 h-3 text-[#FF552E]" /> Voice Preserved
                   </span>
                   <span>1080p · 9:16</span>
                 </div>

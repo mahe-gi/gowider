@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef, DragEvent, ChangeEvent } from "react";
-import { UploadCloud, Film, AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { UploadCloud, Film, AlertCircle, Loader2 } from "lucide-react";
 import { MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB, MAX_DURATION_SECONDS } from "@/lib/constants";
 
 interface UploadZoneProps {
-  onUploadSuccess: (projectData: {
+  onUploadSuccess: (data: {
     projectId: string;
     sourcePreviewUrl: string;
     durationSeconds: number;
@@ -18,12 +18,12 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  function formatTime(seconds: number) {
+  function formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
@@ -44,7 +44,7 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
       return;
     }
 
-    // 3. Inspect Video Duration in Browser
+    // 3. Inspect Video Duration in Browser for fast UI feedback
     setStatusMessage("Checking video duration…");
     const videoUrl = URL.createObjectURL(file);
     const videoElement = document.createElement("video");
@@ -56,7 +56,7 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
         resolve(videoElement.duration);
       };
       videoElement.onerror = () => {
-        resolve(0); // If browser cannot decode, proceed to server check
+        resolve(0);
       };
     });
 
@@ -75,7 +75,7 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
     setUploadProgress(10);
 
     try {
-      // Step A: Request Presigned URL from Backend
+      // Step A: Request Presigned Target from Backend
       const presignRes = await fetch("/api/uploads/presign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -93,11 +93,10 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
 
       const { projectId, uploadUrl } = presignData.data;
 
-      // Step B: Upload Direct to Cloudflare R2
-      setStatusMessage("Uploading directly to private cloud storage…");
+      // Step B: Upload Direct to Private Storage
+      setStatusMessage("Uploading directly to storage…");
       setUploadProgress(30);
 
-      // Using XMLHttpRequest to provide granular upload progress
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", uploadUrl);
@@ -114,7 +113,7 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve();
           } else {
-            reject(new Error(`R2 upload rejected with status ${xhr.status}`));
+            reject(new Error(`Storage upload rejected with status ${xhr.status}`));
           }
         };
 
@@ -122,32 +121,35 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
         xhr.send(file);
       });
 
-      // Step C: Confirm Upload to Backend
-      setStatusMessage("Verifying upload integrity…");
+      // Step C: Confirm Upload to Backend (Server performs fail-closed media atom verification)
+      setStatusMessage("Verifying upload integrity on server…");
       setUploadProgress(95);
 
       const completeRes = await fetch("/api/uploads/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId,
-          durationSeconds: duration || 10,
-        }),
+        body: JSON.stringify({ projectId }),
       });
 
       const completeData = await completeRes.json();
       if (!completeRes.ok || !completeData.success) {
-        throw new Error(completeData.error?.message || "Failed to confirm upload completion.");
+        throw new Error(completeData.error?.message || "Failed to verify video on server.");
       }
 
-      setUploadProgress(100);
-      setStatusMessage("Upload complete! Loading Creator Studio…");
+      if (!completeData.data?.durationSeconds) {
+        throw new Error("Server failed to return verified video duration.");
+      }
 
-      // Transition to Studio
+      const verifiedDuration = completeData.data.durationSeconds;
+
+      setUploadProgress(100);
+      setStatusMessage("Upload verified! Loading Creator Studio…");
+
+      // Transition to Studio Workspace
       onUploadSuccess({
         projectId,
         sourcePreviewUrl: videoUrl,
-        durationSeconds: Math.ceil(duration || 10),
+        durationSeconds: verifiedDuration,
         fileName: file.name,
         fileSizeBytes: file.size,
       });

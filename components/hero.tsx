@@ -1,7 +1,13 @@
+"use client";
+
+import { useSession, signIn } from "next-auth/react";
+import Link from "next/link";
 import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import { HeroReelTransform } from "./hero-reel-transform";
 
 export function Hero() {
+  const { data: session } = useSession();
+
   return (
     <section className="relative pt-28 pb-16 md:pt-36 md:pb-24 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,13 +33,24 @@ export function Hero() {
 
             {/* CTAs */}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <a
-                href="#studio"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-[#111111] hover:bg-[#222222] rounded-full shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer group"
-              >
-                <span>Localize a Reel</span>
-                <ArrowRight className="w-4 h-4 text-[#FF441F] group-hover:translate-x-1 transition-transform" />
-              </a>
+              {session?.user?.id ? (
+                <Link
+                  href="/studio/new"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-[#111111] hover:bg-[#222222] rounded-full shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                >
+                  <span>Localize a Reel</span>
+                  <ArrowRight className="w-4 h-4 text-[#FF441F] group-hover:translate-x-1 transition-transform" />
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3.5 text-base font-semibold text-white bg-[#111111] hover:bg-[#222222] rounded-full shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer group"
+                >
+                  <span>Get Started with Google</span>
+                  <ArrowRight className="w-4 h-4 text-[#FF441F] group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
               <a
                 href="#how-it-works"
                 className="w-full sm:w-auto px-6 py-3.5 text-base font-medium text-[#55524C] hover:text-[#111111] hover:bg-[#121212]/05 rounded-full transition-colors text-center"
