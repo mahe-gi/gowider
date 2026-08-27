@@ -7,10 +7,11 @@ import { users, wallets } from "@/db/schema";
 import { env } from "@/lib/env";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
     Google({
-      clientId: env.GOOGLE_CLIENT_ID || "placeholder_google_id",
-      clientSecret: env.GOOGLE_CLIENT_SECRET || "placeholder_google_secret",
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
   ],
   session: {

@@ -246,3 +246,67 @@
 - **Why:** Ensure claimed projects cannot be hijacked via old guest cookies.
 - **Related task:** #40 Unit Tests.
 - **Verification:** Ran via Vitest (4 tests passed).
+
+## Local Environment Configuration (Google OAuth)
+
+### `.env.local`
+- **Action:** Created / Modified (Git Ignored)
+- **What changed:** Configured local development environment with `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+- **Why:** Enable local testing of Google OAuth sign-in and guest project merge.
+- **Related task:** Local Auth Verification.
+- **Verification:** Verified file is git-ignored; dev server restarted and loaded on `http://localhost:3000`.
+
+## Local Docker PostgreSQL Integration
+
+### `docker-compose.yml`
+- **Action:** Created
+- **What changed:** Added Docker Compose service running `postgres:16-alpine` container named `gowider-postgres` on port `5432:5432` with persistent volume `postgres_data`.
+- **Why:** Provide a lightweight, isolated local PostgreSQL database.
+- **Related task:** Local Database Setup.
+- **Verification:** Ran `docker compose up -d` and confirmed all 10 schema tables applied via `npx drizzle-kit push`.
+
+### `lib/db/index.ts`
+- **Action:** Modified
+- **What changed:** Dual driver support — utilizes `postgres.js` for local Docker PostgreSQL and `@neondatabase/serverless` for Neon cloud.
+- **Why:** Ensure seamless development against local Docker PostgreSQL without breaking serverless production deployments.
+- **Related task:** Local Database Setup.
+- **Verification:** Verified live table queries against `gowider-postgres`.
+
+## Auth.js Discovery & PKCE Resolution
+
+### `lib/auth/auth.ts`
+- **Action:** Modified
+- **What changed:** Removed placeholder fallback defaults and enabled `trustHost: true`.
+- **Why:** Ensure Auth.js strictly binds to the provided Google OAuth credentials and trusts localhost origin headers.
+- **Related task:** Google OAuth Local Verification.
+- **Verification:** Verified OIDC discovery and PKCE authorization redirect to `https://accounts.google.com/o/oauth2/v2/auth` (`302 Found`).
+
+## Navbar Logo & Auth Modal Copy Polish
+
+### `components/navigation.tsx`
+- **Action:** Modified
+- **What changed:** Updated the brand logo container to target width ~136px (desktop) / ~120px (mobile) and height ~34px (desktop) / ~30px (mobile) using tightly cropped `/brand/logo-wordmark.png` with `object-contain object-left`.
+- **Why:** The previous logo rendered too small in the navbar because of excess transparent padding in the 16:9 canvas.
+- **Related task:** Fix Navbar Logo.
+- **Verification:** TypeScript compilation + production build + browser viewport layout inspection.
+
+### `public/brand/logo-wordmark.png`
+- **Action:** Created
+- **What changed:** Generated a tightly cropped wordmark asset (960x260, 3.69:1 aspect ratio) from the master brand artwork.
+- **Why:** Ensure the `gowider` wordmark fills the target navbar dimensions without aspect ratio distortion or excessive transparent whitespace.
+- **Related task:** Fix Navbar Logo.
+- **Verification:** Image dimension analysis (`sips`) + visual presentation check.
+
+### `components/footer.tsx`
+- **Action:** Modified
+- **What changed:** Updated footer to use `/brand/logo-wordmark.png` with proportional dimensions.
+- **Why:** Maintain consistent brand wordmark rendering across the application.
+- **Related task:** Fix Navbar Logo.
+- **Verification:** TypeScript compilation + build.
+
+### `components/auth-sheet.tsx`
+- **Action:** Modified
+- **What changed:** Replaced permanent-storage description with `"Sign in with Google to continue localization and access your projects from your account."`, added crisp inline Google SVG icon to the `Continue with Google` button, and updated reassurance text to `"Your progress will be saved."` with shield icon.
+- **Why:** Eliminate unsupported permanent storage promises, fix Google icon rendering, and simplify reassurance copy.
+- **Related task:** Fix Auth Modal Copy.
+- **Verification:** Manual browser verification + TypeScript check + Next.js build.
