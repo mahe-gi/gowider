@@ -1,94 +1,88 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import { users, wallets } from "@/db/schema";
+import { env } from "@/lib/env";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: env.GOOGLE_CLIENT_ID || "placeholder_google_id",
+      clientSecret: env.GOOGLE_CLIENT_SECRET || "placeholder_google_secret",
     }),
   ],
+  session: {
+    strategy: "jwt",
+  },
   callbacks: {
     async signIn({ user, account }) {
-      if (!user.email || !account) return false;
+      if (!user.email) return false;
 
       try {
-        const providerId = account.providerAccountId;
-        const provider = account.provider;
-
-        // Check if user already exists
+        // Find or create user in PostgreSQL
         const [existingUser] = await db
           .select()
           .from(users)
-          .where(and(eq(users.authProvider, provider), eq(users.authProviderId, providerId)))
+          .where(eq(users.email, user.email))
           .limit(1);
 
-        let internalUserId: string;
+        let userId = existingUser?.id;
 
         if (!existingUser) {
-          internalUserId = `user_${nanoid(16)}`;
+          userId = `usr_${nanoid(16)}`;
           await db.insert(users).values({
-            id: internalUserId,
-            authProvider: provider,
-            authProviderId: providerId,
+            id: userId,
             email: user.email,
-            name: user.name || null,
+            displayName: user.name || null,
             avatarUrl: user.image || null,
+            authProvider: account?.provider || "google",
+            authProviderId: account?.providerAccountId || null,
             createdAt: new Date(),
             updatedAt: new Date(),
           });
 
-          // Create initial wallet with 0 balance
+          // Create empty wallet for new user
           await db.insert(wallets).values({
             id: `wal_${nanoid(16)}`,
-            userId: internalUserId,
+            userId,
             balancePaise: 0,
             reservedPaise: 0,
             createdAt: new Date(),
             updatedAt: new Date(),
           });
         } else {
-          internalUserId = existingUser.id;
           // Update profile details
           await db
             .update(users)
             .set({
-              name: user.name || existingUser.name,
+              displayName: user.name || existingUser.displayName,
               avatarUrl: user.image || existingUser.avatarUrl,
               updatedAt: new Date(),
             })
             .where(eq(users.id, existingUser.id));
         }
 
-        user.id = internalUserId;
+        user.id = userId;
         return true;
       } catch (error) {
-        console.error("Error during signIn callback:", error);
+        console.error("Error during user sign in:", error);
         return false;
       }
     },
+    async jwt({ token, user }) {
+      if (user?.id) {
+        token.id = user.id;
+      }
+      return token;
+    },
     async session({ session, token }) {
-      if (session.user && token.sub) {
-        // Resolve internal DB user ID
-        const [dbUser] = await db
-          .select()
-          .from(users)
-          .where(eq(users.email, session.user.email))
-          .limit(1);
-
-        if (dbUser) {
-          session.user.id = dbUser.id;
-        }
+      if (token?.id && session.user) {
+        session.user.id = token.id as string;
       }
       return session;
     },
   },
-  pages: {
-    signIn: "/",
-    error: "/",
-  },
+  secret: env.AUTH_SECRET,
 });

@@ -1,42 +1,48 @@
-import { env } from "@/lib/env";
-import { DEFAULT_PRICE_PER_MINUTE_PAISE } from "@/lib/constants";
+import { GOWIDER_DUBBING_PRICE_PER_MINUTE_PAISE } from "@/lib/constants";
 
-export interface PricingBreakdown {
+export interface PricingCalculation {
   durationSeconds: number;
   billableSeconds: number;
   targetLanguageCount: number;
   pricePerMinutePaise: number;
-  costPerTargetPaise: number;
   totalCostPaise: number;
   formattedTotalInr: string;
 }
 
+/**
+ * Calculates authoritative GoWider dubbing pricing in integer paise.
+ * Invariant: All financial math uses integer ceiling calculation to prevent rounding leakage.
+ */
 export function calculateDubbingCost(
   durationSeconds: number,
   targetLanguageCount: number,
-  overridePricePerMinute?: number
-): PricingBreakdown {
-  const pricePerMinutePaise =
-    overridePricePerMinute ??
-    env.GOWIDER_DUBBING_PRICE_PER_MINUTE_PAISE ??
-    DEFAULT_PRICE_PER_MINUTE_PAISE;
+  pricePerMinutePaise = GOWIDER_DUBBING_PRICE_PER_MINUTE_PAISE
+): PricingCalculation {
+  if (targetLanguageCount <= 0) {
+    return {
+      durationSeconds: Math.max(1, Math.ceil(durationSeconds)),
+      billableSeconds: Math.max(1, Math.ceil(durationSeconds)),
+      targetLanguageCount: 0,
+      pricePerMinutePaise,
+      totalCostPaise: 0,
+      formattedTotalInr: "₹0.00",
+    };
+  }
 
-  const validDuration = Math.max(1, durationSeconds);
-  const billableSeconds = Math.ceil(validDuration);
+  // Minimum billable unit is 1 second, ceiling to full integer seconds
+  const billableSeconds = Math.max(1, Math.ceil(durationSeconds));
+  const count = targetLanguageCount;
 
-  // Exact per-target calculation: ceil(billableSeconds * pricePerMinute / 60)
-  const costPerTargetPaise = Math.ceil((billableSeconds * pricePerMinutePaise) / 60);
-  const totalCostPaise = costPerTargetPaise * Math.max(1, targetLanguageCount);
-
-  const formattedTotalInr = `₹${(totalCostPaise / 100).toFixed(2)}`;
+  // Pricing formula: ceil(billableSeconds / 60 * count * pricePerMinutePaise)
+  const totalCostPaise = Math.ceil((billableSeconds / 60) * count * pricePerMinutePaise);
+  const inrValue = (totalCostPaise / 100).toFixed(2);
 
   return {
-    durationSeconds: validDuration,
+    durationSeconds: Math.ceil(durationSeconds),
     billableSeconds,
-    targetLanguageCount,
+    targetLanguageCount: count,
     pricePerMinutePaise,
-    costPerTargetPaise,
     totalCostPaise,
-    formattedTotalInr,
+    formattedTotalInr: `₹${inrValue}`,
   };
 }

@@ -1,10 +1,17 @@
+// GoWider Core Brand & Product Constants
+
 export const BRAND = {
   name: "gowider",
   displayName: "GoWider",
-  tagline: "One Reel. Every Audience.",
-  description: "Turn one short video into multiple Indian-language versions with your own voice.",
+  tagline: "ONE REEL. EVERY AUDIENCE.",
+  description:
+    "Turn one short video into localized Indian-language versions with voice cloning, synchronized timing, and emotion.",
+  accentColor: "#FF441F",
+  darkColor: "#111111",
 } as const;
 
+// Strict Sarvam Supported Dubbing Languages
+// Critical Fix: Odia is 'or-IN' (NOT 'od-IN' which causes Sarvam 422), Assamese is 'as-IN'
 export const SUPPORTED_LANGUAGES = {
   "en-IN": { label: "English", native: "English" },
   "hi-IN": { label: "Hindi", native: "हिन्दी" },
@@ -22,33 +29,51 @@ export const SUPPORTED_LANGUAGES = {
 
 export type LanguageCode = keyof typeof SUPPORTED_LANGUAGES;
 
-export const MAX_TARGET_LANGUAGES = 3;
+// Media Limits & Boundaries
+export const MAX_DURATION_SECONDS = 90;
 export const MAX_FILE_SIZE_MB = 100;
 export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-export const MAX_DURATION_SECONDS = 90;
-export const MIN_DURATION_SECONDS = 1;
 export const ACCEPTED_MIME_TYPES = ["video/mp4", "video/quicktime"] as const;
+export const MAX_TARGET_LANGUAGES = 3;
 
-export const DEFAULT_PRICE_PER_MINUTE_PAISE = 4000; // ₹40/min = 4000 paise/min
+// Pricing: Stored and computed in integer paise (₹40/min = 4000 paise/min)
+export const GOWIDER_DUBBING_PRICE_PER_MINUTE_PAISE = 4000;
 
+// Razorpay Top-Up Packages (Amount in Paise)
 export const TOP_UP_PACKAGES_PAISE = [
-  { amountPaise: 10000, label: "₹100", description: "Good for testing" },
-  { amountPaise: 25000, label: "₹250", description: "Popular choice" },
-  { amountPaise: 50000, label: "₹500", description: "For regular creators" },
+  {
+    amountPaise: 10000, // ₹100
+    label: "₹100",
+    description: "Good for ~2.5 mins of localization",
+  },
+  {
+    amountPaise: 25000, // ₹250
+    label: "₹250",
+    description: "Good for ~6.25 mins of localization",
+  },
+  {
+    amountPaise: 50000, // ₹500
+    label: "₹500",
+    description: "Good for ~12.5 mins of localization",
+  },
 ] as const;
 
-export const HUMAN_STATUS_LABELS: Record<string, string> = {
-  draft: "Draft",
-  ready: "Ready to localize",
-  queued: "Queued for processing",
-  uploading_to_sarvam: "Preparing your Reel",
-  processing: "Localizing your Reel",
-  exporting: "Preparing your downloads",
-  completed: "Ready",
-  partial_failure: "Partially completed",
-  failed: "Generation failed",
-  awaiting_payment: "Awaiting credits",
-};
+// Guest Cookie Configuration
+export const GUEST_COOKIE_NAME = "gowider_guest_session";
+export const GUEST_SESSION_EXPIRY_DAYS = 1; // 24 hours
 
-export const GUEST_COOKIE_NAME = "gowider_guest_token";
-export const GUEST_SESSION_MAX_AGE = 60 * 60 * 24; // 24 hours in seconds
+// Human Friendly Status Labels
+export const HUMAN_STATUS_LABELS: Record<string, string> = {
+  draft: "Draft created",
+  uploading: "Uploading video…",
+  ready: "Ready for localization",
+  awaiting_payment: "Awaiting credit top-up",
+  queued: "Queued for processing",
+  uploading_to_sarvam: "Preparing Sarvam pipeline…",
+  processing: "Localizing voices and emotion…",
+  exporting: "Generating video and subtitles…",
+  completed: "Ready to go wider",
+  partial_failure: "Partially ready",
+  failed: "Localization failed",
+  expired: "Media expired",
+};
