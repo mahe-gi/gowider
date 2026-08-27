@@ -1,32 +1,32 @@
 import "server-only";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
-import { walletTransactions, type NewWalletTransaction } from "@/db/schema";
+import { walletTransactions, type WalletTransaction } from "@/db/schema";
 
-export async function recordWalletTransaction(params: {
+export interface RecordTransactionParams {
   userId: string;
   type: "purchase" | "reservation" | "usage" | "release" | "refund" | "manual_adjustment";
   amountPaise: number;
-  projectId?: string;
-  generationRunId?: string;
   paymentOrderId?: string;
-  status?: "pending" | "completed" | "failed" | "cancelled";
+  generationRunId?: string;
+  status?: "pending" | "completed" | "failed" | "reversed";
   metadata?: Record<string, any>;
-}): Promise<string> {
-  const id = `txn_${nanoid(16)}`;
+}
+
+export async function recordWalletTransaction(params: RecordTransactionParams): Promise<string> {
+  const txnId = `txn_${nanoid(16)}`;
 
   await db.insert(walletTransactions).values({
-    id,
+    id: txnId,
     userId: params.userId,
-    type: params.type,
-    amountPaise: Math.abs(params.amountPaise), // Amounts are always positive integers
-    projectId: params.projectId || null,
-    generationRunId: params.generationRunId || null,
     paymentOrderId: params.paymentOrderId || null,
+    generationRunId: params.generationRunId || null,
+    type: params.type,
+    amountPaise: params.amountPaise,
     status: params.status || "completed",
     metadata: params.metadata || null,
     createdAt: new Date(),
   });
 
-  return id;
+  return txnId;
 }

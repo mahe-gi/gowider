@@ -1,55 +1,141 @@
 import "server-only";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
-import { wallets, generationRuns } from "@/db/schema";
-import { recordWalletTransaction } from "./ledger";
+import { wallets, generationRuns, walletTransactions } from "@/db/schema";
 
-export async function settleGenerationRun(params: {
+export interface SettleRunInput {
   userId: string;
   projectId: string;
   generationRunId: string;
   reservedCostPaise: number;
   finalCostPaise: number;
-}): Promise<void> {
-  const { userId, projectId, generationRunId, reservedCostPaise, finalCostPaise } = params;
+}
 
-  if (reservedCostPaise <= 0 && finalCostPaise <= 0) {
-    return;
+export interface SettleRunResult {
+  success: boolean;
+  finalChargedPaise: number;
+  releasedPaise: number;
+  alreadySettled?: boolean;
+  errorCode?: string;
+  error?: string;
+}
+
+export async function settleGenerationRun(input: SettleRunInput): Promise<SettleRunResult> {
+  const { userId, projectId, generationRunId, reservedCostPaise, finalCostPaise } = input;
+
+  // Invariant 1: Final cost must never exceed reserved cost
+  if (finalCostPaise > reservedCostPaise) {
+    console.error(
+      `🚨 FINANCIAL_INVARIANT_VIOLATION: finalCost (${finalCostPaise}) > reservedCost (${reservedCostPaise}) for run ${generationRunId}`
+    );
+    throw new Error(
+      `FINANCIAL_INVARIANT_VIOLATION: finalCostPaise (${finalCostPaise}) exceeds reservedCostPaise (${reservedCostPaise})`
+    );
   }
 
-  // 1. Deduct final cost from balance and release reservation atomically
-  await db.execute(sql`
-    UPDATE wallets
-    SET balance_paise = balance_paise - ${finalCostPaise},
-        reserved_paise = GREATEST(0, reserved_paise - ${reservedCostPaise}),
-        updated_at = NOW()
-    WHERE user_id = ${userId};
-  `);
+  // 1. Idempotency Check: check if generation run is already settled
+  const [run] = await db
+    .select()
+    .from(generationRuns)
+    .where(eq(generationRuns.id, generationRunId))
+    .limit(1);
 
-  // 2. Record usage transaction if finalCost > 0
-  if (finalCostPaise > 0) {
-    await recordWalletTransaction({
-      userId,
-      type: "usage",
-      amountPaise: finalCostPaise,
-      projectId,
-      generationRunId,
-      status: "completed",
-    });
+  if (run?.settledAt) {
+    const unspent = Math.max(0, (run.reservedCostPaise || 0) - (run.finalCostPaise || 0));
+    return {
+      success: true,
+      finalChargedPaise: run.finalCostPaise || 0,
+      releasedPaise: unspent,
+      alreadySettled: true,
+    };
   }
 
-  // 3. Record release transaction if unused reservation existed (e.g. partial failure or full failure refund)
-  const unspentPaise = reservedCostPaise - finalCostPaise;
-  if (unspentPaise > 0) {
-    await recordWalletTransaction({
-      userId,
-      type: "release",
-      amountPaise: unspentPaise,
-      projectId,
-      generationRunId,
-      status: "completed",
-      metadata: { reason: "unspent_or_failed_language_refund" },
+  const unspentReleasePaise = reservedCostPaise - finalCostPaise;
+
+  // 2. Transactional Settlement
+  try {
+    const result = await db.transaction(async (tx) => {
+      // Deduct finalCost from balance, release all reservedCost from reserved
+      const updateResult = await tx.execute(sql`
+        UPDATE wallets
+        SET balance_paise = balance_paise - ${finalCostPaise},
+            reserved_paise = reserved_paise - ${reservedCostPaise},
+            updated_at = NOW()
+        WHERE user_id = ${userId}
+          AND reserved_paise >= ${reservedCostPaise}
+          AND balance_paise >= ${finalCostPaise}
+        RETURNING id, balance_paise, reserved_paise;
+      `);
+
+      const updatedWallet = (updateResult.rows || updateResult)[0] as
+        | { id: string; balance_paise: number; reserved_paise: number }
+        | undefined;
+
+      if (!updatedWallet && reservedCostPaise > 0) {
+        throw new Error(
+          `FINANCIAL_INVARIANT_VIOLATION: Wallet balance or reserved amount smaller than required settlement. User: ${userId}`
+        );
+      }
+
+      // Record Usage Ledger (Actual Spend for Successful Exports)
+      if (finalCostPaise > 0) {
+        const usageTxnId = `txn_${nanoid(16)}`;
+        await tx.insert(walletTransactions).values({
+          id: usageTxnId,
+          userId,
+          generationRunId,
+          type: "usage",
+          amountPaise: finalCostPaise,
+          status: "completed",
+          metadata: {
+            projectId,
+            settledAt: new Date().toISOString(),
+          },
+          createdAt: new Date(),
+        });
+      }
+
+      // Record Release Ledger (Unspent Reserved Credits for Failed/Unprocessed Targets)
+      if (unspentReleasePaise > 0) {
+        const releaseTxnId = `txn_${nanoid(16)}`;
+        await tx.insert(walletTransactions).values({
+          id: releaseTxnId,
+          userId,
+          generationRunId,
+          type: "release",
+          amountPaise: unspentReleasePaise,
+          status: "completed",
+          metadata: {
+            projectId,
+            reason: "unspent_partial_or_full_failure",
+            settledAt: new Date().toISOString(),
+          },
+          createdAt: new Date(),
+        });
+      }
+
+      // Mark generation run settled
+      await tx
+        .update(generationRuns)
+        .set({
+          finalCostPaise,
+          settledAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(generationRuns.id, generationRunId));
+
+      return {
+        success: true,
+        finalChargedPaise: finalCostPaise,
+        releasedPaise: unspentReleasePaise,
+      };
     });
+
+    return result;
+  } catch (err: any) {
+    console.error(`❌ Settlement transaction failed for run ${generationRunId}:`, err);
+    throw err;
   }
 }
 
@@ -58,26 +144,13 @@ export async function releaseFullReservation(params: {
   projectId: string;
   generationRunId: string;
   reservedCostPaise: number;
-  reason?: string;
-}): Promise<void> {
-  const { userId, projectId, generationRunId, reservedCostPaise, reason } = params;
-
-  if (reservedCostPaise <= 0) return;
-
-  await db.execute(sql`
-    UPDATE wallets
-    SET reserved_paise = GREATEST(0, reserved_paise - ${reservedCostPaise}),
-        updated_at = NOW()
-    WHERE user_id = ${userId};
-  `);
-
-  await recordWalletTransaction({
-    userId,
-    type: "release",
-    amountPaise: reservedCostPaise,
-    projectId,
-    generationRunId,
-    status: "completed",
-    metadata: { reason: reason || "job_failed_or_cancelled" },
+  reason: string;
+}): Promise<SettleRunResult> {
+  return settleGenerationRun({
+    userId: params.userId,
+    projectId: params.projectId,
+    generationRunId: params.generationRunId,
+    reservedCostPaise: params.reservedCostPaise,
+    finalCostPaise: 0, // Zero charged, 100% released
   });
 }
