@@ -58,7 +58,7 @@ export async function reserveCreditsForRun(input: ReserveCreditsInput): Promise<
   try {
     const result = await db.transaction(async (tx) => {
       // Atomic reservation with check: (balance_paise - reserved_paise) >= requiredCost
-      const updateResult = await tx.execute(sql`
+      const updateResult: any = await tx.execute(sql`
         UPDATE wallets
         SET reserved_paise = reserved_paise + ${requiredCostPaise},
             updated_at = NOW()
@@ -67,9 +67,8 @@ export async function reserveCreditsForRun(input: ReserveCreditsInput): Promise<
         RETURNING id, balance_paise, reserved_paise;
       `);
 
-      const updatedWallet = (updateResult.rows || updateResult)[0] as
-        | { id: string; balance_paise: number; reserved_paise: number }
-        | undefined;
+      const rawRows = updateResult?.rows || updateResult;
+      const updatedWallet = rawRows ? (rawRows[0] as { id: string; balance_paise: number; reserved_paise: number } | undefined) : undefined;
 
       if (!updatedWallet) {
         return {

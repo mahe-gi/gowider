@@ -14,7 +14,7 @@ export const mediaCleanupWorkflow = inngest.createFunction(
       const expired = await db
         .delete(guestSessions)
         .where(lt(guestSessions.expiresAt, now))
-        .returning({ id: guestSessions.id });
+        .returning();
 
       return expired.length;
     });

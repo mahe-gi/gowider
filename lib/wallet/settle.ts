@@ -57,7 +57,7 @@ export async function settleGenerationRun(input: SettleRunInput): Promise<Settle
   try {
     const result = await db.transaction(async (tx) => {
       // Deduct finalCost from balance, release all reservedCost from reserved
-      const updateResult = await tx.execute(sql`
+      const updateResult: any = await tx.execute(sql`
         UPDATE wallets
         SET balance_paise = balance_paise - ${finalCostPaise},
             reserved_paise = reserved_paise - ${reservedCostPaise},
@@ -68,9 +68,8 @@ export async function settleGenerationRun(input: SettleRunInput): Promise<Settle
         RETURNING id, balance_paise, reserved_paise;
       `);
 
-      const updatedWallet = (updateResult.rows || updateResult)[0] as
-        | { id: string; balance_paise: number; reserved_paise: number }
-        | undefined;
+      const rawRows = updateResult?.rows || updateResult;
+      const updatedWallet = rawRows ? (rawRows[0] as { id: string; balance_paise: number; reserved_paise: number } | undefined) : undefined;
 
       if (!updatedWallet && reservedCostPaise > 0) {
         throw new Error(
@@ -151,6 +150,6 @@ export async function releaseFullReservation(params: {
     projectId: params.projectId,
     generationRunId: params.generationRunId,
     reservedCostPaise: params.reservedCostPaise,
-    finalCostPaise: 0, // Zero charged, 100% released
+    finalCostPaise: 0,
   });
 }

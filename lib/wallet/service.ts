@@ -72,7 +72,7 @@ export async function creditUserWallet(params: {
   await getUserWallet(userId);
 
   // Update wallet balance using atomic SQL
-  const updateResult = await db.execute(sql`
+  const updateResult: any = await db.execute(sql`
     UPDATE wallets
     SET balance_paise = balance_paise + ${amountPaise},
         updated_at = NOW()
@@ -80,7 +80,8 @@ export async function creditUserWallet(params: {
     RETURNING balance_paise;
   `);
 
-  const updated = (updateResult.rows || updateResult)[0] as { balance_paise: number } | undefined;
+  const rawRows = updateResult?.rows || updateResult;
+  const updated = rawRows ? (rawRows[0] as { balance_paise: number } | undefined) : undefined;
 
   const txnId = await recordWalletTransaction({
     userId,
