@@ -9,7 +9,10 @@
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev:seed-credits": "tsx scripts/seed-dev-credits.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.750.0",
@@ -41,6 +44,8 @@
     "eslint-config-next": "^15.1.7",
     "postcss": "^8.5.2",
     "tailwindcss": "^4.0.7",
-    "typescript": "^5.7.3"
+    "tsx": "^4.23.12",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.11"
   }
 }
