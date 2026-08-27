@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/auth";
 import { assertProjectAccess } from "@/lib/auth/ownership";
 import { db } from "@/lib/db";
@@ -9,11 +8,8 @@ import { projects, generationRuns } from "@/db/schema";
 import { calculateDubbingCost } from "@/lib/pricing/dubbing";
 import { reserveCreditsForRun } from "@/lib/wallet/reserve";
 import { getUserWallet } from "@/lib/wallet/service";
-import { inngest } from "@/lib/inngest/client";
-
-const generateSchema = z.object({
-  idempotencyKey: z.string().optional(),
-});
+import { dispatchGenerationRun } from "@/lib/inngest/dispatch";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -29,6 +25,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     const userId = session.user.id;
+
+    // Rate limit: Max 10 generate requests per 5 minutes per user
+    const rateCheck = await checkRateLimit(`rate:generate:${userId}`, 10, 300);
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "RATE_LIMITED",
+            message: "Too many localization requests. Please wait a few moments before trying again.",
+          },
+        },
+        { status: 429 }
+      );
+    }
+
     const access = await assertProjectAccess(projectId, userId);
 
     if (!access.hasAccess || !access.project) {
@@ -75,8 +86,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ success: true, data: existingRun });
     }
 
-    // 4. Calculate authoritative price
-    const pricing = calculateDubbingCost(project.durationSeconds || 1, project.targetLanguages.length);
+    // 4. Calculate authoritative price based on server-verified duration
+    const duration = project.serverVerifiedDurationSeconds || project.durationSeconds || 1;
+    const pricing = calculateDubbingCost(duration, project.targetLanguages.length);
     const requiredCostPaise = pricing.totalCostPaise;
 
     const runId = `run_${nanoid(16)}`;
@@ -90,11 +102,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       projectConfigSnapshot: {
         sourceLanguage: project.sourceLanguage,
         targetLanguages: project.targetLanguages,
-        durationSeconds: project.durationSeconds,
+        durationSeconds: duration,
       },
       pricingSnapshot: pricing,
       idempotencyKey,
       status: "awaiting_payment",
+      dispatchState: "pending",
       estimatedCostPaise: requiredCostPaise,
       reservedCostPaise: 0,
       createdAt: new Date(),
@@ -128,39 +141,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       );
     }
 
-    // 7. Update status to queued and trigger Inngest workflow
-    await db
-      .update(generationRuns)
-      .set({
-        status: "queued",
-        reservedCostPaise: requiredCostPaise,
-        currentStep: "queued",
-        currentStepLabel: "Queued for processing",
-        updatedAt: new Date(),
-      })
-      .where(eq(generationRuns.id, runId));
-
+    // 7. Dispatch Inngest Generation Event
     await db
       .update(projects)
       .set({ status: "processing", updatedAt: new Date() })
       .where(eq(projects.id, project.id));
 
-    try {
-      await inngest.send({
-        name: "generation.requested",
-        data: {
-          generationRunId: runId,
-        },
-      });
-    } catch (inngestError) {
-      console.error("Failed to enqueue Inngest generation event:", inngestError);
-    }
+    const dispatchResult = await dispatchGenerationRun(runId);
 
     return NextResponse.json({
       success: true,
       data: {
         generationRunId: runId,
         status: "queued",
+        dispatchState: dispatchResult.success ? "dispatched" : "pending",
         estimatedCostPaise: requiredCostPaise,
       },
     });

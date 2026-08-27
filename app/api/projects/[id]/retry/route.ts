@@ -9,7 +9,7 @@ import { projects, generationRuns } from "@/db/schema";
 import { calculateDubbingCost } from "@/lib/pricing/dubbing";
 import { reserveCreditsForRun } from "@/lib/wallet/reserve";
 import { getUserWallet } from "@/lib/wallet/service";
-import { inngest } from "@/lib/inngest/client";
+import { dispatchGenerationRun } from "@/lib/inngest/dispatch";
 
 const retrySchema = z.object({
   targetLanguages: z.array(z.string()).min(1, "Select at least 1 language to retry."),
@@ -49,9 +49,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     const targetLanguages = validated.data.targetLanguages;
+    const duration = project.serverVerifiedDurationSeconds || project.durationSeconds || 1;
 
     // Calculate price only for retried languages
-    const pricing = calculateDubbingCost(project.durationSeconds || 1, targetLanguages.length);
+    const pricing = calculateDubbingCost(duration, targetLanguages.length);
     const requiredCostPaise = pricing.totalCostPaise;
 
     const runId = `run_${nanoid(16)}`;
@@ -66,11 +67,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       projectConfigSnapshot: {
         sourceLanguage: project.sourceLanguage,
         targetLanguages,
-        durationSeconds: project.durationSeconds,
+        durationSeconds: duration,
       },
       pricingSnapshot: pricing,
       idempotencyKey,
       status: "awaiting_payment",
+      dispatchState: "pending",
       estimatedCostPaise: requiredCostPaise,
       reservedCostPaise: 0,
       createdAt: new Date(),
@@ -104,39 +106,19 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       );
     }
 
-    // Mark run queued and dispatch Inngest event
-    await db
-      .update(generationRuns)
-      .set({
-        status: "queued",
-        reservedCostPaise: requiredCostPaise,
-        currentStep: "queued",
-        currentStepLabel: "Queued for retry",
-        updatedAt: new Date(),
-      })
-      .where(eq(generationRuns.id, runId));
-
     await db
       .update(projects)
       .set({ status: "processing", updatedAt: new Date() })
       .where(eq(projects.id, project.id));
 
-    try {
-      await inngest.send({
-        name: "generation.requested",
-        data: {
-          generationRunId: runId,
-        },
-      });
-    } catch (err) {
-      console.error("Failed to enqueue retry Inngest event:", err);
-    }
+    const dispatchResult = await dispatchGenerationRun(runId);
 
     return NextResponse.json({
       success: true,
       data: {
         generationRunId: runId,
         status: "queued",
+        dispatchState: dispatchResult.success ? "dispatched" : "pending",
         targetLanguages,
         estimatedCostPaise: requiredCostPaise,
       },

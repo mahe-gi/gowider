@@ -1,5 +1,5 @@
 import { inngest } from "../client";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import {
@@ -33,8 +33,8 @@ export const generationWorkflow = inngest.createFunction(
   async ({ event, step }) => {
     const { generationRunId } = event.data;
 
-    // Step 1: Load Generation Run & Project from PostgreSQL
-    const { run, project } = await step.run("load-run-state", async () => {
+    // Step 1: Load Run & Project State & Check Idempotency
+    const { run, project, isAlreadyTerminal } = await step.run("load-run-state", async () => {
       const [r] = await db
         .select()
         .from(generationRuns)
@@ -51,12 +51,30 @@ export const generationWorkflow = inngest.createFunction(
 
       if (!p) throw new Error(`Project not found: ${r.projectId}`);
 
-      return { run: r, project: p };
+      const terminal =
+        r.status === "completed" ||
+        r.status === "partial_failure" ||
+        r.status === "failed" ||
+        r.status === "cancelled";
+
+      return { run: r, project: p, isAlreadyTerminal: terminal };
     });
 
-    // Step 2: Create Sarvam Dubbing Job
-    const sarvamJob = await step.run("create-sarvam-job", async () => {
-      // Mark as uploading
+    if (isAlreadyTerminal) {
+      return { success: true, alreadyCompleted: true };
+    }
+
+    // Step 2: Create or Resume Sarvam Dubbing Job
+    const sarvamJob = await step.run("create-or-resume-sarvam-job", async () => {
+      // If job already has a persisted Sarvam job ID, reuse it
+      if (run.sarvamJobId) {
+        return {
+          jobId: run.sarvamJobId,
+          uploadUrl: null as string | null,
+          alreadyCreated: true,
+        };
+      }
+
       await db
         .update(generationRuns)
         .set({
@@ -76,7 +94,6 @@ export const generationWorkflow = inngest.createFunction(
         targetLanguages: targetLangs,
       });
 
-      // Persist Sarvam job ID immediately
       await db
         .update(generationRuns)
         .set({
@@ -88,59 +105,59 @@ export const generationWorkflow = inngest.createFunction(
       return {
         jobId: jobResponse.job_id,
         uploadUrl: jobResponse.upload_url,
+        alreadyCreated: false,
       };
     });
 
-    // Step 3: Stream Video from R2 to Sarvam Signed Upload URL
-    await step.run("stream-r2-to-sarvam", async () => {
-      const { stream, contentLength, contentType } = await getR2ObjectStream(project.sourceR2Key);
+    // Step 3: Stream Video from R2 to Sarvam Signed Upload URL (only if new job)
+    if (!sarvamJob.alreadyCreated && sarvamJob.uploadUrl) {
+      await step.run("stream-r2-to-sarvam", async () => {
+        const { stream, contentLength, contentType } = await getR2ObjectStream(project.sourceR2Key);
 
-      if (!stream || !contentLength) {
-        throw new Error(`Failed to retrieve stream from R2 object: ${project.sourceR2Key}`);
-      }
+        if (!stream || !contentLength) {
+          throw new Error(`Failed to retrieve stream from R2 object: ${project.sourceR2Key}`);
+        }
 
-      await streamUploadToSarvam({
-        uploadUrl: sarvamJob.uploadUrl,
-        stream,
-        contentLength,
-        contentType: contentType || project.sourceMimeType || "video/mp4",
+        await streamUploadToSarvam({
+          uploadUrl: sarvamJob.uploadUrl!,
+          stream,
+          contentLength,
+          contentType: contentType || project.sourceMimeType || "video/mp4",
+        });
       });
-    });
 
-    // Step 4: Start Sarvam Job
-    await step.run("start-sarvam-job", async () => {
-      await startDubbingJob(sarvamJob.jobId);
+      // Step 4: Start Sarvam Job
+      await step.run("start-sarvam-job", async () => {
+        await startDubbingJob(sarvamJob.jobId);
 
-      await db
-        .update(generationRuns)
-        .set({
-          status: "processing",
-          currentStep: "dubbing",
-          currentStepLabel: "Localizing your Reel with Sarvam AI",
-          updatedAt: new Date(),
-        })
-        .where(eq(generationRuns.id, run.id));
+        await db
+          .update(generationRuns)
+          .set({
+            status: "processing",
+            currentStep: "dubbing",
+            currentStepLabel: "Localizing your Reel with Sarvam AI",
+            updatedAt: new Date(),
+          })
+          .where(eq(generationRuns.id, run.id));
 
-      await db
-        .update(projects)
-        .set({
-          status: "processing",
-          updatedAt: new Date(),
-        })
-        .where(eq(projects.id, project.id));
-    });
+        await db
+          .update(projects)
+          .set({
+            status: "processing",
+            updatedAt: new Date(),
+          })
+          .where(eq(projects.id, project.id));
+      });
+    }
 
-    // Step 5: Poll Sarvam Live Status (with 15s intervals)
-    const liveStatusResult = await step.run("poll-sarvam-live-status", async () => {
-      let isTerminal = false;
-      let lastStatus: any = null;
-      const maxAttempts = 60; // Max ~15 minutes wait
+    // Step 5: Durable Polling for Sarvam Live Status (Step-level checkpoints with step.sleep)
+    let liveStatus: any = null;
+    const maxPollAttempts = 40;
 
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    for (let attempt = 1; attempt <= maxPollAttempts; attempt++) {
+      liveStatus = await step.run(`poll-live-status-attempt-${attempt}`, async () => {
         const statusRes = await getDubbingLiveStatus(sarvamJob.jobId);
-        lastStatus = statusRes;
 
-        // Update progress checkpoint in PostgreSQL
         await db
           .update(generationRuns)
           .set({
@@ -151,36 +168,31 @@ export const generationWorkflow = inngest.createFunction(
           })
           .where(eq(generationRuns.id, run.id));
 
-        if (
-          statusRes.status === "completed" ||
-          statusRes.status === "partial_failure" ||
-          statusRes.status === "failed" ||
-          statusRes.status === "deleted"
-        ) {
-          isTerminal = true;
-          break;
-        }
+        return statusRes;
+      });
 
-        // Wait 15 seconds before next poll
-        await new Promise((resolve) => setTimeout(resolve, 15000));
+      if (
+        liveStatus.status === "completed" ||
+        liveStatus.status === "partial_failure" ||
+        liveStatus.status === "failed" ||
+        liveStatus.status === "deleted"
+      ) {
+        break;
       }
 
-      if (!isTerminal) {
-        throw new Error(`Sarvam dubbing timed out after maximum polling attempts for job: ${sarvamJob.jobId}`);
-      }
+      // Durable Inngest sleep (15 seconds)
+      await step.sleep(`wait-live-status-${attempt}`, "15s");
+    }
 
-      return lastStatus;
-    });
-
-    // If dubbing failed completely at stage 1
-    if (liveStatusResult.status === "failed" || liveStatusResult.status === "deleted") {
+    // Total Dubbing Failure Handling
+    if (liveStatus?.status === "failed" || liveStatus?.status === "deleted") {
       await step.run("handle-total-dubbing-failure", async () => {
         await releaseFullReservation({
           userId: run.userId,
           projectId: project.id,
           generationRunId: run.id,
           reservedCostPaise: run.reservedCostPaise,
-          reason: liveStatusResult.error_message || "Sarvam job failed in pipeline",
+          reason: liveStatus.error_message || "Sarvam dubbing pipeline failed",
         });
 
         await db
@@ -188,8 +200,8 @@ export const generationWorkflow = inngest.createFunction(
           .set({
             status: "failed",
             finalCostPaise: 0,
-            errorCode: liveStatusResult.error_code || "SARVAM_JOB_FAILED",
-            errorMessage: liveStatusResult.error_message || "Dubbing job failed",
+            errorCode: liveStatus.error_code || "SARVAM_JOB_FAILED",
+            errorMessage: liveStatus.error_message || "Dubbing job failed",
             completedAt: new Date(),
             updatedAt: new Date(),
           })
@@ -204,8 +216,11 @@ export const generationWorkflow = inngest.createFunction(
       return { success: false, status: "failed" };
     }
 
-    // Step 6: Poll Sarvam Export Status (`limit=100`)
-    const exportResult = await step.run("poll-sarvam-export-status", async () => {
+    // Step 6: Durable Polling for Sarvam Export Status (`limit=100`)
+    let exportItems: any[] = [];
+    const maxExportAttempts = 20;
+
+    await step.run("mark-exporting-state", async () => {
       await db
         .update(generationRuns)
         .set({
@@ -215,41 +230,35 @@ export const generationWorkflow = inngest.createFunction(
           updatedAt: new Date(),
         })
         .where(eq(generationRuns.id, run.id));
-
-      let allExportsTerminal = false;
-      let exportItems: any[] = [];
-      const maxExportAttempts = 30; // Max ~5 minutes
-
-      for (let attempt = 0; attempt < maxExportAttempts; attempt++) {
-        const exportRes = await getDubbingExportStatus(sarvamJob.jobId);
-        exportItems = exportRes.data?.exports || [];
-
-        // Check if all requested target languages have a video export status that is terminal
-        const videoExports = exportItems.filter((e) => e.export_type === "video");
-        const pendingVideos = videoExports.filter(
-          (e) => e.status !== "completed" && e.status !== "failed"
-        );
-
-        if (videoExports.length >= run.targetLanguages.length && pendingVideos.length === 0) {
-          allExportsTerminal = true;
-          break;
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 10000));
-      }
-
-      return exportItems;
     });
 
-    // Step 7: Archive Output Files to Private R2 & Update Project Outputs
+    for (let attempt = 1; attempt <= maxExportAttempts; attempt++) {
+      const exportRes = await step.run(`poll-export-status-attempt-${attempt}`, async () => {
+        return getDubbingExportStatus(sarvamJob.jobId);
+      });
+
+      exportItems = exportRes.data?.exports || [];
+      const videoExports = exportItems.filter((e) => e.export_type === "video");
+      const pendingVideos = videoExports.filter(
+        (e) => e.status !== "completed" && e.status !== "failed"
+      );
+
+      if (videoExports.length >= run.targetLanguages.length && pendingVideos.length === 0) {
+        break;
+      }
+
+      await step.sleep(`wait-export-status-${attempt}`, "10s");
+    }
+
+    // Step 7: Archive Output Files to Private R2 & Update Distinct project_outputs Rows
     const successfulOutputs = await step.run("archive-outputs-to-r2", async () => {
       const successfulLanguages: string[] = [];
 
       for (const lang of run.targetLanguages) {
-        const videoExport = exportResult.find(
+        const videoExport = exportItems.find(
           (e) => e.target_language === lang && e.export_type === "video" && e.status === "completed"
         );
-        const srtExport = exportResult.find(
+        const srtExport = exportItems.find(
           (e) => e.target_language === lang && e.export_type === "srt" && e.status === "completed"
         );
 
@@ -280,11 +289,16 @@ export const generationWorkflow = inngest.createFunction(
         const isSuccess = !!videoR2Key;
         const outStatus = isSuccess ? "completed" : "failed";
 
-        // Insert or update normalized project_outputs
+        // Query by exact (projectId, targetLanguage) compound identity
         const [existingOutput] = await db
           .select()
           .from(projectOutputs)
-          .where(eq(projectOutputs.projectId, project.id))
+          .where(
+            and(
+              eq(projectOutputs.projectId, project.id),
+              eq(projectOutputs.targetLanguage, lang)
+            )
+          )
           .limit(1);
 
         const outId = existingOutput?.id || `out_${nanoid(16)}`;
@@ -319,18 +333,18 @@ export const generationWorkflow = inngest.createFunction(
       return successfulLanguages;
     });
 
-    // Step 8: Settle Wallet & Finalize Generation Run
+    // Step 8: Settle Wallet Atomically & Finalize Generation Run
     await step.run("settle-wallet-and-finalize", async () => {
       const successfulCount = successfulOutputs.length;
       const pricing = calculateDubbingCost(
-        project.durationSeconds || 1,
+        project.serverVerifiedDurationSeconds || project.durationSeconds || 1,
         successfulCount,
         run.pricingSnapshot ? (run.pricingSnapshot as any).pricePerMinutePaise : undefined
       );
 
       const finalCostPaise = pricing.totalCostPaise;
 
-      // Settle wallet: charge only successful video exports
+      // Charge only successful video outputs; release unspent reservation
       await settleGenerationRun({
         userId: run.userId,
         projectId: project.id,
@@ -341,15 +355,7 @@ export const generationWorkflow = inngest.createFunction(
 
       const isFullSuccess = successfulCount === run.targetLanguages.length;
       const isPartial = successfulCount > 0 && !isFullSuccess;
-      const isCompleteFail = successfulCount === 0;
-
-      const finalRunStatus = isFullSuccess
-        ? "completed"
-        : isPartial
-        ? "partial_failure"
-        : "failed";
-
-      const finalProjectStatus = isFullSuccess
+      const finalStatus = isFullSuccess
         ? "completed"
         : isPartial
         ? "partial_failure"
@@ -358,7 +364,7 @@ export const generationWorkflow = inngest.createFunction(
       await db
         .update(generationRuns)
         .set({
-          status: finalRunStatus,
+          status: finalStatus,
           finalCostPaise,
           progress: 100,
           currentStep: "done",
@@ -371,7 +377,7 @@ export const generationWorkflow = inngest.createFunction(
       await db
         .update(projects)
         .set({
-          status: finalProjectStatus,
+          status: finalStatus,
           updatedAt: new Date(),
         })
         .where(eq(projects.id, project.id));
