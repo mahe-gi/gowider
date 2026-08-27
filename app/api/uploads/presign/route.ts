@@ -7,6 +7,7 @@ import { createPresignedUploadUrl } from "@/lib/r2/uploads";
 import { db } from "@/lib/db";
 import { projects } from "@/db/schema";
 import { MAX_FILE_SIZE_BYTES, ACCEPTED_MIME_TYPES } from "@/lib/constants";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 const presignSchema = z.object({
   fileName: z.string().min(1),
@@ -35,6 +36,17 @@ export async function POST(req: Request) {
     if (!userId) {
       const guest = await getOrCreateGuestSession();
       guestSessionId = guest.sessionId;
+    }
+
+    const clientIdentifier = userId || guestSessionId || "anonymous";
+
+    // Rate Limit: Max 20 presigns per 5 minutes per user/guest
+    const rateCheck = await checkRateLimit(`rate:presign:${clientIdentifier}`, 20, 300);
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        { error: { code: "RATE_LIMITED", message: "Upload rate limit exceeded. Please wait a moment." } },
+        { status: 429 }
+      );
     }
 
     const projectId = `proj_${nanoid(16)}`;
