@@ -1,3 +1,11 @@
+export type ProviderPaymentStatus =
+  | "created"
+  | "authorized"
+  | "captured"
+  | "failed"
+  | "refunded"
+  | "unknown";
+
 export interface CreateOrderInput {
   userId: string;
   amountPaise: number;
@@ -23,12 +31,21 @@ export interface VerifiedPayment {
   success: boolean;
   providerPaymentId: string;
   amountPaise: number;
-  status: "paid" | "failed";
+  status: ProviderPaymentStatus;
   currency: string;
+  isCaptured: boolean;
+}
+
+export interface ProviderPaymentDetails {
+  status: ProviderPaymentStatus;
+  amountPaise: number;
+  currency: string;
+  providerOrderId?: string;
 }
 
 export interface PaymentProvider {
   createOrder(input: CreateOrderInput): Promise<PaymentOrderResult>;
   verifyPayment(input: VerifyPaymentInput): Promise<VerifiedPayment>;
-  getPayment(providerPaymentId: string): Promise<{ status: string; amountPaise: number; currency: string }>;
+  getPayment(providerPaymentId: string): Promise<ProviderPaymentDetails>;
+  getOrder?(providerOrderId: string): Promise<{ id: string; status: string; amountPaise: number }>;
 }

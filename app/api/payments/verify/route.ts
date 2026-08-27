@@ -29,16 +29,16 @@ export async function POST(req: Request) {
 
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = validated.data;
 
-    // 1. Verify HMAC SHA-256 Signature
+    // 1. Verify HMAC SHA-256 Signature & Captured State
     const verification = await paymentProvider.verifyPayment({
       providerOrderId: razorpay_order_id,
       providerPaymentId: razorpay_payment_id,
       providerSignature: razorpay_signature,
     });
 
-    if (!verification.success) {
+    if (!verification.success || !verification.isCaptured) {
       return NextResponse.json(
-        { error: { code: "INVALID_SIGNATURE", message: "Payment signature verification failed." } },
+        { error: { code: "PAYMENT_NOT_CAPTURED", message: "Payment signature invalid or payment was not captured." } },
         { status: 400 }
       );
     }
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
 
     if (!finalized.success) {
       return NextResponse.json(
-        { error: { code: "FINALIZATION_FAILED", message: finalized.error || "Failed to finalize payment." } },
+        { error: { code: finalized.errorCode || "FINALIZATION_FAILED", message: finalized.error || "Failed to finalize payment." } },
         { status: 400 }
       );
     }
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       data: {
-        paymentOrderId: finalized.paymentOrder.id,
+        paymentOrderId: finalized.paymentOrder?.id || "",
         status: "paid",
         autoResumedRunId: finalized.autoResumedRunId,
       },

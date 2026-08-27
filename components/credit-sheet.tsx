@@ -110,9 +110,19 @@ export function CreditSheet({
               throw new Error(verifyData.error?.message || "Payment verification failed.");
             }
 
+            // 5. Fetch Authoritative Server Balance (Never derive financial balance on client)
+            const walletRes = await fetch("/api/wallet");
+            let authoritativeBalance = availablePaise;
+            if (walletRes.ok) {
+              const walletJson = await walletRes.json();
+              if (walletJson.success) {
+                authoritativeBalance = walletJson.data.availablePaise;
+              }
+            }
+
             setStatusMessage("Credits added! Starting localization…");
             if (onPaymentSuccess) {
-              onPaymentSuccess(availablePaise + amountPaise);
+              onPaymentSuccess(authoritativeBalance);
             }
             onClose();
           } catch (vErr: any) {

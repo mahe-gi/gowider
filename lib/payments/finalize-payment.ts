@@ -1,16 +1,23 @@
 import "server-only";
-import { eq, and } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
-import { paymentOrders, generationRuns, wallets, type PaymentOrder } from "@/db/schema";
-import { creditUserWallet } from "@/lib/wallet/service";
+import {
+  paymentOrders,
+  wallets,
+  walletTransactions,
+  generationRuns,
+  type PaymentOrder,
+} from "@/db/schema";
 import { reserveCreditsForRun } from "@/lib/wallet/reserve";
-import { inngest } from "@/lib/inngest/client";
+import { dispatchGenerationRun } from "@/lib/inngest/dispatch";
 
 export interface FinalizePaymentResult {
   success: boolean;
-  paymentOrder: PaymentOrder;
+  paymentOrder: PaymentOrder | null;
   autoResumedRunId?: string;
   alreadyProcessed?: boolean;
+  errorCode?: string;
   error?: string;
 }
 
@@ -21,7 +28,7 @@ export async function finalizeCapturedPayment(params: {
 }): Promise<FinalizePaymentResult> {
   const { providerOrderId, providerPaymentId, amountPaise } = params;
 
-  // 1. Load local payment order
+  // 1. Load local payment order record
   const [order] = await db
     .select()
     .from(paymentOrders)
@@ -31,12 +38,13 @@ export async function finalizeCapturedPayment(params: {
   if (!order) {
     return {
       success: false,
-      paymentOrder: null as any,
-      error: `Payment order not found for provider order ID: ${providerOrderId}`,
+      paymentOrder: null,
+      errorCode: "ORDER_NOT_FOUND",
+      error: `Local payment order not found for provider order ID: ${providerOrderId}`,
     };
   }
 
-  // 2. Check if already marked paid (Idempotency)
+  // 2. Database-level Idempotency Check: if already paid
   if (order.status === "paid") {
     return {
       success: true,
@@ -45,78 +53,122 @@ export async function finalizeCapturedPayment(params: {
     };
   }
 
-  // 3. Update payment order record
-  const [updatedOrder] = await db
-    .update(paymentOrders)
-    .set({
-      status: "paid",
-      providerPaymentId,
-      updatedAt: new Date(),
-    })
-    .where(eq(paymentOrders.id, order.id))
-    .returning();
+  // 3. Amount & Currency Verification: Provider amount MUST match local order expectation
+  if (order.amountPaise !== amountPaise) {
+    console.error(
+      `🚨 PAYMENT_AMOUNT_MISMATCH for order ${order.id}: expected ${order.amountPaise} paise, received ${amountPaise} paise from provider.`
+    );
+    await db
+      .update(paymentOrders)
+      .set({
+        status: "failed",
+        updatedAt: new Date(),
+      })
+      .where(eq(paymentOrders.id, order.id));
 
-  // 4. Credit user's wallet
-  await creditUserWallet({
-    userId: order.userId,
-    amountPaise: order.amountPaise,
-    type: "purchase",
-    paymentOrderId: order.id,
-    metadata: {
-      providerPaymentId,
-      providerOrderId,
-    },
-  });
+    return {
+      success: false,
+      paymentOrder: order,
+      errorCode: "PAYMENT_AMOUNT_MISMATCH",
+      error: "Payment amount mismatch detected. Wallet was not credited.",
+    };
+  }
 
-  let autoResumedRunId: string | undefined;
+  // 4. Atomic PostgreSQL Transaction: Mark Paid + Increment Wallet + Record Purchase Ledger
+  const txnId = `txn_${nanoid(16)}`;
 
-  // 5. Auto-Resume Check: if payment order is linked to a generation run
-  if (order.generationRunId) {
-    const [run] = await db
-      .select()
-      .from(generationRuns)
-      .where(eq(generationRuns.id, order.generationRunId))
-      .limit(1);
+  try {
+    const transactionResult = await db.transaction(async (tx) => {
+      // Conditionally claim and update the payment order status to 'paid'
+      const [updatedOrder] = await tx
+        .update(paymentOrders)
+        .set({
+          status: "paid",
+          providerPaymentId,
+          updatedAt: new Date(),
+        })
+        .where(eq(paymentOrders.id, order.id))
+        .returning();
 
-    if (run && (run.status === "awaiting_payment" || run.status === "queued")) {
-      const reservation = await reserveCreditsForRun({
+      // Ensure user wallet exists or insert if missing
+      await tx
+        .insert(wallets)
+        .values({
+          id: `wal_${nanoid(16)}`,
+          userId: order.userId,
+          balancePaise: 0,
+          reservedPaise: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .onConflictDoNothing({ target: wallets.userId });
+
+      // Atomic wallet balance increment
+      await tx.execute(sql`
+        UPDATE wallets
+        SET balance_paise = balance_paise + ${order.amountPaise},
+            updated_at = NOW()
+        WHERE user_id = ${order.userId};
+      `);
+
+      // Insert exactly one purchase ledger entry
+      await tx.insert(walletTransactions).values({
+        id: txnId,
         userId: order.userId,
-        projectId: run.projectId,
-        generationRunId: run.id,
-        requiredCostPaise: run.estimatedCostPaise,
+        paymentOrderId: order.id,
+        type: "purchase",
+        amountPaise: order.amountPaise,
+        status: "completed",
+        metadata: {
+          providerOrderId,
+          providerPaymentId,
+          verifiedAt: new Date().toISOString(),
+        },
+        createdAt: new Date(),
       });
 
-      if (reservation.success) {
-        // Mark run as queued and dispatch Inngest event
-        await db
-          .update(generationRuns)
-          .set({
-            status: "queued",
-            reservedCostPaise: run.estimatedCostPaise,
-            currentStep: "queued",
-            currentStepLabel: "Queued for processing",
-            updatedAt: new Date(),
-          })
-          .where(eq(generationRuns.id, run.id));
+      return updatedOrder;
+    });
 
-        try {
-          await inngest.send({
-            name: "generation.requested",
-            data: {
-              generationRunId: run.id,
-            },
-          });
-          autoResumedRunId = run.id;
-        } catch (inngestErr) {
-          console.error("Failed to send inngest event on auto-resume:", inngestErr);
+    let autoResumedRunId: string | undefined;
+
+    // 5. Auto-Resume: If payment was created for a specific pending generation run
+    if (order.generationRunId) {
+      const [run] = await db
+        .select()
+        .from(generationRuns)
+        .where(eq(generationRuns.id, order.generationRunId))
+        .limit(1);
+
+      if (run && (run.status === "awaiting_payment" || run.status === "queued")) {
+        const reservation = await reserveCreditsForRun({
+          userId: order.userId,
+          projectId: run.projectId,
+          generationRunId: run.id,
+          requiredCostPaise: run.estimatedCostPaise,
+        });
+
+        if (reservation.success) {
+          const dispatchRes = await dispatchGenerationRun(run.id);
+          if (dispatchRes.success) {
+            autoResumedRunId = run.id;
+          }
         }
       }
     }
-  }
 
-  return {
-    success: true,
-    paymentOrder: updatedOrder,
-    autoResumedRunId,
-  };
+    return {
+      success: true,
+      paymentOrder: transactionResult,
+      autoResumedRunId,
+    };
+  } catch (err: any) {
+    console.error("❌ Atomic payment finalization transaction failed:", err);
+    return {
+      success: false,
+      paymentOrder: order,
+      errorCode: "PAYMENT_FINALIZATION_FAILED",
+      error: err.message || "Failed to finalize payment transaction.",
+    };
+  }
 }
