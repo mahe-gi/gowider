@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Sparkles, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { HUMAN_STATUS_LABELS } from "@/lib/constants";
 
 interface ProcessingStatusProps {
@@ -30,7 +30,7 @@ export function ProcessingStatus({
         {isComplete ? (
           <CheckCircle2 className="w-8 h-8 text-[#22C55E]" />
         ) : isPartial ? (
-          <Sparkles className="w-8 h-8 text-[#FF7A00]" />
+          <Clock className="w-8 h-8 text-[#FF7A00]" />
         ) : isFailed ? (
           <AlertCircle className="w-8 h-8 text-[#EF4444]" />
         ) : (

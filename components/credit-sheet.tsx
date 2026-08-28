@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { X, Wallet, Sparkles, Check, Loader2, AlertCircle } from "lucide-react";
+import { X, Wallet, Check, Loader2, AlertCircle } from "lucide-react";
 import { TOP_UP_PACKAGES_PAISE } from "@/lib/constants";
 
 declare global {
@@ -269,7 +269,7 @@ export function CreditSheet({
             </>
           ) : (
             <>
-              <Sparkles className="w-4 h-4 text-white/80" />
+              <Wallet className="w-4 h-4 text-white/80" />
               <span>Add ₹{(selectedPackage / 100).toFixed(0)} Credits →</span>
             </>
           )}

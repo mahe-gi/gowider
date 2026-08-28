@@ -11,7 +11,7 @@ import { StudioVideo } from "@/components/studio-video";
 import { LanguageSelector } from "@/components/language-selector";
 import { GenerationSummary } from "@/components/generation-summary";
 import { CreditSheet } from "@/components/credit-sheet";
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Film } from "lucide-react";
 import { LanguageCode } from "@/lib/constants";
 
 export default function NewStudioPage() {
@@ -170,7 +170,7 @@ export default function NewStudioPage() {
             <span>Back to Dashboard</span>
           </Link>
           <div className="flex items-center gap-2 text-xs font-mono text-[#8C877D]">
-            <Sparkles className="w-3.5 h-3.5 text-[#FF441F]" />
+            <Film className="w-3.5 h-3.5 text-[#FF441F]" />
             <span>Voice-Preserving Video Studio</span>
           </div>
         </div>

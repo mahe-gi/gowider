@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Globe, Sparkles } from "lucide-react";
+import { Check, Globe } from "lucide-react";
 import { SUPPORTED_LANGUAGES, LanguageCode, MAX_TARGET_LANGUAGES } from "@/lib/constants";
 
 interface LanguageSelectorProps {

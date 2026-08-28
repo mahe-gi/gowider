@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, ShieldCheck, Sparkles, Loader2 } from "lucide-react";
+import { ArrowRight, ShieldCheck, Loader2 } from "lucide-react";
 import { calculateDubbingCost } from "@/lib/pricing/dubbing";
 import { LanguageCode, SUPPORTED_LANGUAGES } from "@/lib/constants";
 
@@ -85,8 +85,8 @@ export function GenerationSummary({
           </>
         ) : (
           <>
-            <Sparkles className="w-5 h-5 text-white/80" />
             <span>{getButtonLabel()}</span>
+            <ArrowRight className="w-5 h-5 text-white/80" />
           </>
         )}
       </button>

@@ -9,6 +9,7 @@ import { TransformationSection } from "@/components/transformation-section";
 import { HowItWorks } from "@/components/how-it-works";
 import { VoiceSection } from "@/components/voice-section";
 import { LanguageMarquee } from "@/components/language-marquee";
+import { FaqSection } from "@/components/landing/faq-section";
 import { Footer } from "@/components/footer";
 import { AuthSheet } from "@/components/auth-sheet";
 import { ArrowRight } from "lucide-react";
@@ -42,6 +43,9 @@ export default function LandingPage() {
 
       {/* Supported Languages Marquee */}
       <LanguageMarquee />
+
+      {/* Frequently Asked Questions */}
+      <FaqSection />
 
       {/* Final Call to Action Section */}
       <section className="py-20 bg-[#111111] text-white text-center">
