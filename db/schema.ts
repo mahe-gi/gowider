@@ -13,6 +13,7 @@ import { sql } from "drizzle-orm";
 
 // 1. Enums
 export const projectStatusEnum = pgEnum("project_status", [
+  "upload_pending",
   "draft",
   "uploading",
   "ready",
@@ -109,54 +110,77 @@ export const guestSessions = pgTable("guest_sessions", {
 });
 
 // 4. Projects Table
-export const projects = pgTable("projects", {
-  id: text("id").primaryKey(), // proj_...
-  userId: text("userId").references(() => users.id, { onDelete: "set null" }),
-  guestSessionId: text("guest_session_id").references(() => guestSessions.id, { onDelete: "set null" }),
-  displayName: text("display_name"),
-  sourceR2Key: text("source_r2_key").notNull(),
-  sourceFileName: text("source_file_name"),
-  sourceMimeType: text("source_mime_type"),
-  sourceFileSizeBytes: integer("source_file_size_bytes"),
-  durationSeconds: integer("duration_seconds"),
-  serverVerifiedDurationSeconds: integer("server_verified_duration_seconds"),
-  sourceLanguage: text("source_language"),
-  targetLanguages: jsonb("target_languages").$type<string[]>(),
-  voiceRightsConfirmedAt: timestamp("voice_rights_confirmed_at", { withTimezone: true }),
-  voiceConsentVersion: text("voice_consent_version"),
-  status: projectStatusEnum("status").default("draft").notNull(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const projects = pgTable(
+  "projects",
+  {
+    id: text("id").primaryKey(), // proj_...
+    userId: text("userId").references(() => users.id, { onDelete: "set null" }),
+    uploadIntentId: text("upload_intent_id"),
+    guestSessionId: text("guest_session_id").references(() => guestSessions.id, { onDelete: "set null" }),
+    displayName: text("display_name"),
+    sourceR2Key: text("source_r2_key").notNull(),
+    sourceFileName: text("source_file_name"),
+    sourceMimeType: text("source_mime_type"),
+    sourceFileSizeBytes: integer("source_file_size_bytes"),
+    durationSeconds: integer("duration_seconds"),
+    serverVerifiedDurationSeconds: integer("server_verified_duration_seconds"),
+    sourceLanguage: text("source_language"),
+    targetLanguages: jsonb("target_languages").$type<string[]>(),
+    voiceRightsConfirmedAt: timestamp("voice_rights_confirmed_at", { withTimezone: true }),
+    voiceConsentVersion: text("voice_consent_version"),
+    status: projectStatusEnum("status").default("upload_pending").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    deletionStartedAt: timestamp("deletion_started_at", { withTimezone: true }),
+    deletionClaimToken: text("deletion_claim_token"),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("projects_user_upload_intent_idx").on(table.userId, table.uploadIntentId),
+    index("projects_user_id_idx").on(table.userId),
+    index("projects_status_idx").on(table.status),
+    index("projects_deletion_started_idx").on(table.deletionStartedAt),
+    index("projects_deleted_at_idx").on(table.deletedAt),
+  ]
+);
 
 // 5. Generation Runs Table
-export const generationRuns = pgTable("generation_runs", {
-  id: text("id").primaryKey(), // run_...
-  projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  targetLanguages: jsonb("target_languages").$type<string[]>().notNull(),
-  projectConfigSnapshot: jsonb("project_config_snapshot").notNull(),
-  pricingSnapshot: jsonb("pricing_snapshot").notNull(),
-  idempotencyKey: text("idempotency_key").notNull().unique(),
-  sarvamJobId: text("sarvam_job_id"),
-  status: runStatusEnum("status").default("awaiting_payment").notNull(),
-  dispatchState: dispatchStateEnum("dispatch_state").default("pending").notNull(),
-  dispatchError: text("dispatch_error"),
-  progress: integer("progress").default(0),
-  currentStep: text("current_step"),
-  currentStepLabel: text("current_step_label"),
-  estimatedCostPaise: integer("estimated_cost_paise").notNull(),
-  reservedCostPaise: integer("reserved_cost_paise").default(0).notNull(),
-  finalCostPaise: integer("final_cost_paise"),
-  errorCode: text("error_code"),
-  errorMessage: text("error_message"),
-  settledAt: timestamp("settled_at", { withTimezone: true }),
-  startedAt: timestamp("started_at", { withTimezone: true }),
-  completedAt: timestamp("completed_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const generationRuns = pgTable(
+  "generation_runs",
+  {
+    id: text("id").primaryKey(), // run_...
+    projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    targetLanguages: jsonb("target_languages").$type<string[]>().notNull(),
+    projectConfigSnapshot: jsonb("project_config_snapshot").notNull(),
+    pricingSnapshot: jsonb("pricing_snapshot").notNull(),
+    idempotencyKey: text("idempotency_key").notNull().unique(),
+    sarvamJobId: text("sarvam_job_id"),
+    status: runStatusEnum("status").default("awaiting_payment").notNull(),
+    dispatchState: dispatchStateEnum("dispatch_state").default("pending").notNull(),
+    dispatchError: text("dispatch_error"),
+    progress: integer("progress").default(0),
+    currentStep: text("current_step"),
+    currentStepLabel: text("current_step_label"),
+    estimatedCostPaise: integer("estimated_cost_paise").notNull(),
+    reservedCostPaise: integer("reserved_cost_paise").default(0).notNull(),
+    finalCostPaise: integer("final_cost_paise"),
+    errorCode: text("error_code"),
+    errorMessage: text("error_message"),
+    settledAt: timestamp("settled_at", { withTimezone: true }),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("generation_runs_proj_idem_idx").on(table.projectId, table.idempotencyKey),
+    index("generation_runs_project_id_idx").on(table.projectId),
+    index("generation_runs_user_id_idx").on(table.userId),
+    index("generation_runs_status_idx").on(table.status),
+  ]
+);
 
 // 6. Project Outputs Table (Normalized per-language output records)
 export const projectOutputs = pgTable(
@@ -200,20 +224,31 @@ export const wallets = pgTable(
 );
 
 // 8. Payment Orders Table
-export const paymentOrders = pgTable("payment_orders", {
-  id: text("id").primaryKey(), // pay_...
-  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  generationRunId: text("generation_run_id").references(() => generationRuns.id, { onDelete: "set null" }),
-  provider: text("provider").default("razorpay").notNull(),
-  providerOrderId: text("provider_order_id"),
-  providerPaymentId: text("provider_payment_id").unique(),
-  amountPaise: integer("amount_paise").notNull(),
-  currency: text("currency").default("INR").notNull(),
-  status: paymentStatusEnum("status").default("creating").notNull(),
-  idempotencyKey: text("idempotency_key").notNull().unique(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+export const paymentOrders = pgTable(
+  "payment_orders",
+  {
+    id: text("id").primaryKey(), // pay_...
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    paymentIntentId: text("payment_intent_id"),
+    generationRunId: text("generation_run_id").references(() => generationRuns.id, { onDelete: "set null" }),
+    provider: text("provider").default("razorpay").notNull(),
+    providerOrderId: text("provider_order_id"),
+    providerPaymentId: text("provider_payment_id").unique(),
+    providerCreationLeaseUntil: timestamp("provider_creation_lease_until", { withTimezone: true }),
+    providerCreationToken: text("provider_creation_token"),
+    amountPaise: integer("amount_paise").notNull(),
+    currency: text("currency").default("INR").notNull(),
+    status: paymentStatusEnum("status").default("creating").notNull(),
+    idempotencyKey: text("idempotency_key").notNull().unique(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("payment_orders_user_intent_idx").on(table.userId, table.paymentIntentId),
+    uniqueIndex("payment_orders_provider_order_idx").on(table.providerOrderId),
+    index("payment_orders_user_id_idx").on(table.userId),
+  ]
+);
 
 // 9. Wallet Transactions Table (Immutable Financial Ledger)
 export const walletTransactions = pgTable(
@@ -233,6 +268,8 @@ export const walletTransactions = pgTable(
     index("wallet_txns_user_id_idx").on(table.userId),
     index("wallet_txns_generation_run_id_idx").on(table.generationRunId),
     index("wallet_txns_payment_order_id_idx").on(table.paymentOrderId),
+    uniqueIndex("wallet_txns_run_type_idx").on(table.generationRunId, table.type),
+    uniqueIndex("wallet_txns_pay_purchase_idx").on(table.paymentOrderId).where(sql`${table.type} = 'purchase' AND ${table.paymentOrderId} IS NOT NULL`),
   ]
 );
 
