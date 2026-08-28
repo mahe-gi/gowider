@@ -139,6 +139,24 @@ export class RazorpayPaymentProvider implements PaymentProvider {
       amountPaise: Number(order.amount),
     };
   }
+
+  async findOrderByReceipt(receipt: string): Promise<{ id: string; status: string; amountPaise: number } | null> {
+    try {
+      const rzp = getRazorpayClient();
+      const list = await (rzp.orders as any).all({ receipt, count: 1 });
+      if (list && list.items && list.items.length > 0) {
+        const item = list.items[0];
+        return {
+          id: item.id,
+          status: item.status,
+          amountPaise: Number(item.amount),
+        };
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
 }
 
 export const paymentProvider: PaymentProvider = new RazorpayPaymentProvider();

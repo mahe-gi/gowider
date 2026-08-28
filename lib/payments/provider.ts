@@ -1,3 +1,5 @@
+import "server-only";
+
 export type ProviderPaymentStatus =
   | "created"
   | "authorized"
@@ -48,4 +50,5 @@ export interface PaymentProvider {
   verifyPayment(input: VerifyPaymentInput): Promise<VerifiedPayment>;
   getPayment(providerPaymentId: string): Promise<ProviderPaymentDetails>;
   getOrder?(providerOrderId: string): Promise<{ id: string; status: string; amountPaise: number }>;
+  findOrderByReceipt?(receipt: string): Promise<{ id: string; status: string; amountPaise: number } | null>;
 }

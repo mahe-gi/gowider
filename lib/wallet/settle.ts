@@ -22,7 +22,11 @@ export interface SettleRunResult {
 }
 
 export async function settleGenerationRun(input: SettleRunInput): Promise<SettleRunResult> {
-  const { userId, projectId, generationRunId, reservedCostPaise, finalCostPaise } = input;
+  const userId = input.userId;
+  const projectId = input.projectId || "";
+  const generationRunId = input.generationRunId;
+  const reservedCostPaise = input.reservedCostPaise ?? input.finalCostPaise;
+  const finalCostPaise = input.finalCostPaise;
 
   // Invariant 1: Final cost must never exceed reserved cost
   if (finalCostPaise > reservedCostPaise) {
@@ -133,6 +137,23 @@ export async function settleGenerationRun(input: SettleRunInput): Promise<Settle
 
     return result;
   } catch (err: any) {
+    // If concurrent race threw duplicate key violation on wallet_txns_run_type_idx
+    const [existingRun] = await db
+      .select()
+      .from(generationRuns)
+      .where(eq(generationRuns.id, generationRunId))
+      .limit(1);
+
+    if (existingRun?.settledAt) {
+      const unspent = Math.max(0, (existingRun.reservedCostPaise || 0) - (existingRun.finalCostPaise || 0));
+      return {
+        success: true,
+        finalChargedPaise: existingRun.finalCostPaise || 0,
+        releasedPaise: unspent,
+        alreadySettled: true,
+      };
+    }
+
     console.error(`❌ Settlement transaction failed for run ${generationRunId}:`, err);
     throw err;
   }

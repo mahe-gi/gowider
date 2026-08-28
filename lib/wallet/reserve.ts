@@ -125,6 +125,29 @@ export async function reserveCreditsForRun(input: ReserveCreditsInput): Promise<
 
     return result as ReserveCreditsResult;
   } catch (err: any) {
+    // If concurrent race threw duplicate key violation on wallet_txns_run_type_idx
+    const [existingReservation] = await db
+      .select()
+      .from(walletTransactions)
+      .where(
+        and(
+          eq(walletTransactions.generationRunId, generationRunId),
+          eq(walletTransactions.type, "reservation")
+        )
+      )
+      .limit(1);
+
+    if (existingReservation) {
+      const [wallet] = await db.select().from(wallets).where(eq(wallets.userId, userId)).limit(1);
+      const available = wallet ? Math.max(0, wallet.balancePaise - wallet.reservedPaise) : 0;
+      return {
+        success: true,
+        reservedCostPaise: existingReservation.amountPaise,
+        remainingAvailablePaise: available,
+        alreadyReserved: true,
+      };
+    }
+
     console.error(`❌ Wallet reservation transaction failed for run ${generationRunId}:`, err);
     return {
       success: false,

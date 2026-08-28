@@ -43,6 +43,14 @@ export async function POST(req: Request) {
 
     const project = access.project;
 
+    // Idempotent Short-Circuit: If already verified and ready/processing/completed, return authoritative state
+    if (project.status !== "upload_pending" && project.serverVerifiedDurationSeconds) {
+      return NextResponse.json({
+        success: true,
+        data: project,
+      });
+    }
+
     // 1. Verify object actually exists in storage & check size
     const headCheck = await storage.checkObjectExists(project.sourceR2Key);
     if (!headCheck.exists || !headCheck.sizeBytes) {

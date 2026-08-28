@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { nanoid } from "nanoid";
-import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/auth";
-import { db } from "@/lib/db";
-import { paymentOrders, generationRuns } from "@/db/schema";
-import { paymentProvider } from "@/lib/payments/razorpay";
 import { checkRateLimit } from "@/lib/security/rate-limit";
+import { createOrGetPaymentOrder, PaymentIntentConflictError } from "@/lib/payments/order-service";
 
 const orderSchema = z.object({
   amountPaise: z.number().min(1000, "Minimum top-up is ₹10 (1000 paise).").max(1000000, "Maximum top-up is ₹10,000."),
+  paymentIntentId: z.string().min(1, "paymentIntentId is required."),
   generationRunId: z.string().optional(),
 });
 
@@ -22,8 +19,8 @@ export async function POST(req: Request) {
 
     const userId = session.user.id;
 
-    // Rate Limit: Max 10 payment orders per 5 minutes per user
-    const rateCheck = await checkRateLimit(`rate:pay_order:${userId}`, 10, 300);
+    // Rate Limit: Max 30 payment orders per 5 minutes per user
+    const rateCheck = await checkRateLimit(`rate:pay_order:${userId}`, 30, 300);
     if (!rateCheck.success) {
       return NextResponse.json(
         { error: { code: "RATE_LIMITED", message: "Too many payment requests. Please wait a moment." } },
@@ -41,75 +38,32 @@ export async function POST(req: Request) {
       );
     }
 
-    const { amountPaise, generationRunId } = validated.data;
-
-    // Verify linked generation run belongs to this user if provided
-    if (generationRunId) {
-      const [run] = await db
-        .select()
-        .from(generationRuns)
-        .where(eq(generationRuns.id, generationRunId))
-        .limit(1);
-
-      if (!run || run.userId !== userId) {
-        return NextResponse.json(
-          { error: { code: "FORBIDDEN", message: "Linked generation run does not belong to user." } },
-          { status: 403 }
-        );
-      }
-    }
-
-    const paymentId = `pay_${nanoid(16)}`;
-    const idempotencyKey = `ord_idem_${paymentId}`;
-
-    // 1. Create initial local payment record
-    await db.insert(paymentOrders).values({
-      id: paymentId,
+    const orderResult = await createOrGetPaymentOrder({
       userId,
-      generationRunId: generationRunId || null,
-      provider: "razorpay",
-      amountPaise,
-      currency: "INR",
-      status: "creating",
-      idempotencyKey,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      paymentIntentId: validated.data.paymentIntentId,
+      amountPaise: validated.data.amountPaise,
+      generationRunId: validated.data.generationRunId,
     });
-
-    // 2. Call Razorpay API to create order
-    const rzpOrder = await paymentProvider.createOrder({
-      userId,
-      amountPaise,
-      currency: "INR",
-      receipt: paymentId,
-      notes: {
-        userId,
-        paymentId,
-        generationRunId: generationRunId || "",
-      },
-    });
-
-    // 3. Update local payment record with Razorpay Order ID
-    await db
-      .update(paymentOrders)
-      .set({
-        providerOrderId: rzpOrder.providerOrderId,
-        status: "created",
-        updatedAt: new Date(),
-      })
-      .where(eq(paymentOrders.id, paymentId));
 
     return NextResponse.json({
       success: true,
-      data: {
-        paymentOrderId: paymentId,
-        providerOrderId: rzpOrder.providerOrderId,
-        amountPaise: rzpOrder.amountPaise,
-        currency: rzpOrder.currency,
-        keyId: rzpOrder.keyId,
-      },
+      data: orderResult,
     });
   } catch (error: any) {
+    if (error instanceof PaymentIntentConflictError || error.message?.includes("Payment intent")) {
+      return NextResponse.json(
+        { error: { code: "INTENT_CONFLICT", message: error.message } },
+        { status: 409 }
+      );
+    }
+
+    if (error.message?.startsWith("FORBIDDEN")) {
+      return NextResponse.json(
+        { error: { code: "FORBIDDEN", message: error.message } },
+        { status: 403 }
+      );
+    }
+
     console.error("Create payment order error:", error);
     return NextResponse.json(
       { error: { code: "ORDER_CREATION_FAILED", message: error.message || "Failed to create payment order." } },

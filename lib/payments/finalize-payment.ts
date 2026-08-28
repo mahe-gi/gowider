@@ -1,5 +1,5 @@
 import "server-only";
-import { eq, sql } from "drizzle-orm";
+import { eq, and, not, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import {
@@ -7,6 +7,7 @@ import {
   wallets,
   walletTransactions,
   generationRuns,
+  projects,
   type PaymentOrder,
 } from "@/db/schema";
 import { reserveCreditsForRun } from "@/lib/wallet/reserve";
@@ -44,7 +45,7 @@ export async function finalizeCapturedPayment(params: {
     };
   }
 
-  // 2. Database-level Idempotency Check: if already paid
+  // 2. Fast-path Idempotency Check: if already paid
   if (order.status === "paid") {
     return {
       success: true,
@@ -80,6 +81,7 @@ export async function finalizeCapturedPayment(params: {
   try {
     const transactionResult = await db.transaction(async (tx) => {
       // Conditionally claim and update the payment order status to 'paid'
+      // If another concurrent thread/webhook already updated it to 'paid', 0 rows returned
       const [updatedOrder] = await tx
         .update(paymentOrders)
         .set({
@@ -87,8 +89,18 @@ export async function finalizeCapturedPayment(params: {
           providerPaymentId,
           updatedAt: new Date(),
         })
-        .where(eq(paymentOrders.id, order.id))
+        .where(and(eq(paymentOrders.id, order.id), not(eq(paymentOrders.status, "paid"))))
         .returning();
+
+      if (!updatedOrder) {
+        // Race condition handled: order was already finalized concurrently
+        const [currentOrder] = await tx
+          .select()
+          .from(paymentOrders)
+          .where(eq(paymentOrders.id, order.id))
+          .limit(1);
+        return { order: currentOrder || order, alreadyProcessed: true };
+      }
 
       // Ensure user wallet exists or insert if missing
       await tx
@@ -127,8 +139,16 @@ export async function finalizeCapturedPayment(params: {
         createdAt: new Date(),
       });
 
-      return updatedOrder;
+      return { order: updatedOrder, alreadyProcessed: false };
     });
+
+    if (transactionResult.alreadyProcessed) {
+      return {
+        success: true,
+        paymentOrder: transactionResult.order,
+        alreadyProcessed: true,
+      };
+    }
 
     let autoResumedRunId: string | undefined;
 
@@ -141,17 +161,30 @@ export async function finalizeCapturedPayment(params: {
         .limit(1);
 
       if (run && (run.status === "awaiting_payment" || run.status === "queued")) {
-        const reservation = await reserveCreditsForRun({
-          userId: order.userId,
-          projectId: run.projectId,
-          generationRunId: run.id,
-          requiredCostPaise: run.estimatedCostPaise,
-        });
+        // Verify project is still active and not deleted/under deletion
+        const [project] = await db
+          .select()
+          .from(projects)
+          .where(eq(projects.id, run.projectId))
+          .limit(1);
 
-        if (reservation.success) {
-          const dispatchRes = await dispatchGenerationJob(run.id);
-          if (dispatchRes.success) {
-            autoResumedRunId = run.id;
+        if (!project || project.deletedAt || project.deletionStartedAt) {
+          console.log(
+            `⚠️ [Auto-Resume Skipped] Project ${run.projectId} was deleted/cancelled before payment completed. Wallet credited without auto-resuming generation.`
+          );
+        } else {
+          const reservation = await reserveCreditsForRun({
+            userId: order.userId,
+            projectId: run.projectId,
+            generationRunId: run.id,
+            requiredCostPaise: run.estimatedCostPaise,
+          });
+
+          if (reservation.success) {
+            const dispatchRes = await dispatchGenerationJob(run.id);
+            if (dispatchRes.success) {
+              autoResumedRunId = run.id;
+            }
           }
         }
       }
@@ -159,7 +192,7 @@ export async function finalizeCapturedPayment(params: {
 
     return {
       success: true,
-      paymentOrder: transactionResult,
+      paymentOrder: transactionResult.order,
       autoResumedRunId,
     };
   } catch (err: any) {
