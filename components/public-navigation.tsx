@@ -41,8 +41,8 @@ export function PublicNavigation({ onOpenAuth }: PublicNavigationProps) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Brand Logo -> Links to / */}
-        <Link href="/" className="flex items-center group">
-          <div className="relative h-[30px] w-[120px] sm:h-[34px] sm:w-[136px]">
+        <Link href="/" className="flex items-center group" title="GoWider">
+          <div className="relative h-[34px] w-[130px] sm:h-[38px] sm:w-[145px]">
             <Image
               src="/brand/logo-wordmark.png"
               alt="GoWider"

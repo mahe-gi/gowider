@@ -24,10 +24,10 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
-  title: `${BRAND.displayName} — ${BRAND.tagline}`,
+  title: `${BRAND.displayName} · ${BRAND.tagline}`,
   description: BRAND.description,
   openGraph: {
-    title: `${BRAND.displayName} — ${BRAND.tagline}`,
+    title: `${BRAND.displayName} · ${BRAND.tagline}`,
     description: BRAND.description,
     images: [{ url: "/brand/logo-wordmark.png" }],
   },

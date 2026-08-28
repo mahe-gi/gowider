@@ -8,7 +8,7 @@ export function TransformationSection() {
             <span className="font-serif italic font-normal text-[#FF441F]">Understood everywhere.</span>
           </h2>
           <p className="text-base text-[#55524C]">
-            One creator video seamlessly localized into Hindi, Tamil, Kannada and beyond — retaining your natural voice identity, cadence, and emotion.
+            One creator video seamlessly localized into Hindi, Tamil, Kannada and beyond, retaining your natural voice identity, cadence, and emotion.
           </p>
         </div>
 

@@ -11,7 +11,7 @@ import { VoiceSection } from "@/components/voice-section";
 import { LanguageMarquee } from "@/components/language-marquee";
 import { Footer } from "@/components/footer";
 import { AuthSheet } from "@/components/auth-sheet";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export default function LandingPage() {
   const { data: session } = useSession();
@@ -47,7 +47,6 @@ export default function LandingPage() {
       <section className="py-20 bg-[#111111] text-white text-center">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-[#FF552E] text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
             <span>Ready to Go Wider?</span>
           </div>
 

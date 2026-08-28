@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { X, Sparkles, Shield, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import { X, Loader2 } from "lucide-react";
 import { signIn } from "next-auth/react";
 
 interface AuthSheetProps {
@@ -12,10 +13,93 @@ interface AuthSheetProps {
 
 export function AuthSheet({ isOpen, onClose, callbackUrl = "/dashboard" }: AuthSheetProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const signInButtonRef = useRef<HTMLButtonElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  const isLoadingRef = useRef(isLoading);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+
+  // Modal open/close lifecycle effect
+  useEffect(() => {
+    if (isOpen) {
+      previousActiveElementRef.current = document.activeElement as HTMLElement;
+      setIsLoading(false);
+
+      // Lock body scroll
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+
+      // Initial focus inside modal
+      const timer = setTimeout(() => {
+        if (signInButtonRef.current) {
+          signInButtonRef.current.focus();
+        } else if (dialogRef.current) {
+          const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          );
+          if (focusable.length > 0) focusable[0].focus();
+        }
+      }, 50);
+
+      function handleKeyDown(e: KeyboardEvent) {
+        if (e.key === "Escape" && !isLoadingRef.current) {
+          e.preventDefault();
+          onCloseRef.current();
+          return;
+        }
+
+        // Tab / Shift+Tab Focus Trap
+        if (e.key === "Tab" && dialogRef.current) {
+          const focusable = Array.from(
+            dialogRef.current.querySelectorAll<HTMLElement>(
+              'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )
+          );
+
+          if (focusable.length === 0) return;
+
+          const firstElement = focusable[0];
+          const lastElement = focusable[focusable.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              e.preventDefault();
+              lastElement.focus();
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              e.preventDefault();
+              firstElement.focus();
+            }
+          }
+        }
+      }
+
+      window.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+        clearTimeout(timer);
+        document.body.style.overflow = originalOverflow;
+        if (previousActiveElementRef.current && typeof previousActiveElementRef.current.focus === "function") {
+          previousActiveElementRef.current.focus();
+        }
+      };
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   async function handleGoogleSignIn() {
+    if (isLoading) return;
     setIsLoading(true);
     try {
       await signIn("google", { callbackUrl });
@@ -26,43 +110,64 @@ export function AuthSheet({ isOpen, onClose, callbackUrl = "/dashboard" }: AuthS
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-[#FAF8F5] rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#121212]/10 space-y-6">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-dialog-title"
+      aria-describedby="auth-dialog-desc"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+    >
+      <div
+        ref={dialogRef}
+        className="relative w-full max-w-sm bg-[#FAF8F5] rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#121212]/10 space-y-6 animate-in zoom-in-95 duration-150"
+      >
         {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 text-[#8C877D] hover:text-[#111111] rounded-full hover:bg-[#121212]/05 transition-colors cursor-pointer"
+          disabled={isLoading}
+          className="absolute top-5 right-5 p-2 rounded-full text-[#8C877D] hover:text-[#111111] hover:bg-[#121212]/05 transition-colors disabled:opacity-50 cursor-pointer"
+          aria-label="Close dialog"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        {/* Header Badge */}
-        <div className="w-12 h-12 rounded-2xl bg-[#FFF1EE] border border-[#FF441F]/20 flex items-center justify-center text-[#FF441F]">
-          <Sparkles className="w-6 h-6" />
+        {/* GoWider Brand Logo */}
+        <div className="flex items-center">
+          <div className="relative h-[32px] w-[125px] sm:h-[36px] sm:w-[140px]">
+            <Image
+              src="/brand/logo-wordmark.png"
+              alt="GoWider"
+              fill
+              className="object-contain object-left"
+              priority
+            />
+          </div>
         </div>
 
-        {/* Copy */}
-        <div className="space-y-2">
-          <h2 className="text-2xl font-extrabold tracking-tight text-[#111111]">
-            Save your Reel and continue
+        {/* Clean Auth Copy */}
+        <div className="space-y-1.5">
+          <h2 id="auth-dialog-title" className="text-xl sm:text-2xl font-bold tracking-tight text-[#111111]">
+            Continue to GoWider
           </h2>
-          <p className="text-sm text-[#55524C] leading-relaxed">
-            Sign in with Google to continue localization and access your projects from your account.
+          <p id="auth-dialog-desc" className="text-xs sm:text-sm text-[#55524C] leading-relaxed">
+            Sign in with Google to continue.
           </p>
         </div>
 
-        {/* Auth Action */}
-        <div className="space-y-3 pt-2">
+        {/* Google Sign-in Button */}
+        <div className="pt-1">
           <button
+            ref={signInButtonRef}
             type="button"
             disabled={isLoading}
             onClick={handleGoogleSignIn}
-            className="w-full py-3.5 px-4 rounded-2xl bg-white border border-[#121212]/15 hover:border-[#121212]/30 shadow-xs hover:shadow-md text-[#111111] font-semibold text-sm flex items-center justify-center gap-3 transition-all cursor-pointer disabled:opacity-50"
+            className="w-full py-3 px-4 rounded-2xl bg-white border border-[#121212]/15 hover:border-[#121212]/30 shadow-xs hover:shadow-md text-[#111111] font-semibold text-xs sm:text-sm flex items-center justify-center gap-3 transition-all cursor-pointer disabled:opacity-50"
           >
             {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-[#FF441F]" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#FF441F]" />
             ) : (
-              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -83,12 +188,6 @@ export function AuthSheet({ isOpen, onClose, callbackUrl = "/dashboard" }: AuthS
             )}
             <span>{isLoading ? "Signing in…" : "Continue with Google"}</span>
           </button>
-        </div>
-
-        {/* Security Note */}
-        <div className="flex items-center gap-2 text-xs text-[#8C877D] font-mono justify-center pt-2">
-          <Shield className="w-3.5 h-3.5 text-[#22C55E]" />
-          <span>Your progress will be saved.</span>
         </div>
       </div>
     </div>

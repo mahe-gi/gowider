@@ -8,7 +8,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="relative h-[24px] w-[95px]">
+            <div className="relative h-[26px] w-[100px] sm:h-[28px] sm:w-[108px]">
               <Image src="/brand/logo-wordmark.png" alt="GoWider" fill className="object-contain object-left" />
             </div>
             <span className="text-[#55524C]">· {BRAND.tagline}</span>

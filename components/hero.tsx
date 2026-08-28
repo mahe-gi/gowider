@@ -2,7 +2,7 @@
 
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
-import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { HeroReelTransform } from "./hero-reel-transform";
 
 export function Hero() {
@@ -14,12 +14,6 @@ export function Hero() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           {/* Left Hero Content */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            {/* Pill Tag */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#FFF1EE] border border-[#FF441F]/20 text-[#FF441F] text-xs sm:text-sm font-semibold tracking-tight shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI video localization</span>
-            </div>
-
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#111111] leading-[1.05]">
               One reel. <br />
@@ -28,7 +22,7 @@ export function Hero() {
 
             {/* Supporting Copy */}
             <p className="text-lg sm:text-xl text-[#55524C] max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
-              Turn your Reel into Hindi, Tamil, Telugu, Kannada and more — without recording it again. Same content. Same voice. A much bigger audience.
+              Turn your Reel into Hindi, Tamil, Telugu, Kannada and more, without recording it again. Same content. Same voice. A much bigger audience.
             </p>
 
             {/* CTAs */}
