@@ -1,6 +1,6 @@
 import { Worker, type Job } from "bullmq";
 import { getRedisConnection } from "@/lib/queue/connection";
-import { GENERATION_QUEUE_NAME } from "@/lib/queue/queues";
+import { getGenerationQueueName } from "@/lib/queue/queues";
 import { dispatchGenerationJob } from "@/lib/queue/dispatch";
 import type { GenerationJobName, GenerationJobData } from "@/lib/queue/types";
 import {
@@ -15,7 +15,7 @@ export function createGenerationWorker(): Worker<GenerationJobData, any, Generat
   const concurrency = Number(env.GENERATION_WORKER_CONCURRENCY) || 3;
 
   const worker = new Worker<GenerationJobData, any, GenerationJobName>(
-    GENERATION_QUEUE_NAME,
+    getGenerationQueueName(),
     async (job: Job<GenerationJobData, any, GenerationJobName>) => {
       const { generationRunId, pollAttempt = 1 } = job.data;
       const jobName = job.name as GenerationJobName;
@@ -75,6 +75,17 @@ export function createGenerationWorker(): Worker<GenerationJobData, any, Generat
             return { status: "unknown_job" };
         }
       } catch (err: any) {
+        // Safe handling for orphan jobs (missing DB run, deleted project, already terminal)
+        if (err.isOrphan) {
+          console.warn(`[Worker] Skipping orphan generation job:`, {
+            jobId: job.id,
+            generationRunId,
+            jobName,
+            reason: err.reason || "generation_run_missing",
+          });
+          return { status: "skipped_orphan", reason: err.reason };
+        }
+
         console.error(`💥 [Worker Error] Failed execution for ${jobName} on run ${generationRunId}:`, err.message);
 
         // If error is transient, rethrow so BullMQ handles backoff retry

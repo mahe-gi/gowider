@@ -3,13 +3,13 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { paymentWebhookEvents } from "@/db/schema";
 import { getRedisConnection } from "@/lib/queue/connection";
-import { PAYMENT_QUEUE_NAME } from "@/lib/queue/queues";
+import { getPaymentQueueName } from "@/lib/queue/queues";
 import type { PaymentJobName, PaymentJobData } from "@/lib/queue/types";
 import { finalizeCapturedPayment } from "@/lib/payments/finalize-payment";
 
 export function createPaymentWorker(): Worker<PaymentJobData, any, PaymentJobName> {
   const worker = new Worker<PaymentJobData, any, PaymentJobName>(
-    PAYMENT_QUEUE_NAME,
+    getPaymentQueueName(),
     async (job: Job<PaymentJobData, any, PaymentJobName>) => {
       const { webhookEventId, providerPaymentId } = job.data;
       console.log(`💳 [Payment Worker] Processing payment job: ${job.name} (webhook: ${webhookEventId})`);

@@ -6,13 +6,13 @@ import { storage } from "@/lib/storage";
 import { paymentProvider } from "@/lib/payments/razorpay";
 import { finalizeCapturedPayment } from "@/lib/payments/finalize-payment";
 import { getRedisConnection } from "@/lib/queue/connection";
-import { MAINTENANCE_QUEUE_NAME } from "@/lib/queue/queues";
+import { getMaintenanceQueueName } from "@/lib/queue/queues";
 import { dispatchGenerationJob, dispatchPaymentJob } from "@/lib/queue/dispatch";
 import type { MaintenanceJobName, MaintenanceJobData } from "@/lib/queue/types";
 
 export function createMaintenanceWorker(): Worker<MaintenanceJobData, any, MaintenanceJobName> {
   const worker = new Worker<MaintenanceJobData, any, MaintenanceJobName>(
-    MAINTENANCE_QUEUE_NAME,
+    getMaintenanceQueueName(),
     async (job: Job<MaintenanceJobData, any, MaintenanceJobName>) => {
       console.log("🧹 [Maintenance Worker] Running periodic reconciliation and media cleanup heartbeat...");
 
@@ -173,6 +173,43 @@ export function createMaintenanceWorker(): Worker<MaintenanceJobData, any, Maint
         console.warn("⚠️ [Maintenance] Cleanup step warning:", cleanupErr.message);
       }
 
+      // 7. Cleanup Abandoned Incomplete Uploads (> 2 hours old, 0 generation runs, 0 outputs)
+      let cleanedUploadsCount = 0;
+      try {
+        const twoHoursAgo = new Date(Date.now() - 2 * 3600 * 1000);
+        const abandonedProjects = await db
+          .select({ id: projects.id, sourceR2Key: projects.sourceR2Key })
+          .from(projects)
+          .where(
+            and(
+              inArray(projects.status, ["upload_pending", "draft"]),
+              lt(projects.createdAt, twoHoursAgo)
+            )
+          )
+          .limit(20);
+
+        for (const proj of abandonedProjects) {
+          const runs = await db
+            .select({ id: generationRuns.id })
+            .from(generationRuns)
+            .where(eq(generationRuns.projectId, proj.id))
+            .limit(1);
+
+          if (runs.length === 0) {
+            try {
+              if (proj.sourceR2Key) {
+                await storage.deleteObject(proj.sourceR2Key);
+              }
+            } catch {}
+            await db.delete(projects).where(eq(projects.id, proj.id));
+            cleanedUploadsCount++;
+            console.log(`🧹 [Maintenance] Cleaned up abandoned project ${proj.id}`);
+          }
+        }
+      } catch (uploadCleanupErr: any) {
+        console.warn("⚠️ [Maintenance] Abandoned upload cleanup warning:", uploadCleanupErr.message);
+      }
+
       return {
         reconciledQueued: queuedRuns.length,
         reconciledProcessing: stalledProcessingRuns.length,
@@ -180,6 +217,7 @@ export function createMaintenanceWorker(): Worker<MaintenanceJobData, any, Maint
         reconciledWebhooks: pendingWebhooks.length,
         reconciledOrders: reconciledOrdersCount,
         cleanedMediaCount,
+        cleanedUploadsCount,
       };
     },
     {

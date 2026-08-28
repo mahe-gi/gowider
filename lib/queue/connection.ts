@@ -34,3 +34,10 @@ export function getRedisConnection(): Redis {
 
   return redisConnection;
 }
+
+export async function closeRedisConnection(): Promise<void> {
+  if (redisConnection) {
+    await redisConnection.quit().catch(() => {});
+    redisConnection = null;
+  }
+}

@@ -24,18 +24,18 @@ export async function dispatchGenerationJob(
   try {
     const queue = getGenerationQueue();
 
-    // Deterministic single-chain job ID per run and stage
-    const jobId = `gen_${jobName.replace(":", "_")}_${generationRunId}`;
+    // Deterministic single-chain job ID per run, stage, and attempt
+    const jobId = `gen_${jobName.replace(":", "_")}_${generationRunId}_${pollAttempt}`;
 
     try {
       const existing = await queue.getJob(jobId);
       if (existing) {
         const state = await existing.getState();
         // If already queued, active, or delayed, do not spawn duplicate polling loops
-        if (state === "delayed" || state === "active" || state === "waiting") {
+        if (state === "delayed" || state === "waiting" || state === "active") {
           return { success: true };
         }
-        // If previously completed or failed, remove it so the next stage/attempt can be scheduled
+        // If previously completed or failed, remove it so the next attempt can be scheduled
         await existing.remove();
       }
     } catch {

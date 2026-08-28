@@ -1,5 +1,5 @@
 import "server-only";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray, or, isNull, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import { projects, generationRuns, projectOutputs } from "@/db/schema";
@@ -13,7 +13,7 @@ import {
 } from "@/lib/sarvam/dubbing";
 import { settleGenerationRun, releaseFullReservation } from "@/lib/wallet/settle";
 import { calculateDubbingCost } from "@/lib/pricing/dubbing";
-import { TransientError, isTransientNetworkError } from "./errors";
+import { TransientError, isTransientNetworkError, OrphanJobError } from "./errors";
 
 export interface GenerationProcessResult {
   status: "processing" | "exporting" | "completed" | "partial_failure" | "failed" | "already_terminal";
@@ -36,7 +36,7 @@ export async function processGenerationStart(generationRunId: string): Promise<G
     .limit(1);
 
   if (!run) {
-    throw new Error(`Generation run not found: ${generationRunId}`);
+    throw new OrphanJobError(`Generation run not found: ${generationRunId}`, "generation_run_missing");
   }
 
   const isTerminal =
@@ -55,8 +55,8 @@ export async function processGenerationStart(generationRunId: string): Promise<G
     .where(eq(projects.id, run.projectId))
     .limit(1);
 
-  if (!project) {
-    throw new Error(`Project not found: ${run.projectId}`);
+  if (!project || project.deletedAt) {
+    throw new OrphanJobError(`Project not found or deleted: ${run.projectId}`, "project_deleted");
   }
 
   let sarvamJobId = run.sarvamJobId;
@@ -68,7 +68,7 @@ export async function processGenerationStart(generationRunId: string): Promise<G
       const liveCheck = await getDubbingLiveStatus(sarvamJobId);
 
       if (liveCheck.status === "completed" || liveCheck.status === "partial_failure") {
-        return { status: "exporting", nextAction: "poll_export", pollDelayMs: 5000 };
+        return { status: "exporting", nextAction: "poll_export", pollDelayMs: 2000 };
       }
 
       if (liveCheck.status === "in_progress" || liveCheck.status === "queued") {
@@ -76,8 +76,9 @@ export async function processGenerationStart(generationRunId: string): Promise<G
           .update(generationRuns)
           .set({
             status: "processing",
-            currentStep: "dubbing",
-            currentStepLabel: "Localizing voices and emotion",
+            currentStep: liveCheck.currentStep || "dubbing",
+            currentStepLabel: liveCheck.currentStepLabel || "Localizing voices and emotion",
+            progress: liveCheck.progress,
             updatedAt: new Date(),
           })
           .where(eq(generationRuns.id, run.id));
@@ -125,9 +126,10 @@ export async function processGenerationStart(generationRunId: string): Promise<G
     }
   }
 
-  // Case B: Create new provider job
+  // Case B: Create new provider job with atomic claim lease (and stale lease recovery)
   if (!sarvamJobId) {
-    await db
+    const staleLeaseCutoff = new Date(Date.now() - 2 * 60 * 1000);
+    const [claimedRun] = await db
       .update(generationRuns)
       .set({
         status: "uploading_to_sarvam",
@@ -136,7 +138,35 @@ export async function processGenerationStart(generationRunId: string): Promise<G
         startedAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(generationRuns.id, run.id));
+      .where(
+        and(
+          eq(generationRuns.id, run.id),
+          or(
+            inArray(generationRuns.status, ["queued", "awaiting_payment"]),
+            and(
+              eq(generationRuns.status, "uploading_to_sarvam"),
+              isNull(generationRuns.sarvamJobId),
+              lt(generationRuns.updatedAt, staleLeaseCutoff)
+            )
+          )
+        )
+      )
+      .returning();
+
+    if (!claimedRun) {
+      // Another concurrent worker execution currently holds an active lease
+      const [current] = await db
+        .select()
+        .from(generationRuns)
+        .where(eq(generationRuns.id, run.id))
+        .limit(1);
+
+      if (current?.sarvamJobId) {
+        sarvamJobId = current.sarvamJobId;
+      } else {
+        return { status: "processing", nextAction: "none" };
+      }
+    }
 
     try {
       const sourceLang = project.sourceLanguage || "en-IN";
@@ -148,7 +178,7 @@ export async function processGenerationStart(generationRunId: string): Promise<G
         targetLanguages: targetLangs,
       });
 
-      sarvamJobId = jobResponse.job_id;
+      sarvamJobId = jobResponse.jobId;
 
       // 2. Persist provider job ID and upload_url immediately before uploading for crash recovery
       await db
@@ -157,21 +187,21 @@ export async function processGenerationStart(generationRunId: string): Promise<G
           sarvamJobId,
           projectConfigSnapshot: {
             ...configSnapshot,
-            sarvamUploadUrl: jobResponse.upload_url,
+            sarvamUploadUrl: jobResponse.uploadUrl,
           },
           updatedAt: new Date(),
         })
         .where(eq(generationRuns.id, run.id));
 
       // 3. Stream media from StorageProvider directly to provider upload URL
-      if (jobResponse.upload_url) {
+      if (jobResponse.uploadUrl) {
         const { stream, contentLength, contentType } = await storage.getObjectStream(project.sourceR2Key);
         if (!stream || !contentLength) {
           throw new Error(`Failed to retrieve stream from storage object: ${project.sourceR2Key}`);
         }
 
         await streamUploadToSarvam({
-          uploadUrl: jobResponse.upload_url,
+          uploadUrl: jobResponse.uploadUrl,
           stream,
           contentLength,
           contentType: contentType || project.sourceMimeType || "video/mp4",
@@ -257,7 +287,9 @@ export async function processGenerationLiveCheck(
     .where(eq(generationRuns.id, generationRunId))
     .limit(1);
 
-  if (!run) throw new Error(`Run not found: ${generationRunId}`);
+  if (!run) {
+    throw new OrphanJobError(`Generation run not found: ${generationRunId}`, "generation_run_missing");
+  }
 
   const isTerminal =
     run.status === "completed" ||
@@ -270,7 +302,7 @@ export async function processGenerationLiveCheck(
   }
 
   if (!run.sarvamJobId) {
-    throw new Error(`Cannot poll live status without sarvamJobId for run ${generationRunId}`);
+    throw new OrphanJobError(`Cannot poll live status without sarvamJobId for run ${generationRunId}`, "generation_run_missing");
   }
 
   const maxAttempts = 60; // 60 * 15s = 15 minutes max timeout
@@ -295,8 +327,8 @@ export async function processGenerationLiveCheck(
     .update(generationRuns)
     .set({
       progress: statusRes.progress ?? 0,
-      currentStep: statusRes.current_step,
-      currentStepLabel: statusRes.current_step_label || "Localizing voices and emotion",
+      currentStep: statusRes.currentStep || "dubbing",
+      currentStepLabel: statusRes.currentStepLabel || (statusRes.status === "completed" ? "Completed" : "Localizing voices and emotion"),
       updatedAt: new Date(),
     })
     .where(eq(generationRuns.id, run.id));
@@ -304,10 +336,10 @@ export async function processGenerationLiveCheck(
   if (statusRes.status === "failed" || statusRes.status === "deleted") {
     await failGeneration(
       generationRunId,
-      statusRes.error_code || "PROVIDER_JOB_FAILED",
-      statusRes.error_message || "Provider localization pipeline failed."
+      statusRes.errorCode || "PROVIDER_JOB_FAILED",
+      statusRes.errorMessage || "Provider localization pipeline failed."
     );
-    return { status: "failed", nextAction: "none", error: statusRes.error_message };
+    return { status: "failed", nextAction: "none", error: statusRes.errorMessage };
   }
 
   if (statusRes.status === "completed" || statusRes.status === "partial_failure") {
@@ -317,6 +349,7 @@ export async function processGenerationLiveCheck(
         status: "exporting",
         currentStep: "exporting",
         currentStepLabel: "Preparing video and subtitle downloads",
+        progress: 100,
         updatedAt: new Date(),
       })
       .where(eq(generationRuns.id, run.id));
@@ -324,7 +357,7 @@ export async function processGenerationLiveCheck(
     return {
       status: "exporting",
       nextAction: "poll_export",
-      pollDelayMs: 5000,
+      pollDelayMs: 2000,
     };
   }
 
@@ -349,7 +382,9 @@ export async function processGenerationExportCheck(
     .where(eq(generationRuns.id, generationRunId))
     .limit(1);
 
-  if (!run) throw new Error(`Run not found: ${generationRunId}`);
+  if (!run) {
+    throw new OrphanJobError(`Generation run not found: ${generationRunId}`, "generation_run_missing");
+  }
 
   const isTerminal =
     run.status === "completed" ||
@@ -362,7 +397,7 @@ export async function processGenerationExportCheck(
   }
 
   if (!run.sarvamJobId) {
-    throw new Error(`Missing sarvamJobId for export check: ${generationRunId}`);
+    throw new OrphanJobError(`Missing sarvamJobId for export check: ${generationRunId}`, "generation_run_missing");
   }
 
   const [project] = await db
@@ -371,7 +406,9 @@ export async function processGenerationExportCheck(
     .where(eq(projects.id, run.projectId))
     .limit(1);
 
-  if (!project) throw new Error(`Project not found: ${run.projectId}`);
+  if (!project || project.deletedAt) {
+    throw new OrphanJobError(`Project not found or deleted: ${run.projectId}`, "project_deleted");
+  }
 
   let exportRes: any;
   try {
@@ -385,10 +422,10 @@ export async function processGenerationExportCheck(
     return { status: "failed", nextAction: "none" };
   }
 
-  const exportItems: any[] = exportRes.data?.exports || [];
-  const videoExports = exportItems.filter((e) => e.export_type === "video");
+  const exportItems = exportRes.exports || [];
+  const videoExports = exportItems.filter((e: any) => e.exportType === "video");
   const pendingVideos = videoExports.filter(
-    (e) => e.status !== "completed" && e.status !== "failed"
+    (e: any) => e.status !== "completed" && e.status !== "failed"
   );
 
   const maxExportAttempts = 30;
@@ -406,19 +443,19 @@ export async function processGenerationExportCheck(
 
   for (const lang of run.targetLanguages) {
     const videoExport = exportItems.find(
-      (e) => e.target_language === lang && e.export_type === "video" && e.status === "completed"
+      (e: any) => e.targetLanguage === lang && e.exportType === "video" && e.status === "completed"
     );
     const srtExport = exportItems.find(
-      (e) => e.target_language === lang && e.export_type === "srt" && e.status === "completed"
+      (e: any) => e.targetLanguage === lang && e.exportType === "srt" && e.status === "completed"
     );
 
     let videoStorageKey: string | undefined;
     let srtStorageKey: string | undefined;
 
-    if (videoExport?.download_url) {
+    if (videoExport?.downloadUrl) {
       videoStorageKey = `outputs/${run.userId}/${project.id}/${lang}/video.mp4`;
       try {
-        await storage.saveFromUrl(videoExport.download_url, videoStorageKey, "video/mp4");
+        await storage.saveFromUrl(videoExport.downloadUrl, videoStorageKey, "video/mp4");
         successfulLanguages.push(lang);
       } catch (copyErr: any) {
         console.error(`Failed to archive video export for ${lang}:`, copyErr.message);
@@ -429,10 +466,10 @@ export async function processGenerationExportCheck(
       }
     }
 
-    if (srtExport?.download_url) {
+    if (srtExport?.downloadUrl) {
       srtStorageKey = `outputs/${run.userId}/${project.id}/${lang}/subtitles.srt`;
       try {
-        await storage.saveFromUrl(srtExport.download_url, srtStorageKey, "text/plain");
+        await storage.saveFromUrl(srtExport.downloadUrl, srtStorageKey, "text/plain");
       } catch (srtErr: any) {
         console.error(`Failed to archive SRT export for ${lang}:`, srtErr.message);
         srtStorageKey = undefined;

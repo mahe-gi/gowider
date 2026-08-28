@@ -14,6 +14,17 @@ export class PermanentError extends Error {
   }
 }
 
+export class OrphanJobError extends Error {
+  public readonly isOrphan = true;
+  constructor(
+    message: string,
+    public readonly reason: "generation_run_missing" | "project_missing" | "already_terminal" | "project_deleted" = "generation_run_missing"
+  ) {
+    super(message);
+    this.name = "OrphanJobError";
+  }
+}
+
 export function isRetryableHttpError(status?: number): boolean {
   if (!status) return false;
   // 429 Too Many Requests, 500 Internal, 502 Bad Gateway, 503 Service Unavailable, 504 Gateway Timeout
