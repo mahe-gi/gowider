@@ -8,9 +8,10 @@ export interface SarvamCreateJobRequest {
   disable_watermark?: boolean;
 }
 
-export interface SarvamCreateJobResponse {
-  job_id: string;
-  upload_url: string;
+export interface SarvamCreateJobResult {
+  jobId: string;
+  uploadUrl: string;
+  srtUploadUrl?: string;
   message?: string;
 }
 
@@ -23,15 +24,21 @@ export type SarvamJobStatus =
   | "failed"
   | "deleted";
 
-export interface SarvamLiveStatusResponse {
-  job_id: string;
-  status: SarvamJobStatus;
-  progress?: number;
-  current_step?: string;
-  current_step_label?: string;
-  error_code?: string;
-  error_message?: string;
+export interface SarvamStartJobResult {
+  status: string;
   message?: string;
+  taskSubmitted?: boolean;
+}
+
+export interface SarvamLiveStatusResult {
+  jobId: string;
+  status: SarvamJobStatus;
+  progress: number;
+  currentStep?: string;
+  currentStepLabel?: string;
+  errorCode?: string;
+  errorMessage?: string;
+  exports?: SarvamExportItem[];
 }
 
 export type SarvamExportType = "video" | "audio" | "srt";
@@ -39,18 +46,14 @@ export type SarvamExportStatus = "pending" | "in_progress" | "completed" | "fail
 
 export interface SarvamExportItem {
   id: string;
-  export_type: SarvamExportType;
-  target_language: string;
+  exportType: SarvamExportType;
+  targetLanguage: string;
   status: SarvamExportStatus;
-  download_url?: string;
-  is_stale?: boolean;
-  error_message?: string;
+  downloadUrl?: string;
+  errorMessage?: string;
 }
 
-export interface SarvamExportStatusResponse {
-  status: string;
+export interface SarvamExportStatusResult {
+  exports: SarvamExportItem[];
   message?: string;
-  data: {
-    exports: SarvamExportItem[];
-  };
 }
