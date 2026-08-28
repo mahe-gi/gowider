@@ -22,6 +22,8 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadInFlightRef = useRef<boolean>(false);
+  const activeIntentRef = useRef<string | null>(null);
 
   function formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
@@ -30,17 +32,25 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
   }
 
   async function validateAndUploadFile(file: File) {
+    // Synchronous In-Flight Mutex to prevent multi-click / double-tap / drag-drop race conditions
+    if (uploadInFlightRef.current) {
+      return;
+    }
+    uploadInFlightRef.current = true;
+
     setErrorMessage(null);
 
     // 1. Validate MIME type
     if (file.type !== "video/mp4" && file.type !== "video/quicktime") {
       setErrorMessage("Unsupported format. Please upload an MP4 or MOV video file.");
+      uploadInFlightRef.current = false;
       return;
     }
 
     // 2. Validate File Size
     if (file.size > MAX_FILE_SIZE_BYTES) {
       setErrorMessage(`File is too large (${(file.size / (1024 * 1024)).toFixed(1)} MB). Maximum allowed size is ${MAX_FILE_SIZE_MB} MB.`);
+      uploadInFlightRef.current = false;
       return;
     }
 
@@ -66,16 +76,23 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
       );
       URL.revokeObjectURL(videoUrl);
       setStatusMessage(null);
+      uploadInFlightRef.current = false;
       return;
     }
 
-    // 4. Start Upload Flow
+    // 4. Stable Upload Intent
+    if (!activeIntentRef.current) {
+      activeIntentRef.current = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `intent_${Date.now()}_${Math.random()}`;
+    }
+    const uploadIntentId = activeIntentRef.current;
+
+    // 5. Start Upload Flow
     setIsUploading(true);
     setStatusMessage("Preparing secure direct upload…");
     setUploadProgress(10);
 
     try {
-      // Step A: Request Presigned Target from Backend
+      // Step A: Request Presigned Target from Backend with stable uploadIntentId
       const presignRes = await fetch("/api/uploads/presign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -83,6 +100,7 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
           fileName: file.name,
           contentType: file.type,
           fileSizeBytes: file.size,
+          uploadIntentId,
         }),
       });
 
@@ -145,6 +163,9 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
       setUploadProgress(100);
       setStatusMessage("Upload verified! Loading Creator Studio…");
 
+      // Reset intent on success
+      activeIntentRef.current = null;
+
       // Transition to Studio Workspace
       onUploadSuccess({
         projectId,
@@ -159,12 +180,15 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
     } finally {
       setIsUploading(false);
       setStatusMessage(null);
+      uploadInFlightRef.current = false;
     }
   }
 
   function handleDragOver(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
-    setIsDragging(true);
+    if (!uploadInFlightRef.current) {
+      setIsDragging(true);
+    }
   }
 
   function handleDragLeave(e: DragEvent<HTMLDivElement>) {
@@ -175,15 +199,19 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
   function handleDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setIsDragging(false);
+    if (uploadInFlightRef.current) return;
     const files = e.dataTransfer.files;
     if (files.length > 0) {
+      activeIntentRef.current = null; // New drop = fresh intent
       validateAndUploadFile(files[0]);
     }
   }
 
   function handleFileInputChange(e: ChangeEvent<HTMLInputElement>) {
+    if (uploadInFlightRef.current) return;
     const files = e.target.files;
     if (files && files.length > 0) {
+      activeIntentRef.current = null; // New browse = fresh intent
       validateAndUploadFile(files[0]);
     }
   }
@@ -194,7 +222,7 @@ export function UploadZone({ onUploadSuccess }: UploadZoneProps) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        onClick={() => !isUploading && fileInputRef.current?.click()}
+        onClick={() => !isUploading && !uploadInFlightRef.current && fileInputRef.current?.click()}
         className={`relative border-2 border-dashed rounded-3xl p-8 sm:p-12 text-center transition-all duration-300 cursor-pointer overflow-hidden ${
           isDragging
             ? "border-[#FF441F] bg-[#FFF5F2] scale-[1.01]"

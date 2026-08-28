@@ -27,7 +27,7 @@ export default function NewStudioPage() {
     fileSizeBytes: number;
   } | null>(null);
 
-  // Studio configuration
+  const [studioError, setStudioError] = useState<string | null>(null);
   const [sourceLanguage, setSourceLanguage] = useState<LanguageCode>("te-IN");
   const [targetLanguages, setTargetLanguages] = useState<LanguageCode[]>(["hi-IN", "ta-IN", "kn-IN"]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,6 +95,7 @@ export default function NewStudioPage() {
     if (!activeProject) return;
 
     setIsSubmitting(true);
+    setStudioError(null);
     try {
       // 1. Configure project in backend
       const configRes = await fetch(`/api/projects/${activeProject.projectId}/configure`, {
@@ -141,7 +142,7 @@ export default function NewStudioPage() {
       router.push(`/project/${activeProject.projectId}`);
     } catch (err: any) {
       console.error("Generate error:", err);
-      alert(err.message || "Failed to start localization.");
+      setStudioError(err.message || "Failed to start localization.");
       setIsSubmitting(false);
     }
   }
@@ -173,6 +174,18 @@ export default function NewStudioPage() {
             <span>Voice-Preserving Video Studio</span>
           </div>
         </div>
+
+        {studioError && (
+          <div className="p-3.5 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-between text-xs text-[#DC2626] font-medium animate-in fade-in">
+            <span>{studioError}</span>
+            <button
+              onClick={() => setStudioError(null)}
+              className="text-[#DC2626] hover:text-[#991B1B] font-bold ml-2"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Studio Workspace Content */}
         <div className="space-y-8">
@@ -242,7 +255,7 @@ export default function NewStudioPage() {
         onPaymentSuccess={(newBal) => {
           setWallet((prev) => (prev ? { ...prev, availablePaise: newBal } : { balancePaise: newBal, availablePaise: newBal }));
           if (activeProject) {
-            handleGenerate(true);
+            router.push(`/project/${activeProject.projectId}`);
           }
         }}
       />

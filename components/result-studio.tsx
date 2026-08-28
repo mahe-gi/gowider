@@ -145,7 +145,7 @@ export function ResultStudio({
             ) : currentOutput?.status === "completed" ? (
               <video
                 key={activeTab}
-                src={`/api/projects/${projectId}/download/${activeTab}/video?redirect=true`}
+                src={`/api/projects/${projectId}/download/${activeTab}/video?redirect=true&inline=true`}
                 controls
                 playsInline
                 className="w-full h-full object-cover"

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, not, isNull } from "drizzle-orm";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/db";
 import { projects } from "@/db/schema";
@@ -9,6 +9,7 @@ import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { PlusCircle, Film, ArrowRight, Loader2, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { HUMAN_STATUS_LABELS } from "@/lib/constants";
+import { ReelCardMenu } from "@/components/reel-card-menu";
 
 export default async function ProjectsLibraryPage() {
   const session = await auth();
@@ -22,7 +23,13 @@ export default async function ProjectsLibraryPage() {
   const userProjects = await db
     .select()
     .from(projects)
-    .where(eq(projects.userId, userId))
+    .where(
+      and(
+        eq(projects.userId, userId),
+        isNull(projects.deletedAt),
+        not(eq(projects.status, "upload_pending"))
+      )
+    )
     .orderBy(desc(projects.createdAt));
 
   return (
@@ -116,9 +123,16 @@ export default async function ProjectsLibraryPage() {
                         <span>{statusLabel}</span>
                       </span>
 
-                      <span className="text-xs font-mono text-[#8C877D]">
-                        {new Date(project.createdAt).toLocaleDateString()}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-[#8C877D]">
+                          {new Date(project.createdAt).toLocaleDateString()}
+                        </span>
+                        <ReelCardMenu
+                          projectId={project.id}
+                          reelName={project.displayName || "Untitled Reel"}
+                          isProcessing={isProcessing}
+                        />
+                      </div>
                     </div>
 
                     <h3 className="text-lg font-bold text-[#111111] group-hover:text-[#FF441F] transition-colors truncate">

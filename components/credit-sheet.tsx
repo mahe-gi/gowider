@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { X, Wallet, Sparkles, Check, Loader2, AlertCircle } from "lucide-react";
 import { TOP_UP_PACKAGES_PAISE } from "@/lib/constants";
 
@@ -52,7 +52,13 @@ export function CreditSheet({
     });
   }
 
+  const checkoutInFlightRef = useRef(false);
+  const paymentIntentIdRef = useRef<string | null>(null);
+
   async function handleCheckout() {
+    if (checkoutInFlightRef.current) return;
+    checkoutInFlightRef.current = true;
+
     setIsProcessing(true);
     setErrorMessage(null);
     setStatusMessage("Preparing secure checkout…");
@@ -64,12 +70,18 @@ export function CreditSheet({
         throw new Error("Failed to load Razorpay payment SDK. Please check your connection.");
       }
 
+      if (!paymentIntentIdRef.current) {
+        paymentIntentIdRef.current = typeof crypto !== "undefined" && crypto.randomUUID ? `pay_intent_${crypto.randomUUID()}` : `pay_intent_${Date.now()}`;
+      }
+      const paymentIntentId = paymentIntentIdRef.current;
+
       // 2. Create Order in Backend
       const orderRes = await fetch("/api/payments/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amountPaise: selectedPackage,
+          paymentIntentId,
           generationRunId,
         }),
       });
@@ -134,6 +146,7 @@ export function CreditSheet({
         },
         modal: {
           ondismiss: function () {
+            checkoutInFlightRef.current = false;
             setIsProcessing(false);
             setStatusMessage(null);
           },
@@ -145,12 +158,14 @@ export function CreditSheet({
 
       const rzp = new window.Razorpay(options);
       rzp.on("payment.failed", function (response: any) {
+        checkoutInFlightRef.current = false;
         setErrorMessage(response.error?.description || "Payment failed.");
         setIsProcessing(false);
         setStatusMessage(null);
       });
       rzp.open();
     } catch (err: any) {
+      checkoutInFlightRef.current = false;
       console.error("Checkout error:", err);
       setErrorMessage(err.message || "Payment checkout error.");
       setIsProcessing(false);
