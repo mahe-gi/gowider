@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and, not, isNull } from "drizzle-orm";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/db";
 import { projects } from "@/db/schema";
@@ -13,7 +13,13 @@ export async function GET() {
   const userProjects = await db
     .select()
     .from(projects)
-    .where(eq(projects.userId, session.user.id))
+    .where(
+      and(
+        eq(projects.userId, session.user.id),
+        isNull(projects.deletedAt),
+        not(eq(projects.status, "upload_pending"))
+      )
+    )
     .orderBy(desc(projects.createdAt));
 
   return NextResponse.json({

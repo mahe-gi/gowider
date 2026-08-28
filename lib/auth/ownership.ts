@@ -15,7 +15,8 @@ export interface ProjectAccessResult {
  */
 export async function assertProjectAccess(
   projectId: string,
-  userId?: string | null
+  userId?: string | null,
+  allowDeleted: boolean = false
 ): Promise<ProjectAccessResult> {
   if (!userId || !projectId) {
     return { hasAccess: false, isOwner: false };
@@ -28,6 +29,11 @@ export async function assertProjectAccess(
     .limit(1);
 
   if (!project) {
+    return { hasAccess: false, isOwner: false };
+  }
+
+  // Soft-deleted or deletion-in-progress projects are inaccessible unless explicitly allowed
+  if ((project.deletedAt || project.deletionStartedAt) && !allowDeleted) {
     return { hasAccess: false, isOwner: false };
   }
 

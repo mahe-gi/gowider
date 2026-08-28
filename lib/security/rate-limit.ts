@@ -22,16 +22,17 @@ export async function checkRateLimit(
   const resetAt = new Date(now.getTime() + windowSeconds * 1000);
 
   try {
+    const resetAtIso = resetAt.toISOString();
     const res: any = await db.execute(sql`
       INSERT INTO rate_limits (id, key, points, expires_at, created_at)
-      VALUES (${`rate_${nanoid(16)}`}, ${key}, 1, ${resetAt}, NOW())
+      VALUES (${`rate_${nanoid(16)}`}, ${key}, 1, ${resetAtIso}::timestamptz, NOW())
       ON CONFLICT (key) DO UPDATE
       SET points = CASE
           WHEN rate_limits.expires_at < NOW() THEN 1
           ELSE rate_limits.points + 1
       END,
       expires_at = CASE
-          WHEN rate_limits.expires_at < NOW() THEN ${resetAt}
+          WHEN rate_limits.expires_at < NOW() THEN ${resetAtIso}::timestamptz
           ELSE rate_limits.expires_at
       END
       RETURNING points, expires_at;

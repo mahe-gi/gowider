@@ -46,14 +46,15 @@ export async function GET(
       );
     }
 
+    const urlObj = new URL(req.url);
+    const isInline = urlObj.searchParams.get("inline") === "true";
+    const redirect = urlObj.searchParams.get("redirect") !== "false";
+
     const downloadUrl = await createPresignedDownloadUrl({
       key: r2Key,
-      fileName,
+      fileName: isInline ? undefined : fileName,
       expiresInSeconds: 900, // 15 minutes
     });
-
-    const urlObj = new URL(req.url);
-    const redirect = urlObj.searchParams.get("redirect") !== "false";
 
     if (redirect) {
       return NextResponse.redirect(downloadUrl);

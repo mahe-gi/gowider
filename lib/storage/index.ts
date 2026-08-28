@@ -112,9 +112,8 @@ class LocalStorageProvider implements StorageProvider {
     const filePath = path.join(LOCAL_STORAGE_DIR, key);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
-      return true;
     }
-    return false;
+    return true;
   }
 
   async createDownloadUrl(key: string): Promise<string> {
@@ -229,9 +228,12 @@ class R2StorageProvider implements StorageProvider {
       });
       await s3.send(command);
       return true;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === "NotFound" || error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
+        return true;
+      }
       console.error(`Failed to delete R2 object ${key}:`, error);
-      return false;
+      throw error;
     }
   }
 

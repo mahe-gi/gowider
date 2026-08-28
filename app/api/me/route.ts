@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and, isNull } from "drizzle-orm";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/db";
 import { users, projects } from "@/db/schema";
@@ -34,7 +34,7 @@ export async function GET() {
     const [projectStats] = await db
       .select({ count: sql<number>`count(*)` })
       .from(projects)
-      .where(eq(projects.userId, userId));
+      .where(and(eq(projects.userId, userId), isNull(projects.deletedAt)));
 
     return NextResponse.json({
       success: true,

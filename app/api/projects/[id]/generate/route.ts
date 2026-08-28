@@ -1,22 +1,13 @@
 import { NextResponse } from "next/server";
-import { nanoid } from "nanoid";
-import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth/auth";
-import { assertProjectAccess } from "@/lib/auth/ownership";
-import { db } from "@/lib/db";
-import { projects, generationRuns } from "@/db/schema";
-import { calculateDubbingCost } from "@/lib/pricing/dubbing";
-import { reserveCreditsForRun } from "@/lib/wallet/reserve";
-import { getUserWallet } from "@/lib/wallet/service";
-import { dispatchGenerationJob } from "@/lib/queue/dispatch";
 import { checkRateLimit } from "@/lib/security/rate-limit";
+import { createOrResumeGeneration } from "@/lib/generation/generate-service";
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: projectId } = await params;
     const session = await auth();
 
-    // 1. Authenticate requirement
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: { code: "AUTH_REQUIRED", message: "Sign in to start localization." } },
@@ -26,8 +17,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const userId = session.user.id;
 
-    // Rate limit: Max 10 generate requests per 5 minutes per user
-    const rateCheck = await checkRateLimit(`rate:generate:${userId}`, 10, 300);
+    // Rate limit: Max 20 generate requests per 5 minutes per user
+    const rateCheck = await checkRateLimit(`rate:generate:${userId}`, 20, 300);
     if (!rateCheck.success) {
       return NextResponse.json(
         {
@@ -40,125 +31,48 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       );
     }
 
-    const access = await assertProjectAccess(projectId, userId);
-
-    if (!access.hasAccess || !access.project) {
-      return NextResponse.json(
-        { error: { code: "NOT_FOUND", message: "Project not found or access denied." } },
-        { status: 404 }
-      );
-    }
-
-    const project = access.project;
-
-    // 2. Validate configuration
-    if (!project.sourceLanguage || !project.targetLanguages || project.targetLanguages.length === 0) {
-      return NextResponse.json(
-        { error: { code: "INVALID_CONFIGURATION", message: "Please configure source and target languages first." } },
-        { status: 400 }
-      );
-    }
-
-    // 3. Validate Voice Rights Consent
-    if (!project.voiceRightsConfirmedAt) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "VOICE_RIGHTS_CONSENT_REQUIRED",
-            message: "Voice ownership and dubbing rights confirmation is required.",
-          },
-        },
-        { status: 400 }
-      );
-    }
-
     const body = await req.json().catch(() => ({}));
-    const idempotencyKey = body.idempotencyKey || `idem_${nanoid(16)}`;
+    const idempotencyKey = body.idempotencyKey;
 
-    // Check if generation run with this idempotency key already exists
-    const [existingRun] = await db
-      .select()
-      .from(generationRuns)
-      .where(eq(generationRuns.idempotencyKey, idempotencyKey))
-      .limit(1);
-
-    if (existingRun) {
-      return NextResponse.json({ success: true, data: existingRun });
-    }
-
-    // 4. Calculate authoritative price based on server-verified duration
-    const duration = project.serverVerifiedDurationSeconds || project.durationSeconds || 1;
-    const pricing = calculateDubbingCost(duration, project.targetLanguages.length);
-    const requiredCostPaise = pricing.totalCostPaise;
-
-    const runId = `run_${nanoid(16)}`;
-
-    // 5. Create Generation Run record
-    await db.insert(generationRuns).values({
-      id: runId,
-      projectId: project.id,
+    const result = await createOrResumeGeneration({
       userId,
-      targetLanguages: project.targetLanguages,
-      projectConfigSnapshot: {
-        sourceLanguage: project.sourceLanguage,
-        targetLanguages: project.targetLanguages,
-        durationSeconds: duration,
-      },
-      pricingSnapshot: pricing,
+      projectId,
       idempotencyKey,
-      status: "awaiting_payment",
-      dispatchState: "pending",
-      estimatedCostPaise: requiredCostPaise,
-      reservedCostPaise: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
-    // 6. Check Wallet Balance & Attempt Atomic Reservation
-    const reservation = await reserveCreditsForRun({
-      userId,
-      projectId: project.id,
-      generationRunId: runId,
-      requiredCostPaise,
-    });
-
-    if (!reservation.success) {
-      const wallet = await getUserWallet(userId);
-      const shortfallPaise = Math.max(0, requiredCostPaise - wallet.availablePaise);
-
+    if (!result.success && result.insufficientCredits) {
       return NextResponse.json(
         {
           error: {
             code: "INSUFFICIENT_CREDITS",
-            message: `You need ${pricing.formattedTotalInr} to localize these versions.`,
-            requiredCostPaise,
-            availablePaise: wallet.availablePaise,
-            shortfallPaise,
-            generationRunId: runId,
+            message: `You need ${result.pricing?.formattedTotalInr || "more credits"} to localize these versions.`,
+            requiredCostPaise: result.estimatedCostPaise,
+            availablePaise: result.availablePaise,
+            shortfallPaise: result.shortfallPaise,
+            generationRunId: result.generationRunId,
           },
         },
         { status: 402 }
       );
     }
 
-    // 7. Dispatch BullMQ Generation Job
-    await db
-      .update(projects)
-      .set({ status: "processing", updatedAt: new Date() })
-      .where(eq(projects.id, project.id));
-
-    const dispatchResult = await dispatchGenerationJob(runId);
-
     return NextResponse.json({
       success: true,
       data: {
-        generationRunId: runId,
-        status: "queued",
-        dispatchState: dispatchResult.success ? "dispatched" : "pending",
-        estimatedCostPaise: requiredCostPaise,
+        generationRunId: result.generationRunId,
+        status: result.status,
+        dispatchState: result.dispatchState,
+        estimatedCostPaise: result.estimatedCostPaise,
       },
     });
   } catch (error: any) {
+    if (error.message?.startsWith("NOT_FOUND")) {
+      return NextResponse.json({ error: { code: "NOT_FOUND", message: error.message } }, { status: 404 });
+    }
+    if (error.message?.startsWith("INVALID_CONFIGURATION") || error.message?.startsWith("VOICE_RIGHTS_CONSENT_REQUIRED")) {
+      return NextResponse.json({ error: { code: "INVALID_REQUEST", message: error.message } }, { status: 400 });
+    }
+
     console.error("Generate error:", error);
     return NextResponse.json(
       { error: { code: "GENERATE_FAILED", message: error.message || "Failed to start generation." } },
