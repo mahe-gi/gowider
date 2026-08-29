@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
+import { BRAND } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -97,7 +98,7 @@ export default function PrivacyPage() {
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-[#111111]">8. User Rights & Contact</h2>
             <p>
-              You have the right to access your stored account information, export your localized media files, and request full account or data deletion at any time. For questions regarding this policy, contact us at <strong>privacy@gowider.com</strong>.
+              You have the right to access your stored account information, export your localized media files, and request full account or data deletion at any time. For questions regarding this policy, contact us at <strong>{BRAND.privacyEmail}</strong>.
             </p>
           </section>
         </div>

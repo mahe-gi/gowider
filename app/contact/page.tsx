@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { Mail, MessageSquare } from "lucide-react";
+import { BRAND } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Contact Support",
@@ -35,7 +36,7 @@ export default function ContactPage() {
             </div>
             <h2 className="text-lg font-bold text-[#111111]">Email Support</h2>
             <p className="text-xs text-[#55524C]">Reach our engineering and support team directly:</p>
-            <p className="text-sm font-mono font-semibold text-[#111111]">support@gowider.com</p>
+            <p className="text-sm font-mono font-semibold text-[#111111]">{BRAND.supportEmail}</p>
           </div>
 
           <div className="p-8 rounded-3xl bg-white border border-[#121212]/10 shadow-xs space-y-3">
@@ -44,7 +45,7 @@ export default function ContactPage() {
             </div>
             <h2 className="text-lg font-bold text-[#111111]">Creator Feedback</h2>
             <p className="text-xs text-[#55524C]">We welcome feature requests and output quality feedback.</p>
-            <p className="text-sm font-mono font-semibold text-[#111111]">feedback@gowider.com</p>
+            <p className="text-sm font-mono font-semibold text-[#111111]">{BRAND.feedbackEmail}</p>
           </div>
         </div>
       </main>

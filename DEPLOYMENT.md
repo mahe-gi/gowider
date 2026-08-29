@@ -73,7 +73,7 @@ Create `/opt/gowider/.env` and secure permissions:
 ```bash
 cat << ENVFILE > /opt/gowider/.env
 NODE_ENV=production
-NEXT_PUBLIC_APP_URL=https://gowider.com
+NEXT_PUBLIC_APP_URL=https://gowider.in
 
 # 1. Authoritative Managed PostgreSQL (Neon, AWS RDS, Supabase, etc.)
 DATABASE_URL=postgresql://user:password@ep-xyz.region.aws.neon.tech/neondb?sslmode=require
@@ -134,7 +134,7 @@ sudo apt update && sudo apt install caddy
 
 # Configure /etc/caddy/Caddyfile
 sudo cat << 'EOF' > /etc/caddy/Caddyfile
-app.gowider.com {
+gowider.in {
     reverse_proxy 127.0.0.1:3000
 }
 EOF

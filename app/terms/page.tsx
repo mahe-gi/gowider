@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
+import { BRAND } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -87,7 +88,7 @@ export default function TermsPage() {
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-[#111111]">7. Contact & Inquiries</h2>
             <p>
-              For legal notices or questions regarding these terms, please email <strong>legal@gowider.com</strong>.
+              For legal notices or questions regarding these terms, please email <strong>{BRAND.legalEmail}</strong>.
             </p>
           </section>
         </div>

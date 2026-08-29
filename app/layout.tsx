@@ -22,7 +22,7 @@ const instrumentSerif = Instrument_Serif({
   style: ["normal", "italic"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gowider.com";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gowider.in";
 
 export const viewport: Viewport = {
   themeColor: "#FBF9F5",

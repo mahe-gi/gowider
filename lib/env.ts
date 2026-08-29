@@ -3,7 +3,7 @@ import { z } from "zod";
 const envSchema = z.object({
   // Server Environment
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  NEXT_PUBLIC_APP_URL: z.string().url().default("https://gowider.com"),
+  NEXT_PUBLIC_APP_URL: z.string().url().default("https://gowider.in"),
 
   // Storage Driver Configuration
   STORAGE_DRIVER: z.enum(["local", "r2"]).default("local"),

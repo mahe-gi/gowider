@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
+import { BRAND } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Refund Policy",
@@ -38,7 +39,7 @@ export default function RefundPolicyPage() {
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-[#111111]">2. Unused Credit Top-ups</h2>
             <p>
-              If you purchased credits by mistake and have not used them for any generation runs, you may request a full refund within 7 days of payment by contacting our support team at <strong>support@gowider.com</strong> with your Razorpay payment ID.
+              If you purchased credits by mistake and have not used them for any generation runs, you may request a full refund within 7 days of payment by contacting our support team at <strong>{BRAND.supportEmail}</strong> with your Razorpay payment ID.
             </p>
           </section>
 

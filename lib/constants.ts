@@ -8,6 +8,11 @@ export const BRAND = {
     "Turn one short video into localized Indian-language versions while preserving your voice, emotion, and timing.",
   accentColor: "#FF441F",
   darkColor: "#111111",
+  domain: process.env.NEXT_PUBLIC_APP_DOMAIN || "gowider.in",
+  supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@gowider.in",
+  feedbackEmail: process.env.NEXT_PUBLIC_FEEDBACK_EMAIL || "feedback@gowider.in",
+  privacyEmail: process.env.NEXT_PUBLIC_PRIVACY_EMAIL || "privacy@gowider.in",
+  legalEmail: process.env.NEXT_PUBLIC_LEGAL_EMAIL || "legal@gowider.in",
 } as const;
 
 // Supported Localization Languages (12 Indic Languages)

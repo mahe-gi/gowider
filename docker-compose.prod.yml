@@ -13,7 +13,7 @@ services:
     environment:
       - NODE_ENV=production
       # Base Application URL
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://gowider.com}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-https://gowider.in}
       # Managed external PostgreSQL (Neon, AWS RDS, Supabase, etc.)
       - DATABASE_URL=${DATABASE_URL:?DATABASE_URL is required}
       # Internal Redis queue on private Docker network

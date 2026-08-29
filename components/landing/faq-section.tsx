@@ -1,4 +1,5 @@
 import { HelpCircle } from "lucide-react";
+import { BRAND } from "@/lib/constants";
 
 export function FaqSection() {
   const faqs = [
@@ -68,7 +69,7 @@ export function FaqSection() {
         {/* Support Note */}
         <div className="pt-6 text-center text-xs font-mono text-[#8C877D] flex items-center justify-center gap-2">
           <HelpCircle className="w-4 h-4 text-[#FF441F]" />
-          <span>Have another question? Reach us at support@gowider.com</span>
+          <span>Have another question? Reach us at {BRAND.supportEmail}</span>
         </div>
       </div>
     </section>
