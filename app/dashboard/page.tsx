@@ -20,22 +20,39 @@ export default async function DashboardPage() {
   const userId = session.user.id;
   const userName = session.user.name || session.user.email?.split("@")[0] || "Creator";
 
-  // 1. Fetch User Wallet
-  const wallet = await getUserWallet(userId);
+  // 1. Fetch User Wallet safely
+  let wallet = {
+    balancePaise: 0,
+    reservedPaise: 0,
+    availablePaise: 0,
+    formattedAvailableInr: "₹0.00",
+    recentTransactions: [] as any[],
+  };
+
+  try {
+    wallet = await getUserWallet(userId);
+  } catch (err) {
+    console.error("Dashboard: Error loading wallet:", err);
+  }
 
   // 2. Fetch User Projects (Latest 6, excluding incomplete uploads and deleted projects)
-  const userProjects = await db
-    .select()
-    .from(projects)
-    .where(
-      and(
-        eq(projects.userId, userId),
-        isNull(projects.deletedAt),
-        not(eq(projects.status, "upload_pending"))
+  let userProjects: any[] = [];
+  try {
+    userProjects = await db
+      .select()
+      .from(projects)
+      .where(
+        and(
+          eq(projects.userId, userId),
+          isNull(projects.deletedAt),
+          not(eq(projects.status, "upload_pending"))
+        )
       )
-    )
-    .orderBy(desc(projects.createdAt))
-    .limit(6);
+      .orderBy(desc(projects.createdAt))
+      .limit(6);
+  } catch (err) {
+    console.error("Dashboard: Error loading projects:", err);
+  }
 
   // 3. Check for Active / Currently Processing Runs
   const activeProcessingProjects = userProjects.filter(

@@ -18,19 +18,37 @@ export default async function ProjectsLibraryPage() {
   }
 
   const userId = session.user.id;
-  const wallet = await getUserWallet(userId);
 
-  const userProjects = await db
-    .select()
-    .from(projects)
-    .where(
-      and(
-        eq(projects.userId, userId),
-        isNull(projects.deletedAt),
-        not(eq(projects.status, "upload_pending"))
+  let wallet = {
+    balancePaise: 0,
+    reservedPaise: 0,
+    availablePaise: 0,
+    formattedAvailableInr: "₹0.00",
+    recentTransactions: [] as any[],
+  };
+
+  try {
+    wallet = await getUserWallet(userId);
+  } catch (err) {
+    console.error("Projects: Error loading wallet:", err);
+  }
+
+  let userProjects: any[] = [];
+  try {
+    userProjects = await db
+      .select()
+      .from(projects)
+      .where(
+        and(
+          eq(projects.userId, userId),
+          isNull(projects.deletedAt),
+          not(eq(projects.status, "upload_pending"))
+        )
       )
-    )
-    .orderBy(desc(projects.createdAt));
+      .orderBy(desc(projects.createdAt));
+  } catch (err) {
+    console.error("Projects: Error loading projects:", err);
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FBF9F5]">

@@ -72,15 +72,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return false;
       }
     },
-    async jwt({ token, user }) {
-      if (user?.id) {
-        token.id = user.id;
+    async jwt({ token, user, trigger }) {
+      if (user?.email || token?.email) {
+        const email = (user?.email || token?.email) as string;
+        try {
+          const [dbUser] = await db
+            .select({ id: users.id })
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
+
+          if (dbUser) {
+            token.id = dbUser.id;
+          }
+        } catch (err) {
+          console.error("Failed to map database user ID in JWT callback:", err);
+        }
       }
       return token;
     },
     async session({ session, token }) {
-      if (token?.id && session.user) {
-        session.user.id = token.id as string;
+      if (session.user) {
+        session.user.id = (token.id as string) || (token.sub as string);
       }
       return session;
     },
