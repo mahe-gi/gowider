@@ -17,8 +17,9 @@ const requiresSsl =
 const client = postgres(env.DATABASE_URL, {
   max: 10,
   idle_timeout: 20,
-  connect_timeout: 10,
-  ssl: requiresSsl ? "require" : undefined,
+  connect_timeout: 15,
+  ssl: requiresSsl ? { rejectUnauthorized: false } : undefined,
+  prepare: false,
 });
 
 export const db = drizzle(client, { schema });

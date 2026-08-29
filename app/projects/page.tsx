@@ -68,7 +68,7 @@ export default async function ProjectsLibraryPage() {
             <div className="space-y-1">
               <h3 className="text-xl font-bold text-[#111111]">No localized Reels yet</h3>
               <p className="text-sm text-[#55524C]">
-                Turn your first short video into multiple Indian languages with voice cloning.
+                Turn your first short video into multiple Indian languages with voice preservation.
               </p>
             </div>
             <Link

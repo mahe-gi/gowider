@@ -191,7 +191,7 @@ export default async function DashboardPage() {
                   Welcome to GoWider.
                 </h3>
                 <p className="text-sm text-[#55524C] leading-relaxed">
-                  You haven&apos;t localized a Reel yet. Drop a short video to create your first multi-language versions with voice cloning.
+                  You haven&apos;t localized a Reel yet. Drop a short video to create your first multi-language versions with voice preservation.
                 </p>
               </div>
               <Link
