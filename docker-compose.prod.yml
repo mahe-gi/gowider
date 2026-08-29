@@ -24,6 +24,9 @@ services:
       - R2_BUCKET_NAME=${R2_BUCKET_NAME:-}
       # Authentication (Web Container Only)
       - AUTH_SECRET=${AUTH_SECRET:?AUTH_SECRET is required}
+      - AUTH_TRUST_HOST=true
+      - AUTH_URL=${AUTH_URL:-https://gowider.in}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-https://gowider.in}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
       # Payments (Checkout & Webhook Validation)
