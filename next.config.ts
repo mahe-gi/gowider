@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://accounts.google.com;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://cdn.razorpay.com https://*.razorpay.com https://accounts.google.com;
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: https://*.googleusercontent.com https://*.razorpay.com;
     font-src 'self' data:;
@@ -10,7 +10,7 @@ const cspHeader = `
     base-uri 'self';
     form-action 'self';
     frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://accounts.google.com;
-    connect-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://lumberjack.razorpay.com https://*.r2.cloudflarestorage.com https://*.googleapis.com;
+    connect-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://lumberjack.razorpay.com https://*.razorpay.com https://*.r2.cloudflarestorage.com https://*.googleapis.com;
     media-src 'self' blob: data: https://*.r2.cloudflarestorage.com;
 `
   .replace(/\s{2,}/g, " ")
