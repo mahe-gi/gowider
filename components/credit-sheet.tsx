@@ -34,6 +34,9 @@ export function CreditSheet({
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const checkoutInFlightRef = useRef(false);
+  const paymentIntentIdRef = useRef<string | null>(null);
+
   if (!isOpen) return null;
 
   const shortfallPaise = Math.max(0, requiredPaise - availablePaise);
@@ -51,9 +54,6 @@ export function CreditSheet({
       document.body.appendChild(script);
     });
   }
-
-  const checkoutInFlightRef = useRef(false);
-  const paymentIntentIdRef = useRef<string | null>(null);
 
   async function handleCheckout() {
     if (checkoutInFlightRef.current) return;

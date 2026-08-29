@@ -12,7 +12,19 @@ export default async function BillingPage() {
   }
 
   const userId = session.user.id;
-  const wallet = await getUserWallet(userId);
+  let wallet = {
+    balancePaise: 0,
+    reservedPaise: 0,
+    availablePaise: 0,
+    formattedAvailableInr: "₹0.00",
+    recentTransactions: [] as any[],
+  };
+
+  try {
+    wallet = await getUserWallet(userId);
+  } catch (err) {
+    console.error("Billing: Error loading wallet:", err);
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FBF9F5]">
@@ -30,7 +42,7 @@ export default async function BillingPage() {
             availablePaise: wallet.availablePaise,
             formattedAvailableInr: wallet.formattedAvailableInr,
           }}
-          transactions={wallet.recentTransactions.map((t) => ({
+          transactions={(wallet.recentTransactions || []).map((t: any) => ({
             id: t.id,
             type: t.type,
             amountPaise: t.amountPaise,
