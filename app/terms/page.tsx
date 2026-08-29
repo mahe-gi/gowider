@@ -59,12 +59,12 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-[#111111]">4. Wallet Credits & Payments</h2>
+            <h2 className="text-lg font-bold text-[#111111]">4. Software Credits & Pricing</h2>
             <p>
-              Localization jobs are powered by pre-purchased prepaid wallet credits. Standard pricing is calculated based on video duration and the number of target languages requested. Credits are reserved when a localization run begins and deducted upon job completion.
+              GoWider operates as a digital Software-as-a-Service (SaaS) platform. Video localization and dubbing tasks consume digital software processing credits. Standard pricing is calculated based on input video duration and the number of target languages selected for rendering. Credits are allocated upon purchase and consumed when a localization rendering job completes.
             </p>
             <p className="pt-1">
-              Payments are securely handled via Razorpay in Indian Rupees (INR). Unused wallet credits remain valid in your account.
+              Payments for digital software credit packs are securely processed via Razorpay in Indian Rupees (INR). Purchased software credits are non-transferable and are used exclusively to access AI rendering compute on the GoWider platform.
             </p>
           </section>
 

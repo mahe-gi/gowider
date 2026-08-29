@@ -45,9 +45,9 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-bold text-[#111111]">2. Information We Collect</h2>
             <p>We collect information necessary to provide and operate the localization service:</p>
             <ul className="list-disc pl-5 space-y-1.5 pt-1">
-              <li><strong>Account Information:</strong> When you sign in via Google OAuth, we receive your name, email address, and Google profile image to manage your workspace and wallet.</li>
+              <li><strong>Account Information:</strong> When you sign in via Google OAuth, we receive your name, email address, and Google profile image to manage your workspace and account credits.</li>
               <li><strong>Uploaded Media:</strong> Video and audio files (MP4/MOV) you upload for localization purposes.</li>
-              <li><strong>Payment Metadata:</strong> When you purchase credits via Razorpay, we record the transaction amount, payment order ID, and wallet balance. We never receive or store your credit card or banking details.</li>
+              <li><strong>Payment Metadata:</strong> When you purchase credits via Razorpay, we record the transaction amount, payment order ID, and credit balance. We never receive or store your credit card or banking details.</li>
               <li><strong>Technical & Session Identifiers:</strong> Ephemeral session cookies used strictly to manage guest uploads and authenticate logged-in sessions.</li>
             </ul>
           </section>

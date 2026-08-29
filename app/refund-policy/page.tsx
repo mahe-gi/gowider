@@ -32,7 +32,7 @@ export default function RefundPolicyPage() {
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-[#111111]">1. Automated Failure Protection</h2>
             <p>
-              If a localization job or specific language track fails during processing, reserved credits for that uncompleted track are automatically released back to your available wallet balance immediately. You will never be charged for an ungenerated video.
+              If a localization job or specific language track fails during processing, reserved credits for that uncompleted track are automatically released back to your available credit balance immediately. You will never be charged for an ungenerated video.
             </p>
           </section>
 
