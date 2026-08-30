@@ -5,8 +5,8 @@ WORKDIR /app
 
 # Stage 2: Install dependencies
 FROM base AS deps
-COPY package.json package-lock.json* ./
-RUN npm ci || npm install
+COPY package.json ./
+RUN npm install --no-audit --no-fund
 
 # Stage 3: Build application
 FROM base AS builder
@@ -34,7 +34,6 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 # Copy runtime assets and dependencies
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package-lock.json ./package-lock.json
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
