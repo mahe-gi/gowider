@@ -7,6 +7,7 @@ import { storage } from "@/lib/storage";
 import {
   createDubbingJob,
   streamUploadToSarvam,
+  uploadSrtToSarvam,
   startDubbingJob,
   getDubbingLiveStatus,
   getDubbingExportStatus,

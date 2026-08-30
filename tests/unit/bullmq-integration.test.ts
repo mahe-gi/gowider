@@ -32,7 +32,9 @@ describe("BullMQ & Redis Real Queue Integration", () => {
       await testQueue.drain();
       await testQueue.close();
     }
-    if (redis) await redis.quit();
+    if (redis && redisAvailable) {
+      await redis.quit().catch(() => {});
+    }
   });
 
   it("enqueues and processes a delayed job in BullMQ", async () => {

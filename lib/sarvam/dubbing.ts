@@ -162,6 +162,27 @@ export async function getDubbingLiveStatus(jobId: string): Promise<SarvamLiveSta
   return normalizeLiveStatusResponse(raw);
 }
 
+export async function uploadSrtToSarvam(params: {
+  srtUploadUrl: string;
+  srtContent: string;
+}): Promise<void> {
+  const buffer = Buffer.from(params.srtContent, "utf-8");
+  const response = await fetch(params.srtUploadUrl, {
+    method: "PUT",
+    body: buffer,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Content-Length": buffer.length.toString(),
+      "x-ms-blob-type": "BlockBlob",
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.warn(`Could not upload custom SRT to Sarvam: ${response.status} - ${errorText}`);
+  }
+}
+
 export async function getDubbingExportStatus(jobId: string): Promise<SarvamExportStatusResult> {
   const raw = await sarvamFetch<any>(`/dubbing/jobs/${jobId}/export-status?limit=100`, {
     method: "GET",

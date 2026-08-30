@@ -10,16 +10,20 @@ import { closeRedisConnection } from "@/lib/queue/connection";
 
 afterAll(async () => {
   try {
-    const genQueue = getGenerationQueue();
-    const payQueue = getPaymentQueue();
-    const maintQueue = getMaintenanceQueue();
+    const timeout = new Promise((resolve) => setTimeout(resolve, 500));
+    const cleanup = async () => {
+      const genQueue = getGenerationQueue();
+      const payQueue = getPaymentQueue();
+      const maintQueue = getMaintenanceQueue();
 
-    // Obliterate only this test process's isolated test queues
-    await genQueue.obliterate({ force: true }).catch(() => {});
-    await payQueue.obliterate({ force: true }).catch(() => {});
-    await maintQueue.obliterate({ force: true }).catch(() => {});
+      await genQueue.obliterate({ force: true }).catch(() => {});
+      await payQueue.obliterate({ force: true }).catch(() => {});
+      await maintQueue.obliterate({ force: true }).catch(() => {});
 
-    await closeAllQueues();
-    await closeRedisConnection();
+      await closeAllQueues();
+      await closeRedisConnection();
+    };
+
+    await Promise.race([cleanup(), timeout]);
   } catch {}
 });
