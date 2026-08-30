@@ -109,6 +109,10 @@ export async function createDubbingJob(params: {
     voice_cloning: true,
     num_speakers: -1,
     disable_watermark: true,
+    translation_mode: "code-mixed",
+    model: "mayura:v1",
+    tts_engine: "sarvam_dub_pro",
+    voice_cloning_engine: "sarvam_dub_pro",
   };
 
   const raw = await sarvamFetch<any>("/dubbing/jobs", {

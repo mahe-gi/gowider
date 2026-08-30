@@ -6,6 +6,10 @@ export interface SarvamCreateJobRequest {
   voice_cloning?: boolean;
   num_speakers?: number;
   disable_watermark?: boolean;
+  translation_mode?: "code-mixed" | "modern-colloquial" | "formal";
+  model?: string;
+  tts_engine?: string;
+  voice_cloning_engine?: string;
 }
 
 export interface SarvamCreateJobResult {
