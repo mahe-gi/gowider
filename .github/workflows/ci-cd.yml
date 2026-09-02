@@ -1,4 +1,4 @@
-name: GoWider CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -13,11 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ============================================================================
-  # STAGE 1: Continuous Integration (Lint, Typecheck, Unit Tests, Build)
-  # ============================================================================
+  # Stage 1: Continuous Integration (Lint, Typecheck, Unit Tests, Build)
   ci:
-    name: Lint, Test & Build Verification
+    name: Lint, Test & Build
     runs-on: ubuntu-latest
 
     env:
@@ -30,44 +28,41 @@ jobs:
       NEXT_TELEMETRY_DISABLED: "1"
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22.x
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: "npm"
 
-      - name: Install Dependencies
-        run: npm ci
+      - name: Install dependencies
+        run: npm ci || npm install
 
-      - name: TypeScript Typecheck
+      - name: TypeScript typecheck
         run: npm run typecheck
 
-      - name: Next.js / ESLint Analysis
+      - name: ESLint analysis
         run: npm run lint
 
-      - name: Run Unit Tests
+      - name: Run unit tests
         run: npm run test:unit
 
-      - name: Verify Next.js Production Build
+      - name: Verify production build
         run: npm run build
         env:
           NODE_ENV: production
 
-  # ============================================================================
-  # STAGE 2: Continuous Deployment (EC2 SSH Pull, Build, Migrate, Reload)
-  # Triggered ONLY on push to main branch after Stage 1 passes
-  # ============================================================================
+  # Stage 2: Continuous Deployment to EC2
   cd:
-    name: Deploy to EC2 Production
+    name: Deploy to EC2
     needs: [ci]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy via SSH to EC2
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -80,49 +75,49 @@ jobs:
             set -e
 
             DEPLOY_DIR="${{ secrets.EC2_DEPLOY_PATH || '/home/ec2-user/gowider' }}"
-            echo "📂 Navigating to deployment directory: $DEPLOY_DIR"
+            echo "Navigating to deployment directory: $DEPLOY_DIR"
             cd "$DEPLOY_DIR"
 
-            echo "🔍 Verifying .env exists on server..."
+            echo "Checking .env file..."
             if [ ! -f .env ]; then
-              echo "❌ Error: Production .env file not found in $DEPLOY_DIR"
+              echo "Error: .env file not found in $DEPLOY_DIR"
               exit 1
             fi
 
-            echo "📥 Fetching latest commits from origin/main..."
+            echo "Pulling latest changes from main branch..."
             git fetch origin main
             git reset --hard origin/main
 
-            echo "🏗️ Building Docker images (layer-cached)..."
+            echo "Building Docker containers..."
             docker compose -f docker-compose.prod.yml build
 
-            echo "🔄 Executing Database Migrations..."
+            echo "Running database migrations..."
             docker compose -f docker-compose.prod.yml run --rm web npm run db:migrate
 
-            echo "🚀 Recreating and starting containers with minimal restart window..."
+            echo "Starting updated containers..."
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-            echo "🧹 Pruning old dangling Docker images..."
+            echo "Pruning unused Docker images..."
             docker image prune -f
 
-            echo "🩺 Running Application Health Check..."
+            echo "Running health check..."
             MAX_RETRIES=10
             COUNT=0
             until [ $COUNT -ge $MAX_RETRIES ]; do
               HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health || true)
               if [ "$HTTP_CODE" = "200" ]; then
-                echo "✅ Health check passed: HTTP 200 from http://127.0.0.1:3000/api/health"
+                echo "Health check passed: HTTP 200 from /api/health"
                 break
               fi
-              echo "⏳ Waiting for application to report healthy (attempt $((COUNT+1))/$MAX_RETRIES, status: $HTTP_CODE)..."
+              echo "Waiting for service to become healthy (attempt $((COUNT+1))/$MAX_RETRIES)..."
               sleep 3
               COUNT=$((COUNT+1))
             done
 
             if [ $COUNT -ge $MAX_RETRIES ]; then
-              echo "❌ Health check failed after $MAX_RETRIES attempts."
+              echo "Health check failed after $MAX_RETRIES attempts"
               docker compose -f docker-compose.prod.yml logs --tail=50 web
               exit 1
             fi
 
-            echo "🎉 GoWider production deployment completed successfully!"
+            echo "Deployment completed successfully"
