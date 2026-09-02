@@ -1,0 +1,128 @@
+name: GoWider CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # STAGE 1: Continuous Integration (Lint, Typecheck, Unit Tests, Build)
+  # ============================================================================
+  ci:
+    name: Lint, Test & Build Verification
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: "postgresql://placeholder:placeholder@localhost:5432/gowider"
+      REDIS_URL: "redis://localhost:6379"
+      AUTH_SECRET: "ci-dummy-secret-at-least-32-characters-long"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+      STORAGE_DRIVER: "local"
+      NEXT_TELEMETRY_DISABLED: "1"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: TypeScript Typecheck
+        run: npm run typecheck
+
+      - name: Next.js / ESLint Analysis
+        run: npm run lint
+
+      - name: Run Unit Tests
+        run: npm run test:unit
+
+      - name: Verify Next.js Production Build
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+  # ============================================================================
+  # STAGE 2: Continuous Deployment (EC2 SSH Pull, Build, Migrate, Reload)
+  # Triggered ONLY on push to main branch after Stage 1 passes
+  # ============================================================================
+  cd:
+    name: Deploy to EC2 Production
+    needs: [ci]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: ${{ secrets.EC2_PORT || 22 }}
+          script_stop: true
+          command_timeout: 15m
+          script: |
+            set -e
+
+            DEPLOY_DIR="${{ secrets.EC2_DEPLOY_PATH || '/home/ec2-user/gowider' }}"
+            echo "📂 Navigating to deployment directory: $DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
+
+            echo "🔍 Verifying .env exists on server..."
+            if [ ! -f .env ]; then
+              echo "❌ Error: Production .env file not found in $DEPLOY_DIR"
+              exit 1
+            fi
+
+            echo "📥 Fetching latest commits from origin/main..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "🏗️ Building Docker images (layer-cached)..."
+            docker compose -f docker-compose.prod.yml build
+
+            echo "🔄 Executing Database Migrations..."
+            docker compose -f docker-compose.prod.yml run --rm web npm run db:migrate
+
+            echo "🚀 Recreating and starting containers with minimal restart window..."
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            echo "🧹 Pruning old dangling Docker images..."
+            docker image prune -f
+
+            echo "🩺 Running Application Health Check..."
+            MAX_RETRIES=10
+            COUNT=0
+            until [ $COUNT -ge $MAX_RETRIES ]; do
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health || true)
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "✅ Health check passed: HTTP 200 from http://127.0.0.1:3000/api/health"
+                break
+              fi
+              echo "⏳ Waiting for application to report healthy (attempt $((COUNT+1))/$MAX_RETRIES, status: $HTTP_CODE)..."
+              sleep 3
+              COUNT=$((COUNT+1))
+            done
+
+            if [ $COUNT -ge $MAX_RETRIES ]; then
+              echo "❌ Health check failed after $MAX_RETRIES attempts."
+              docker compose -f docker-compose.prod.yml logs --tail=50 web
+              exit 1
+            fi
+
+            echo "🎉 GoWider production deployment completed successfully!"

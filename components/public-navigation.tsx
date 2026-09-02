@@ -55,12 +55,12 @@ export function PublicNavigation({ onOpenAuth }: PublicNavigationProps) {
 
         {/* Center Links (Marketing Only) */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#55524C]">
-          <a href="/#how-it-works" className="hover:text-[#111111] transition-colors">
+          <Link href="/#how-it-works" className="hover:text-[#111111] transition-colors">
             How it works
-          </a>
-          <a href="/#languages" className="hover:text-[#111111] transition-colors">
+          </Link>
+          <Link href="/#languages" className="hover:text-[#111111] transition-colors">
             Languages
-          </a>
+          </Link>
         </nav>
 
         {/* Right Controls */}
