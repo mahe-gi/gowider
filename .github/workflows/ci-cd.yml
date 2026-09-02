@@ -88,6 +88,11 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
+            echo "Freeing disk space before build..."
+            docker builder prune -af || true
+            docker image prune -f || true
+            df -h /
+
             echo "Building Docker containers..."
             docker compose -f docker-compose.prod.yml build
 
@@ -97,8 +102,9 @@ jobs:
             echo "Starting updated containers..."
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
-            echo "Pruning unused Docker images..."
-            docker image prune -f
+            echo "Pruning unused Docker images and builder cache..."
+            docker image prune -af || true
+            docker builder prune -af || true
 
             echo "Running health check..."
             MAX_RETRIES=10

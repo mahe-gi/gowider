@@ -6,7 +6,7 @@ WORKDIR /app
 # Stage 2: Install dependencies
 FROM base AS deps
 COPY package.json ./
-RUN npm install --no-audit --no-fund
+RUN npm install --no-audit --no-fund && npm cache clean --force
 
 # Stage 3: Build application
 FROM base AS builder

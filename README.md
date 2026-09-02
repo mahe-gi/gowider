@@ -10,6 +10,7 @@
 [![BullMQ & Redis](https://img.shields.io/badge/BullMQ_&_Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://bullmq.io/)
 [![Cloudflare R2](https://img.shields.io/badge/Cloudflare_R2-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://www.cloudflare.com/developer-platform/r2/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![CI/CD Pipeline](https://github.com/mahe-gi/gowider/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/mahe-gi/gowider/actions/workflows/ci-cd.yml)
 
 ---
 
@@ -23,8 +24,9 @@
 - [6. Local Development Setup](#6-local-development-setup)
 - [7. Environment Variables](#7-environment-variables)
 - [8. Production Deployment Guide](#8-production-deployment-guide)
-- [9. Testing & Quality Verification](#9-testing--quality-verification)
-- [10. Security & Compliance](#10-security--compliance)
+- [9. Automated CI/CD Pipeline](#9-automated-cicd-pipeline)
+- [10. Testing & Quality Verification](#10-testing--quality-verification)
+- [11. Security & Compliance](#11-security--compliance)
 
 ---
 
@@ -285,16 +287,70 @@ gowider.in, www.gowider.in {
 
 ---
 
-## 9. Testing & Quality Verification
+---
+
+## 9. Automated CI/CD Pipeline
+
+GoWider uses **GitHub Actions** for continuous integration and continuous deployment (`.github/workflows/ci-cd.yml`).
+
+```text
+[ Git Push / Pull Request ]
+            │
+            ▼
+┌────────────────────────────────────────────────────────┐
+│  Stage 1: Continuous Integration (CI)                  │
+│  - TypeScript Typecheck (tsc --noEmit)                 │
+│  - ESLint Static Code Analysis (next lint)             │
+│  - Unit Test Suite Execution (vitest run tests/unit)   │
+│  - Next.js Production Build Validation (next build)    │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                     Passed on main?
+                            │
+               Yes ─────────┴───────── No (Halt)
+               │
+               ▼
+┌────────────────────────────────────────────────────────┐
+│  Stage 2: Continuous Deployment (CD via SSH)           │
+│  - Connect to AWS EC2 via SSH (appleboy/ssh-action)    │
+│  - Pull latest commits (git fetch && git reset --hard) │
+│  - Layer-cached Docker image builds                    │
+│  - Run database migrations (npm run db:migrate)        │
+│  - Hot-swap containers with zero-downtime transition   │
+│  - Prune dangling Docker images (docker image prune)   │
+│  - Healthcheck verification (/api/health HTTP 200 OK)  │
+└────────────────────────────────────────────────────────┘
+```
+
+### Required GitHub Repository Secrets
+
+Configure these secrets under **Repository Settings $\rightarrow$ Secrets and variables $\rightarrow$ Actions**:
+
+| Secret Name | Value | Purpose |
+| :--- | :--- | :--- |
+| `EC2_HOST` | `52.66.50.152` | Public IP or DNS of the AWS EC2 instance |
+| `EC2_USER` | `ec2-user` | SSH user on Amazon Linux |
+| `EC2_SSH_KEY` | *(Contents of `gowider.pem`)* | Private SSH key for automated server access |
+| `EC2_DEPLOY_PATH` | `/home/ec2-user/gowider` | *(Optional)* Target directory on the EC2 server |
+
+---
+
+## 10. Testing & Quality Verification
 
 ```bash
-# Run unit & integration test suites
+# Run unit test suite (13 test files / 52 tests)
+npm run test:unit
+
+# Run full test suite
 npm test
 
-# Type safety check
-npx tsc --noEmit
+# Static code linting
+npm run lint
 
-# Production Next.js build
+# TypeScript type safety check
+npm run typecheck
+
+# Next.js production build compilation
 npm run build
 
 # Seed dev credits for local testing
@@ -303,7 +359,7 @@ npm run dev:seed-credits
 
 ---
 
-## 10. Security & Compliance
+## 11. Security & Compliance
 
 - **Voice Rights Consent**: Explicit legal warranty checkbox recorded with timestamps prior to localization.
 - **Content Security Policy (CSP)**: Strict headers restrict script execution, framing, and connect origins to approved hosts (`accounts.google.com`, `checkout.razorpay.com`, `*.r2.cloudflarestorage.com`).
