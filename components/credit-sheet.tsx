@@ -141,6 +141,9 @@ export function CreditSheet({
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
                 providerOrderId: response.razorpay_order_id,
                 providerPaymentId: response.razorpay_payment_id,
                 providerSignature: response.razorpay_signature,

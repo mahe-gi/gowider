@@ -4,11 +4,23 @@ import { auth } from "@/lib/auth/auth";
 import { paymentProvider } from "@/lib/payments/razorpay";
 import { finalizeCapturedPayment } from "@/lib/payments/finalize-payment";
 
-const verifySchema = z.object({
-  razorpay_order_id: z.string().min(1),
-  razorpay_payment_id: z.string().min(1),
-  razorpay_signature: z.string().min(1),
-});
+const verifySchema = z
+  .object({
+    razorpay_order_id: z.string().optional(),
+    razorpay_payment_id: z.string().optional(),
+    razorpay_signature: z.string().optional(),
+    providerOrderId: z.string().optional(),
+    providerPaymentId: z.string().optional(),
+    providerSignature: z.string().optional(),
+    paymentIntentId: z.string().optional(),
+  })
+  .refine(
+    (data) =>
+      Boolean(data.razorpay_order_id || data.providerOrderId) &&
+      Boolean(data.razorpay_payment_id || data.providerPaymentId) &&
+      Boolean(data.razorpay_signature || data.providerSignature),
+    { message: "Missing required payment verification fields." }
+  );
 
 export async function POST(req: Request) {
   try {
@@ -27,7 +39,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = validated.data;
+    const razorpay_order_id = (validated.data.razorpay_order_id || validated.data.providerOrderId)!;
+    const razorpay_payment_id = (validated.data.razorpay_payment_id || validated.data.providerPaymentId)!;
+    const razorpay_signature = (validated.data.razorpay_signature || validated.data.providerSignature)!;
 
     // 1. Verify HMAC SHA-256 Signature & Captured State
     const verification = await paymentProvider.verifyPayment({
