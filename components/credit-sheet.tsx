@@ -28,8 +28,10 @@ export function CreditSheet({
   onPaymentSuccess,
 }: CreditSheetProps) {
   const [selectedPackage, setSelectedPackage] = useState<number>(
-    TOP_UP_PACKAGES_PAISE[0].amountPaise
+    TOP_UP_PACKAGES_PAISE[0].amountPaise // ₹40
   );
+  const [isCustom, setIsCustom] = useState(false);
+  const [customAmountRupees, setCustomAmountRupees] = useState<string>("40");
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -40,6 +42,13 @@ export function CreditSheet({
   if (!isOpen) return null;
 
   const shortfallPaise = Math.max(0, requiredPaise - availablePaise);
+
+  const effectiveAmountPaise = isCustom
+    ? Math.round((parseFloat(customAmountRupees) || 0) * 100)
+    : selectedPackage;
+
+  const effectiveAmountRupees = effectiveAmountPaise / 100;
+  const estimatedMins = (effectiveAmountRupees / 40).toFixed(1);
 
   async function loadRazorpayScript(): Promise<boolean> {
     return new Promise((resolve) => {
@@ -57,8 +66,18 @@ export function CreditSheet({
 
   async function handleCheckout() {
     if (checkoutInFlightRef.current) return;
-    checkoutInFlightRef.current = true;
 
+    if (effectiveAmountPaise < 1000) {
+      setErrorMessage("Minimum top-up amount is ₹10.");
+      return;
+    }
+
+    if (effectiveAmountPaise > 1000000) {
+      setErrorMessage("Maximum top-up amount is ₹10,000.");
+      return;
+    }
+
+    checkoutInFlightRef.current = true;
     setIsProcessing(true);
     setErrorMessage(null);
     setStatusMessage("Preparing secure checkout…");
@@ -80,7 +99,7 @@ export function CreditSheet({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amountPaise: selectedPackage,
+          amountPaise: effectiveAmountPaise,
           paymentIntentId,
           generationRunId,
         }),
@@ -101,9 +120,20 @@ export function CreditSheet({
         amount: amountPaise,
         currency: "INR",
         name: "GoWider",
-        description: "Creator Localization Credits",
+        description: `Add ₹${(amountPaise / 100).toFixed(0)} Credits`,
         order_id: providerOrderId,
-        handler: async function (response: any) {
+        image: "/brand/logo.png",
+        theme: {
+          color: "#FF441F",
+        },
+        modal: {
+          ondismiss: () => {
+            setIsProcessing(false);
+            setStatusMessage(null);
+            checkoutInFlightRef.current = false;
+          },
+        },
+        handler: async (response: any) => {
           setStatusMessage("Verifying payment…");
           try {
             // 4. Verify Payment Server-Side
@@ -111,9 +141,10 @@ export function CreditSheet({
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
+                providerOrderId: response.razorpay_order_id,
+                providerPaymentId: response.razorpay_payment_id,
+                providerSignature: response.razorpay_signature,
+                paymentIntentId,
               }),
             });
 
@@ -122,60 +153,48 @@ export function CreditSheet({
               throw new Error(verifyData.error?.message || "Payment verification failed.");
             }
 
-            // 5. Fetch Authoritative Server Balance (Never derive financial balance on client)
-            const walletRes = await fetch("/api/wallet");
-            let authoritativeBalance = availablePaise;
-            if (walletRes.ok) {
-              const walletJson = await walletRes.json();
-              if (walletJson.success) {
-                authoritativeBalance = walletJson.data.availablePaise;
-              }
+            setStatusMessage("Payment successful!");
+            checkoutInFlightRef.current = false;
+            paymentIntentIdRef.current = null;
+
+            if (onPaymentSuccess) {
+              onPaymentSuccess(verifyData.data.balancePaise);
             }
 
-            setStatusMessage("Credits added! Starting localization…");
-            if (onPaymentSuccess) {
-              onPaymentSuccess(authoritativeBalance);
-            }
-            onClose();
-          } catch (vErr: any) {
-            console.error("Verification error:", vErr);
-            setErrorMessage(vErr.message || "Failed to verify payment with server.");
-          } finally {
-            setIsProcessing(false);
-          }
-        },
-        modal: {
-          ondismiss: function () {
-            checkoutInFlightRef.current = false;
+            setTimeout(() => {
+              onClose();
+              setIsProcessing(false);
+              setStatusMessage(null);
+            }, 1000);
+          } catch (err: any) {
+            setErrorMessage(err.message || "Could not verify payment with server.");
             setIsProcessing(false);
             setStatusMessage(null);
-          },
-        },
-        theme: {
-          color: "#FF441F",
+            checkoutInFlightRef.current = false;
+          }
         },
       };
 
       const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response: any) {
-        checkoutInFlightRef.current = false;
-        setErrorMessage(response.error?.description || "Payment failed.");
+      rzp.on("payment.failed", (response: any) => {
+        setErrorMessage(response.error?.description || "Payment failed or was cancelled.");
         setIsProcessing(false);
         setStatusMessage(null);
+        checkoutInFlightRef.current = false;
       });
+
       rzp.open();
     } catch (err: any) {
-      checkoutInFlightRef.current = false;
-      console.error("Checkout error:", err);
-      setErrorMessage(err.message || "Payment checkout error.");
+      setErrorMessage(err.message || "Failed to start checkout. Please try again.");
       setIsProcessing(false);
       setStatusMessage(null);
+      checkoutInFlightRef.current = false;
     }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-[#FAF8F5] rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#121212]/10 space-y-6">
+      <div className="relative w-full max-w-lg p-6 sm:p-8 rounded-3xl bg-[#FBF9F5] border border-[#121212]/10 shadow-2xl space-y-6">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -222,29 +241,63 @@ export function CreditSheet({
 
         {/* Selectable Packages */}
         <div className="space-y-2.5">
-          <label className="block text-xs font-mono uppercase tracking-wider text-[#8C877D] font-semibold">
-            Select Top-Up Amount
-          </label>
-          <div className="grid grid-cols-3 gap-2.5">
-            {TOP_UP_PACKAGES_PAISE.map((pkg) => {
-              const isSelected = selectedPackage === pkg.amountPaise;
-              return (
-                <button
-                  key={pkg.amountPaise}
-                  type="button"
-                  onClick={() => setSelectedPackage(pkg.amountPaise)}
-                  className={`p-3.5 rounded-2xl text-center border transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-[#FFF5F2] border-[#FF441F] ring-1 ring-[#FF441F] shadow-xs"
-                      : "bg-white border-[#121212]/10 hover:border-[#121212]/25"
-                  }`}
-                >
-                  <p className="text-lg font-black text-[#111111]">{pkg.label}</p>
-                  <p className="text-[10px] text-[#8C877D] leading-tight mt-0.5">{pkg.description}</p>
-                </button>
-              );
-            })}
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-mono uppercase tracking-wider text-[#8C877D] font-semibold">
+              Select Top-Up Amount
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsCustom(!isCustom)}
+              className="text-xs font-semibold text-[#FF441F] hover:underline cursor-pointer"
+            >
+              {isCustom ? "← Choose preset package" : "Enter custom amount →"}
+            </button>
           </div>
+
+          {!isCustom ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {TOP_UP_PACKAGES_PAISE.map((pkg) => {
+                const isSelected = selectedPackage === pkg.amountPaise;
+                return (
+                  <button
+                    key={pkg.amountPaise}
+                    type="button"
+                    onClick={() => setSelectedPackage(pkg.amountPaise)}
+                    className={`p-3 rounded-2xl text-center border transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-[#FFF5F2] border-[#FF441F] ring-1 ring-[#FF441F] shadow-xs"
+                        : "bg-white border-[#121212]/10 hover:border-[#121212]/25"
+                    }`}
+                  >
+                    <p className="text-base sm:text-lg font-black text-[#111111]">{pkg.label}</p>
+                    <p className="text-[10px] text-[#8C877D] leading-tight mt-0.5">{pkg.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="space-y-2 p-4 rounded-2xl bg-white border border-[#FF441F]/30 ring-1 ring-[#FF441F]/20">
+              <label className="block text-xs text-[#55524C] font-medium">
+                Enter Custom Amount (in INR ₹)
+              </label>
+              <div className="relative flex items-center">
+                <span className="absolute left-3.5 text-base font-bold text-[#111111]">₹</span>
+                <input
+                  type="number"
+                  min="10"
+                  max="10000"
+                  step="1"
+                  value={customAmountRupees}
+                  onChange={(e) => setCustomAmountRupees(e.target.value)}
+                  placeholder="e.g. 40"
+                  className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-[#121212]/15 focus:outline-none focus:ring-2 focus:ring-[#FF441F] focus:border-transparent font-bold text-base text-[#111111]"
+                />
+              </div>
+              <p className="text-[11px] text-[#8C877D]">
+                Good for ~{estimatedMins} mins of localization (₹40/min). Min: ₹10, Max: ₹10,000.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Error Alert */}
@@ -258,7 +311,7 @@ export function CreditSheet({
         {/* CTA Button */}
         <button
           type="button"
-          disabled={isProcessing}
+          disabled={isProcessing || (isCustom && (!customAmountRupees || parseFloat(customAmountRupees) < 10))}
           onClick={handleCheckout}
           className="w-full py-4 rounded-2xl font-bold text-sm bg-[#FF441F] hover:bg-[#E63814] text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
         >
@@ -270,7 +323,7 @@ export function CreditSheet({
           ) : (
             <>
               <Wallet className="w-4 h-4 text-white/80" />
-              <span>Add ₹{(selectedPackage / 100).toFixed(0)} Credits →</span>
+              <span>Add ₹{effectiveAmountRupees.toFixed(0)} Credits →</span>
             </>
           )}
         </button>

@@ -46,6 +46,11 @@ export const GOWIDER_DUBBING_PRICE_PER_MINUTE_PAISE = 4000;
 // Razorpay Top-Up Packages (Amount in Paise)
 export const TOP_UP_PACKAGES_PAISE = [
   {
+    amountPaise: 4000, // ₹40
+    label: "₹40",
+    description: "Good for ~1 min (1 Reel)",
+  },
+  {
     amountPaise: 10000, // ₹100
     label: "₹100",
     description: "Good for ~2.5 mins of localization",
