@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import clsx from "clsx";
 import type { PortfolioSettings } from "@/db/schema";
 import { updatePortfolioSettingsAction } from "@/features/design/actions";
@@ -9,6 +10,7 @@ import { updatePortfolioSettingsAction } from "@/features/design/actions";
 interface DesignEditorProps {
   profileId: string;
   initialSettings: PortfolioSettings;
+  isPro?: boolean;
 }
 
 const THEME_OPTIONS = [
@@ -47,12 +49,17 @@ const PRESET_COLORS = [
   { label: "Violet", hex: "#8B5CF6" },
 ];
 
-export function DesignEditor({ profileId, initialSettings }: DesignEditorProps) {
+export function DesignEditor({
+  profileId,
+  initialSettings,
+  isPro = false,
+}: DesignEditorProps) {
   const router = useRouter();
 
   const [theme, setTheme] = useState(initialSettings.theme);
   const [motionLevel, setMotionLevel] = useState(initialSettings.motionLevel);
   const [accentColor, setAccentColor] = useState(initialSettings.accentColor);
+  const [hideBranding, setHideBranding] = useState(Boolean(initialSettings.hideBranding));
 
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -76,6 +83,7 @@ export function DesignEditor({ profileId, initialSettings }: DesignEditorProps) 
         theme,
         motionLevel,
         accentColor: accentColor.trim().toUpperCase(),
+        hideBranding: isPro ? hideBranding : false,
       });
 
       if (res.success) {
@@ -278,6 +286,52 @@ export function DesignEditor({ profileId, initialSettings }: DesignEditorProps) 
               Must be a valid 6-character hex code (e.g. #E5E5E5).
             </p>
           )}
+        </div>
+      </div>
+
+      {/* 4. Branding Watermark [PRO] */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-white">4. GoWider Watermark</h2>
+              <span className="rounded bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest text-amber-300 uppercase">
+                PRO
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">
+              Remove the &quot;POWERED BY GOWIDER&quot; footer watermark from your public portfolio.
+            </p>
+          </div>
+
+          <div>
+            {isPro ? (
+              <label className="relative inline-flex items-center cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  data-testid="hide-branding-toggle"
+                  checked={hideBranding}
+                  onChange={(e) => setHideBranding(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-white peer-checked:after:bg-black"></div>
+                <span className="ml-3 text-xs font-medium text-zinc-300">
+                  {hideBranding ? "Watermark Hidden" : "Watermark Visible"}
+                </span>
+              </label>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-zinc-500">Locked on Free Plan</span>
+                <Link
+                  href="/dashboard/billing"
+                  className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition inline-flex items-center gap-1.5"
+                >
+                  <span>Upgrade to Pro</span>
+                  <span>↗</span>
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

@@ -62,6 +62,7 @@ interface DbSettingsInput {
   theme?: unknown;
   motionLevel?: unknown;
   accentColor?: unknown;
+  hideBranding?: unknown;
   id?: unknown;
   profileId?: unknown;
   createdAt?: unknown;
@@ -173,6 +174,7 @@ export function toPublicPortfolioData(dbProfile: DbProfileInput): PublicPortfoli
     theme: (dbProfile.settings?.theme as PublicPortfolioSettings["theme"]) || "cinema",
     motionLevel: (dbProfile.settings?.motionLevel as PublicPortfolioSettings["motionLevel"]) || "full",
     accentColor: String(dbProfile.settings?.accentColor || "#E5E5E5"),
+    hideBranding: Boolean(dbProfile.settings?.hideBranding),
   };
 
   return {
@@ -274,6 +276,7 @@ export function toPortfolioData(dbProfile: DbProfileInput): PortfolioData {
           theme: (dbProfile.settings.theme as PublicPortfolioSettings["theme"]) || "cinema",
           motionLevel: (dbProfile.settings.motionLevel as PublicPortfolioSettings["motionLevel"]) || "full",
           accentColor: String(dbProfile.settings.accentColor || "#E5E5E5"),
+          hideBranding: Boolean(dbProfile.settings.hideBranding),
           createdAt: dbProfile.settings.createdAt as Date,
           updatedAt: dbProfile.settings.updatedAt as Date,
         }

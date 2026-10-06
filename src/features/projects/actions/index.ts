@@ -15,6 +15,7 @@ import {
   reorderProjectsSchema,
 } from "../validation";
 import { resolveUniqueProjectSlug } from "../utils";
+import { canPublishMoreProjects } from "@/features/billing/subscription-service";
 import type { Project } from "@/db/schema";
 
 /**
@@ -91,6 +92,24 @@ export async function createProjectAction(
       maxOrderResult?.maxOrder !== null && maxOrderResult?.maxOrder !== undefined
         ? maxOrderResult.maxOrder + 1
         : 0;
+
+    // Enforce Pro tier project publishing limit
+    if (isPublished) {
+      const [countResult] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(projects)
+        .where(
+          and(eq(projects.profileId, profile.id), eq(projects.isPublished, true))
+        );
+      const currentCount = countResult?.count ?? 0;
+      const gate = await canPublishMoreProjects(profile.id, currentCount);
+      if (!gate.allowed) {
+        throw AppError.forbidden(
+          gate.message ||
+            "Free plan limit reached. Upgrade to GoWider Pro for unlimited projects."
+        );
+      }
+    }
 
     const publishedAt = isPublished ? new Date() : null;
 
@@ -257,8 +276,26 @@ export async function toggleProjectPublishAction(
     const nextIsPublished = !existing.isPublished;
     let publishedAt = existing.publishedAt;
 
-    if (nextIsPublished && !publishedAt) {
-      publishedAt = new Date();
+    if (nextIsPublished) {
+      // Enforce Pro tier project publishing limit
+      const [countResult] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(projects)
+        .where(
+          and(eq(projects.profileId, existing.profileId), eq(projects.isPublished, true))
+        );
+      const currentCount = countResult?.count ?? 0;
+      const gate = await canPublishMoreProjects(existing.profileId, currentCount);
+      if (!gate.allowed) {
+        throw AppError.forbidden(
+          gate.message ||
+            "Free plan limit reached. Upgrade to GoWider Pro for unlimited projects."
+        );
+      }
+
+      if (!publishedAt) {
+        publishedAt = new Date();
+      }
     }
 
     const [updated] = await db

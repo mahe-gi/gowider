@@ -13,7 +13,7 @@ interface CinemaLayoutProps {
 }
 
 export function CinemaLayout({ portfolio }: CinemaLayoutProps) {
-  const { profile, projects, services, skills, socialLinks } = portfolio;
+  const { profile, projects, services, skills, socialLinks, settings } = portfolio;
 
   return (
     <div
@@ -71,6 +71,7 @@ export function CinemaLayout({ portfolio }: CinemaLayoutProps) {
           displayName={profile.displayName}
           username={profile.username}
           socialLinks={socialLinks}
+          hideBranding={settings?.hideBranding}
         />
       </main>
     </div>

@@ -11,7 +11,7 @@ interface EditorialLayoutProps {
 }
 
 export function EditorialLayout({ portfolio }: EditorialLayoutProps) {
-  const { profile, projects, services, skills, socialLinks } = portfolio;
+  const { profile, projects, services, skills, socialLinks, settings } = portfolio;
 
   return (
     <div
@@ -82,6 +82,7 @@ export function EditorialLayout({ portfolio }: EditorialLayoutProps) {
           displayName={profile.displayName}
           username={profile.username}
           socialLinks={socialLinks}
+          hideBranding={settings?.hideBranding}
         />
       </main>
     </div>

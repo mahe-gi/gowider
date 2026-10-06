@@ -4,6 +4,7 @@ import {
   varchar,
   text,
   integer,
+  boolean,
   timestamp,
   unique,
   check,
@@ -96,6 +97,7 @@ export const portfolioSettings = pgTable(
     accentColor: varchar("accent_color", { length: 7 })
       .default("#E5E5E5")
       .notNull(),
+    hideBranding: boolean("hide_branding").default(false).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
       .defaultNow()
       .notNull(),

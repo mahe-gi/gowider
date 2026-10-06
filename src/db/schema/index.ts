@@ -4,6 +4,7 @@ export * from "./profiles";
 export * from "./projects";
 export * from "./auxiliary";
 export * from "./reports";
+export * from "./subscriptions";
 export * from "./relations";
 
 import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
@@ -17,8 +18,11 @@ import {
   portfolioSettings,
 } from "./auxiliary";
 import { reports } from "./reports";
+import { subscriptions } from "./subscriptions";
 
 // Inferred TypeScript Model Types
+export type Subscription = InferSelectModel<typeof subscriptions>;
+export type NewSubscription = InferInsertModel<typeof subscriptions>;
 export type User = InferSelectModel<typeof user>;
 export type NewUser = InferInsertModel<typeof user>;
 

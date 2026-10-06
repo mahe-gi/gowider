@@ -63,6 +63,7 @@ export interface PublicPortfolioSettings {
   theme: "cinema" | "editorial" | "studio";
   motionLevel: "full" | "reduced";
   accentColor: string;
+  hideBranding?: boolean;
 }
 
 export interface PublicProfile {

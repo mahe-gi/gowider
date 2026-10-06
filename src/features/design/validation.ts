@@ -21,6 +21,7 @@ export const portfolioSettingsSchema = z.object({
       /^#[0-9a-fA-F]{6}$/,
       "Accent color must be a valid 6-character hex code (e.g. #E5E5E5)"
     ),
+  hideBranding: z.boolean().optional(),
 });
 
 export type PortfolioSettingsInput = z.infer<typeof portfolioSettingsSchema>;

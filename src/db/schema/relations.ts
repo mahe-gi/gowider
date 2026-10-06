@@ -9,6 +9,7 @@ import {
   portfolioSettings,
 } from "./auxiliary";
 import { reports } from "./reports";
+import { subscriptions } from "./subscriptions";
 
 export const userRelations = relations(user, ({ one, many }) => ({
   sessions: many(session),
@@ -47,7 +48,18 @@ export const profilesRelations = relations(profiles, ({ one, many }) => ({
     fields: [profiles.id],
     references: [portfolioSettings.profileId],
   }),
+  subscription: one(subscriptions, {
+    fields: [profiles.id],
+    references: [subscriptions.profileId],
+  }),
   reports: many(reports),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  profile: one(profiles, {
+    fields: [subscriptions.profileId],
+    references: [profiles.id],
+  }),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({

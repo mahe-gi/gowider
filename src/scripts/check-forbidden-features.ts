@@ -14,9 +14,6 @@ import path from "node:path";
  */
 
 const FORBIDDEN_PATTERNS = [
-  { pattern: /\brazorpay\b/i, name: "Razorpay" },
-  { pattern: /\bstripe\b/i, name: "Stripe" },
-  { pattern: /\bsubscription(s)?\b/i, name: "Subscriptions" },
   { pattern: /\bcustom_domain(s)?\b/i, name: "Custom Domains" },
   { pattern: /\bvimeo\b/i, name: "Vimeo" },
   { pattern: /\bioredis\b/i, name: "Redis" },

@@ -10,8 +10,14 @@ const envSchema = z.object({
   REPORT_PEPPER_SECRET: z.string().default("gowider_pepper_secret_production_hash_salt_v1"),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
+  // Razorpay Billing (V2)
+  RAZORPAY_KEY_ID: z.string().default("rzp_test_placeholder_key_id"),
+  RAZORPAY_KEY_SECRET: z.string().default("placeholder_secret"),
+  RAZORPAY_WEBHOOK_SECRET: z.string().default("placeholder_webhook_secret"),
+
   // Public variables
   NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
+  NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().default("rzp_test_placeholder_key_id"),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -46,8 +52,20 @@ function parseEnv(): Env {
     REPORT_PEPPER_SECRET:
       process.env.REPORT_PEPPER_SECRET ||
       "gowider_pepper_secret_production_hash_salt_v1",
+    RAZORPAY_KEY_ID:
+      process.env.RAZORPAY_KEY_ID ||
+      process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
+      "rzp_test_placeholder_key_id",
+    RAZORPAY_KEY_SECRET:
+      process.env.RAZORPAY_KEY_SECRET || "placeholder_secret",
+    RAZORPAY_WEBHOOK_SECRET:
+      process.env.RAZORPAY_WEBHOOK_SECRET || "placeholder_webhook_secret",
     NODE_ENV: process.env.NODE_ENV || "development",
     NEXT_PUBLIC_APP_URL: detectedUrl,
+    NEXT_PUBLIC_RAZORPAY_KEY_ID:
+      process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
+      process.env.RAZORPAY_KEY_ID ||
+      "rzp_test_placeholder_key_id",
   };
 
   const parsed = envSchema.safeParse(rawEnv);

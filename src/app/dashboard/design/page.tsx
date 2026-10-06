@@ -6,6 +6,8 @@ import { portfolioSettings } from "@/db/schema/auxiliary";
 import { requireAuth, getCurrentProfile } from "@/lib/auth-guards";
 import { DesignEditor } from "./design-editor";
 
+import { isProProfile } from "@/features/billing/subscription-service";
+
 export default async function DesignPage() {
   const { user } = await requireAuth();
 
@@ -15,11 +17,15 @@ export default async function DesignPage() {
     redirect("/onboarding");
   }
 
-  const [settings] = await db
-    .select()
-    .from(portfolioSettings)
-    .where(eq(portfolioSettings.profileId, profile.id))
-    .limit(1);
+  const [settings, isPro] = await Promise.all([
+    db
+      .select()
+      .from(portfolioSettings)
+      .where(eq(portfolioSettings.profileId, profile.id))
+      .limit(1)
+      .then(([s]) => s),
+    isProProfile(profile.id),
+  ]);
 
   const initialSettings = settings || {
     id: "",
@@ -27,6 +33,7 @@ export default async function DesignPage() {
     theme: "cinema" as const,
     motionLevel: "full" as const,
     accentColor: "#E5E5E5",
+    hideBranding: false,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -38,11 +45,15 @@ export default async function DesignPage() {
           Design & Aesthetic
         </h1>
         <p className="text-sm text-zinc-400 mt-1">
-          Customize your portfolio theme, animation dynamics, and signature accent color.
+          Customize your portfolio theme, animation dynamics, signature accent color, and branding.
         </p>
       </div>
 
-      <DesignEditor profileId={profile.id} initialSettings={initialSettings} />
+      <DesignEditor
+        profileId={profile.id}
+        initialSettings={initialSettings}
+        isPro={isPro}
+      />
     </div>
   );
 }

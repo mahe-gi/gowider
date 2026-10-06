@@ -524,6 +524,11 @@ describe("Dashboard Management Unit Tests (TASK-10 to TASK-13)", () => {
           username: "creator",
         },
       ]);
+      // Published count check (1 published)
+      mockSelect.mockReturnValueOnce([{ count: 1 }]);
+      // Subscription check (Free tier)
+      mockSelect.mockReturnValueOnce([]);
+
       const stampedDate = new Date();
       mockUpdate.mockReturnValueOnce([
         {

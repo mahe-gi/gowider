@@ -6,12 +6,14 @@ interface EditorialFooterProps {
   displayName: string;
   username: string;
   socialLinks: PublicSocialLink[];
+  hideBranding?: boolean;
 }
 
 export function EditorialFooter({
   displayName,
   username,
   socialLinks,
+  hideBranding = false,
 }: EditorialFooterProps) {
   // Find whatsapp link if configured
   const whatsappLink = socialLinks.find(
@@ -101,12 +103,16 @@ export function EditorialFooter({
 
       {/* Bottom Sub-bar: Platform Watermark & Report Trigger */}
       <div className="mt-12 pt-6 border-t border-white/[0.04] flex flex-wrap items-center justify-between gap-4 font-mono text-[11px] tracking-wider text-zinc-600">
-        <Link
-          href="/"
-          className="hover:text-zinc-400 transition-colors inline-flex items-center gap-1.5"
-        >
-          <span>POWERED BY GOWIDER</span>
-        </Link>
+        {!hideBranding ? (
+          <Link
+            href="/"
+            className="hover:text-zinc-400 transition-colors inline-flex items-center gap-1.5"
+          >
+            <span>POWERED BY GOWIDER</span>
+          </Link>
+        ) : (
+          <span />
+        )}
 
         <a
           data-testid="report-portfolio-btn"

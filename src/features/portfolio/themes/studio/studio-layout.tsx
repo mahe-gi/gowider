@@ -78,6 +78,7 @@ export function StudioLayout({ portfolio }: StudioLayoutProps) {
           displayName={profile.displayName}
           username={profile.username}
           socialLinks={socialLinks}
+          hideBranding={portfolio.settings?.hideBranding}
         />
       </main>
     </div>

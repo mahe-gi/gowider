@@ -16,8 +16,10 @@ import {
 } from "../validation";
 import type { PortfolioSettings } from "@/db/schema";
 
+import { canHideBranding } from "@/features/billing/subscription-service";
+
 /**
- * Updates or upserts portfolio appearance settings (theme, motionLevel, accentColor).
+ * Updates or upserts portfolio appearance settings (theme, motionLevel, accentColor, hideBranding).
  */
 export async function updatePortfolioSettingsAction(
   profileId: string,
@@ -36,7 +38,17 @@ export async function updatePortfolioSettingsAction(
       throw AppError.validation(issue?.message || "Invalid settings input");
     }
 
-    const { theme, motionLevel, accentColor } = parsed.data;
+    const { theme, motionLevel, accentColor, hideBranding } = parsed.data;
+
+    // Enforce Pro tier gate for hiding GoWider branding
+    if (hideBranding === true) {
+      const gate = await canHideBranding(profileId);
+      if (!gate.allowed) {
+        throw AppError.forbidden(
+          "Removing GoWider branding is a Pro tier feature. Upgrade to GoWider Pro to hide the badge."
+        );
+      }
+    }
 
     const [existingSettings] = await db
       .select()
@@ -53,6 +65,7 @@ export async function updatePortfolioSettingsAction(
           theme,
           motionLevel,
           accentColor,
+          hideBranding: hideBranding ?? existingSettings.hideBranding,
           updatedAt: new Date(),
         })
         .where(eq(portfolioSettings.profileId, profileId))
@@ -66,6 +79,7 @@ export async function updatePortfolioSettingsAction(
           theme,
           motionLevel,
           accentColor,
+          hideBranding: hideBranding ?? false,
         })
         .returning();
       savedSettings = created;

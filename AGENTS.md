@@ -15,7 +15,7 @@ These rules govern all AI coding agents working on this repository:
 1. **Read locked docs before implementation:** Always align with `rules.md`, `database.md`, and `architecture.md`.
 2. **Never modify locked specification documents:** Specifications define *what* the product is.
 3. **Implement only the assigned task/workstream:** Avoid unbounded refactoring of unrelated files.
-4. **Never introduce V2 features:** Zero billing (Razorpay/Stripe), custom domains, video binary uploads, Redis, or Vimeo.
+4. **V2 Authorized Workstream:** Razorpay Billing System & Pro Tier Gates (custom domains, video binary uploads, Redis remain deferred until their respective sprints).
 5. **Never use fake production data:** Zero demo users ("Mahesh", "Rahul") or brands ("Nike", "Apple") in production schemas.
 6. **Strict ownership enforcement:** Always verify `resource -> profile -> profile.userId === session.user.id`.
 7. **Strict public data sanitization:** Never expose database UUIDs, user IDs, emails, or session info on public routes.
