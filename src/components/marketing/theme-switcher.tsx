@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 
-type ThemeType = "cinema" | "editorial" | "studio" | "noir" | "vogue";
+type ThemeType = "cinema" | "editorial" | "studio" | "noir" | "vogue" | "atelier" | "cyber";
 
 interface ThemeDetails {
   name: string;
@@ -93,6 +93,36 @@ const THEMES: Record<ThemeType, ThemeDetails> = {
     sampleRole: "FASHION FILMMAKER & CREATIVE DIRECTOR",
     isPro: true,
   },
+  atelier: {
+    name: "Atelier",
+    badge: "PRO • FINE-ART GALLERY",
+    tagline: "Museum Travertine • Curatorial Plaque",
+    accent: "#D6D3CD",
+    description: "Curated for documentary auteurs, fine-art colorists, and museum exhibits. Limestone travertine textures, Roman numeral catalogue indexing, and curatorial plaque cards.",
+    bgColor: "bg-[#0C0B0A]",
+    borderColor: "border-[#D6D3CD]/30",
+    textColor: "text-[#E7E5E4]",
+    accentColor: "text-[#D6D3CD]",
+    sampleTitle: "RETROSPECTIVE // TRAVERTINE STUDY N° 01",
+    sampleMeta: "EXHIBITION N° 01 // FINE-ART",
+    sampleRole: "DIRECTOR & CURATORIAL LEAD",
+    isPro: true,
+  },
+  cyber: {
+    name: "Cyber",
+    badge: "PRO • TOKYO NEON & VFX HUD",
+    tagline: "Neon Emerald • CRT Telemetry & Timecodes",
+    accent: "#00FF88",
+    description: "Forged for 3D animators, CGI artists, and motion designers. Jet black finish, neon emerald & cyan glow, CRT telemetry HUDs, and real-time GPU render timecodes.",
+    bgColor: "bg-[#030712]",
+    borderColor: "border-emerald-500/40",
+    textColor: "text-zinc-100",
+    accentColor: "text-[#00FF88]",
+    sampleTitle: "NEURAL RENDER // GPU NODE 0x01",
+    sampleMeta: "TC 00:04:12:18 // GPU_OCTANE",
+    sampleRole: "3D VFX & TECHNICAL ARTIST",
+    isPro: true,
+  },
 };
 
 const THEME_BACKGROUNDS: Record<ThemeType, string> = {
@@ -106,6 +136,10 @@ const THEME_BACKGROUNDS: Record<ThemeType, string> = {
     "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=1200&q=80",
   vogue:
     "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80",
+  atelier:
+    "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=80",
+  cyber:
+    "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
 };
 
 export function ThemeSwitcher() {
@@ -139,17 +173,17 @@ export function ThemeSwitcher() {
               04 // SIGNATURE AESTHETICS
             </span>
             <h2 className="font-display text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
-              ONE WORKFLOW. FIVE SIGNATURE LOOKS.
+              ONE WORKFLOW. SEVEN SIGNATURE LOOKS.
             </h2>
           </div>
           <p className="text-xs sm:text-sm font-sans text-zinc-400 max-w-sm">
-            Switch your portfolio aesthetic with a single click in your dashboard. Includes Pro-exclusive directorial and luxury magazine layouts.
+            Switch your portfolio aesthetic with a single click in your dashboard. Includes Pro-exclusive directorial, fine-art museum, and VFX cyber layouts.
           </p>
         </div>
 
         {/* Tab Controls */}
         <div className="flex flex-wrap gap-2 border-b border-white/[0.1] pb-4 mb-8">
-          {(["cinema", "editorial", "studio", "noir", "vogue"] as ThemeType[]).map((themeKey) => {
+          {(["cinema", "editorial", "studio", "noir", "vogue", "atelier", "cyber"] as ThemeType[]).map((themeKey) => {
             const isSelected = activeTheme === themeKey;
             const themeItem = THEMES[themeKey];
             return (

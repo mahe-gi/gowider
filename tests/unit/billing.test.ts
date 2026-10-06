@@ -244,6 +244,88 @@ describe("GoWider V2 Billing & Pro Tier Gates", () => {
       }
     });
 
+    it("rejects updatePortfolioSettingsAction with theme: 'atelier' when user is on Free tier", async () => {
+      // 1. requireProfileOwner -> [mockProfile]
+      // 2. getProfileSubscription -> [] (Free)
+      mockSelect
+        .mockReturnValueOnce([mockProfile])
+        .mockReturnValueOnce([]);
+
+      const result = await updatePortfolioSettingsAction("profile_test_123", {
+        theme: "atelier",
+        motionLevel: "full",
+        accentColor: "#D6D3CD",
+        hideBranding: false,
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain("Atelier theme is exclusive to GoWider Pro creators");
+      }
+    });
+
+    it("rejects updatePortfolioSettingsAction with theme: 'cyber' when user is on Free tier", async () => {
+      // 1. requireProfileOwner -> [mockProfile]
+      // 2. getProfileSubscription -> [] (Free)
+      mockSelect
+        .mockReturnValueOnce([mockProfile])
+        .mockReturnValueOnce([]);
+
+      const result = await updatePortfolioSettingsAction("profile_test_123", {
+        theme: "cyber",
+        motionLevel: "full",
+        accentColor: "#00FF88",
+        hideBranding: false,
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain("Cyber theme is exclusive to GoWider Pro creators");
+      }
+    });
+
+    it("rejects updatePortfolioSettingsAction with spotlightProjectId when user is on Free tier", async () => {
+      // 1. requireProfileOwner -> [mockProfile]
+      // 2. getProfileSubscription -> [] (Free)
+      mockSelect
+        .mockReturnValueOnce([mockProfile])
+        .mockReturnValueOnce([]);
+
+      const result = await updatePortfolioSettingsAction("profile_test_123", {
+        theme: "cinema",
+        motionLevel: "full",
+        accentColor: "#E5E5E5",
+        spotlightProjectId: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain("Hero Showreel Spotlight is a Pro tier feature");
+      }
+    });
+
+    it("rejects updatePortfolioSettingsAction with ctaEnabled: true when user is on Free tier", async () => {
+      // 1. requireProfileOwner -> [mockProfile]
+      // 2. getProfileSubscription -> [] (Free)
+      mockSelect
+        .mockReturnValueOnce([mockProfile])
+        .mockReturnValueOnce([]);
+
+      const result = await updatePortfolioSettingsAction("profile_test_123", {
+        theme: "cinema",
+        motionLevel: "full",
+        accentColor: "#E5E5E5",
+        ctaEnabled: true,
+        ctaLabel: "Book Commercial",
+        ctaUrl: "https://calendly.com/test",
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain("Direct Client Booking & Inquiry Action Button is a Pro tier feature");
+      }
+    });
+
     it("allows updatePortfolioSettingsAction with theme: 'noir' when user has active Pro subscription", async () => {
       const activeProSub = {
         id: "sub_1",

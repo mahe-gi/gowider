@@ -10,6 +10,10 @@ import { NoirLayout } from "./themes/noir/noir-layout";
 import { NoirProjectPage } from "./themes/noir/noir-project-page";
 import { VogueLayout } from "./themes/vogue/vogue-layout";
 import { VogueProjectPage } from "./themes/vogue/vogue-project-page";
+import { AtelierLayout } from "./themes/atelier/atelier-layout";
+import { AtelierProjectPage } from "./themes/atelier/atelier-project-page";
+import { CyberLayout } from "./themes/cyber/cyber-layout";
+import { CyberProjectPage } from "./themes/cyber/cyber-project-page";
 
 export interface ThemeRegistryEntry {
   id: string;
@@ -51,6 +55,20 @@ export const THEME_REGISTRY: Record<string, ThemeRegistryEntry> = {
     isPro: true,
     component: VogueLayout,
     projectComponent: VogueProjectPage,
+  },
+  atelier: {
+    id: "atelier",
+    name: "Atelier (Fine-Art Gallery)",
+    isPro: true,
+    component: AtelierLayout,
+    projectComponent: AtelierProjectPage,
+  },
+  cyber: {
+    id: "cyber",
+    name: "Cyber (Tokyo Neon / VFX Grid)",
+    isPro: true,
+    component: CyberLayout,
+    projectComponent: CyberProjectPage,
   },
 };
 

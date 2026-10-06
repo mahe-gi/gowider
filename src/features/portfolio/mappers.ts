@@ -63,6 +63,10 @@ interface DbSettingsInput {
   motionLevel?: unknown;
   accentColor?: unknown;
   hideBranding?: unknown;
+  spotlightProjectId?: unknown;
+  ctaEnabled?: unknown;
+  ctaLabel?: unknown;
+  ctaUrl?: unknown;
   id?: unknown;
   profileId?: unknown;
   createdAt?: unknown;
@@ -169,12 +173,37 @@ export function toPublicPortfolioData(dbProfile: DbProfileInput): PublicPortfoli
     name: String(sk.name || ""),
   }));
 
+  // Resolve spotlight project if configured and published
+  let spotlightProject: PublicProject | null = null;
+  if (dbProfile.settings?.spotlightProjectId) {
+    const rawSpotlight = rawProjects.find(
+      (p) => String(p.id) === String(dbProfile.settings?.spotlightProjectId)
+    );
+    if (rawSpotlight && (rawSpotlight.isPublished === true || rawSpotlight.isPublished === undefined)) {
+      spotlightProject = projects.find((p) => p.slug === rawSpotlight.slug) || null;
+    }
+  }
+
+  // Resolve client booking / inquiry CTA
+  const cta =
+    dbProfile.settings?.ctaEnabled &&
+    dbProfile.settings?.ctaLabel &&
+    dbProfile.settings?.ctaUrl
+      ? {
+          enabled: true,
+          label: String(dbProfile.settings.ctaLabel),
+          url: String(dbProfile.settings.ctaUrl),
+        }
+      : null;
+
   // Map settings with safe defaults
   const settings: PublicPortfolioSettings = {
     theme: (dbProfile.settings?.theme as PublicPortfolioSettings["theme"]) || "cinema",
     motionLevel: (dbProfile.settings?.motionLevel as PublicPortfolioSettings["motionLevel"]) || "full",
     accentColor: String(dbProfile.settings?.accentColor || "#E5E5E5"),
     hideBranding: Boolean(dbProfile.settings?.hideBranding),
+    spotlightProject,
+    cta,
   };
 
   return {
@@ -277,6 +306,10 @@ export function toPortfolioData(dbProfile: DbProfileInput): PortfolioData {
           motionLevel: (dbProfile.settings.motionLevel as PublicPortfolioSettings["motionLevel"]) || "full",
           accentColor: String(dbProfile.settings.accentColor || "#E5E5E5"),
           hideBranding: Boolean(dbProfile.settings.hideBranding),
+          spotlightProjectId: dbProfile.settings.spotlightProjectId ? String(dbProfile.settings.spotlightProjectId) : null,
+          ctaEnabled: Boolean(dbProfile.settings.ctaEnabled),
+          ctaLabel: dbProfile.settings.ctaLabel ? String(dbProfile.settings.ctaLabel) : null,
+          ctaUrl: dbProfile.settings.ctaUrl ? String(dbProfile.settings.ctaUrl) : null,
           createdAt: dbProfile.settings.createdAt as Date,
           updatedAt: dbProfile.settings.updatedAt as Date,
         }

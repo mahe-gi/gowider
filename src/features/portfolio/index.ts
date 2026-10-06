@@ -9,4 +9,8 @@ export { NoirLayout } from "./themes/noir/noir-layout";
 export { NoirProjectPage } from "./themes/noir/noir-project-page";
 export { VogueLayout } from "./themes/vogue/vogue-layout";
 export { VogueProjectPage } from "./themes/vogue/vogue-project-page";
+export { AtelierLayout } from "./themes/atelier/atelier-layout";
+export { AtelierProjectPage } from "./themes/atelier/atelier-project-page";
+export { CyberLayout } from "./themes/cyber/cyber-layout";
+export { CyberProjectPage } from "./themes/cyber/cyber-project-page";
 export { CinemaCursor } from "./shared/cursor";

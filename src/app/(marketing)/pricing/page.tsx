@@ -19,12 +19,22 @@ const COMPARISON_ROWS = [
     pro: "Included",
   },
   {
-    feature: "Pro Theme: Noir (2.39:1 Scope)",
+    feature: "Pro Themes: Noir & Vogue",
     free: "—",
     pro: "Included",
   },
   {
-    feature: "Pro Theme: Vogue (Luxury Lookbook)",
+    feature: "Pro Themes: Atelier & Cyber",
+    free: "—",
+    pro: "Included",
+  },
+  {
+    feature: "Hero Showreel Spotlight",
+    free: "—",
+    pro: "Included",
+  },
+  {
+    feature: "Direct Client Booking CTA (Calendly/WhatsApp)",
     free: "—",
     pro: "Included",
   },
@@ -206,11 +216,15 @@ export default function PricingPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-xs text-amber-400 font-bold">★</span>
-                  <span>Noir Theme (2.39:1 Scope Directorial Frame)</span>
+                  <span>4 Pro Themes: Noir, Vogue, Atelier &amp; Cyber</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-xs text-amber-400 font-bold">★</span>
-                  <span>Vogue Theme (Luxury Editorial Lookbook)</span>
+                  <span>Hero Showreel Spotlight (pin signature mastercut)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-amber-400 font-bold">★</span>
+                  <span>Direct Client Booking &amp; Inquiry CTA (Calendly/WhatsApp)</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-mono text-xs text-amber-400 font-bold">★</span>

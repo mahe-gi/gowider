@@ -16,12 +16,12 @@ import {
 } from "../validation";
 import type { PortfolioSettings } from "@/db/schema";
 
-import { canHideBranding, isProProfile } from "@/features/billing/subscription-service";
+import { isProProfile } from "@/features/billing/subscription-service";
 
-const PRO_THEMES = ["noir", "vogue"];
+const PRO_THEMES = ["noir", "vogue", "atelier", "cyber"];
 
 /**
- * Updates or upserts portfolio appearance settings (theme, motionLevel, accentColor, hideBranding).
+ * Updates or upserts portfolio appearance settings (theme, motionLevel, accentColor, hideBranding, spotlight, CTA).
  */
 export async function updatePortfolioSettingsAction(
   profileId: string,
@@ -40,27 +40,51 @@ export async function updatePortfolioSettingsAction(
       throw AppError.validation(issue?.message || "Invalid settings input");
     }
 
-    const { theme, motionLevel, accentColor, hideBranding } = parsed.data;
+    const {
+      theme,
+      motionLevel,
+      accentColor,
+      hideBranding,
+      spotlightProjectId,
+      ctaEnabled,
+      ctaLabel,
+      ctaUrl,
+    } = parsed.data;
 
-    // Enforce Pro tier gate for Pro-exclusive themes (Noir, Vogue)
-    if (theme && PRO_THEMES.includes(theme)) {
-      const isPro = await isProProfile(profileId);
-      if (!isPro) {
-        const themeName = theme === "noir" ? "Noir" : "Vogue";
-        throw AppError.forbidden(
-          `The ${themeName} theme is exclusive to GoWider Pro creators. Upgrade to GoWider Pro to activate it.`
-        );
-      }
+    const isPro = await isProProfile(profileId);
+
+    // Enforce Pro tier gate for Pro-exclusive themes (Noir, Vogue, Atelier, Cyber)
+    if (theme && PRO_THEMES.includes(theme) && !isPro) {
+      const themeNames: Record<string, string> = {
+        noir: "Noir",
+        vogue: "Vogue",
+        atelier: "Atelier",
+        cyber: "Cyber",
+      };
+      throw AppError.forbidden(
+        `The ${themeNames[theme] || theme} theme is exclusive to GoWider Pro creators. Upgrade to GoWider Pro to activate it.`
+      );
     }
 
     // Enforce Pro tier gate for hiding GoWider branding
-    if (hideBranding === true) {
-      const gate = await canHideBranding(profileId);
-      if (!gate.allowed) {
-        throw AppError.forbidden(
-          "Removing GoWider branding is a Pro tier feature. Upgrade to GoWider Pro to hide the badge."
-        );
-      }
+    if (hideBranding === true && !isPro) {
+      throw AppError.forbidden(
+        "Removing GoWider branding is a Pro tier feature. Upgrade to GoWider Pro to hide the badge."
+      );
+    }
+
+    // Enforce Pro tier gate for Hero Showreel Spotlight
+    if (spotlightProjectId && !isPro) {
+      throw AppError.forbidden(
+        "Hero Showreel Spotlight is a Pro tier feature. Upgrade to GoWider Pro to pin your signature showreel."
+      );
+    }
+
+    // Enforce Pro tier gate for Direct Client Booking CTA
+    if (ctaEnabled === true && !isPro) {
+      throw AppError.forbidden(
+        "Direct Client Booking & Inquiry Action Button is a Pro tier feature. Upgrade to GoWider Pro to activate."
+      );
     }
 
     const [existingSettings] = await db
@@ -79,6 +103,24 @@ export async function updatePortfolioSettingsAction(
           motionLevel,
           accentColor,
           hideBranding: hideBranding ?? existingSettings.hideBranding,
+          spotlightProjectId: isPro
+            ? spotlightProjectId !== undefined
+              ? spotlightProjectId
+              : existingSettings.spotlightProjectId
+            : null,
+          ctaEnabled: isPro
+            ? ctaEnabled ?? existingSettings.ctaEnabled
+            : false,
+          ctaLabel: isPro
+            ? ctaLabel !== undefined
+              ? ctaLabel
+              : existingSettings.ctaLabel
+            : null,
+          ctaUrl: isPro
+            ? ctaUrl !== undefined
+              ? ctaUrl
+              : existingSettings.ctaUrl
+            : null,
           updatedAt: new Date(),
         })
         .where(eq(portfolioSettings.profileId, profileId))
@@ -92,7 +134,11 @@ export async function updatePortfolioSettingsAction(
           theme,
           motionLevel,
           accentColor,
-          hideBranding: hideBranding ?? false,
+          hideBranding: isPro ? (hideBranding ?? false) : false,
+          spotlightProjectId: isPro ? (spotlightProjectId ?? null) : null,
+          ctaEnabled: isPro ? (ctaEnabled ?? false) : false,
+          ctaLabel: isPro ? (ctaLabel ?? null) : null,
+          ctaUrl: isPro ? (ctaUrl ?? null) : null,
         })
         .returning();
       savedSettings = created;

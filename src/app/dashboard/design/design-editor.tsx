@@ -11,6 +11,7 @@ interface DesignEditorProps {
   profileId: string;
   initialSettings: PortfolioSettings;
   isPro?: boolean;
+  projects?: Array<{ id: string; title: string; slug: string; isPublished: boolean }>;
 }
 
 const THEME_OPTIONS = [
@@ -59,6 +60,24 @@ const THEME_OPTIONS = [
     previewGradient: "from-stone-900 via-zinc-900 to-stone-950",
     isPro: true,
   },
+  {
+    id: "atelier" as const,
+    title: "Atelier",
+    subtitle: "Fine-Art Gallery & Museum Plaque",
+    description:
+      "Travertine stone tones, museum exhibition numbering, and curatorial plaque cards for fine-art colorists & documentarians.",
+    previewGradient: "from-stone-900 via-stone-800 to-neutral-950",
+    isPro: true,
+  },
+  {
+    id: "cyber" as const,
+    title: "Cyber",
+    subtitle: "Tokyo Neon & VFX Telemetry",
+    description:
+      "Deep jet black, neon emerald & cyan HUD glow, CRT scanlines, and real-time GPU timecodes for 3D animators & motion designers.",
+    previewGradient: "from-emerald-950 via-teal-950 to-black",
+    isPro: true,
+  },
 ];
 
 const PRESET_COLORS = [
@@ -74,6 +93,7 @@ export function DesignEditor({
   profileId,
   initialSettings,
   isPro = false,
+  projects = [],
 }: DesignEditorProps) {
   const router = useRouter();
 
@@ -81,6 +101,12 @@ export function DesignEditor({
   const [motionLevel, setMotionLevel] = useState(initialSettings.motionLevel);
   const [accentColor, setAccentColor] = useState(initialSettings.accentColor);
   const [hideBranding, setHideBranding] = useState(Boolean(initialSettings.hideBranding));
+  const [spotlightProjectId, setSpotlightProjectId] = useState<string | null>(
+    initialSettings.spotlightProjectId || null
+  );
+  const [ctaEnabled, setCtaEnabled] = useState(Boolean(initialSettings.ctaEnabled));
+  const [ctaLabel, setCtaLabel] = useState(initialSettings.ctaLabel || "");
+  const [ctaUrl, setCtaUrl] = useState(initialSettings.ctaUrl || "");
 
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -99,12 +125,24 @@ export function DesignEditor({
       return;
     }
 
+    if (ctaEnabled && (!ctaLabel.trim() || !ctaUrl.trim())) {
+      setMessage({
+        type: "error",
+        text: "Please provide both a label and a valid URL for your client inquiry button.",
+      });
+      return;
+    }
+
     startTransition(async () => {
       const res = await updatePortfolioSettingsAction(profileId, {
         theme,
         motionLevel,
         accentColor: accentColor.trim().toUpperCase(),
         hideBranding: isPro ? hideBranding : false,
+        spotlightProjectId: isPro ? (spotlightProjectId || null) : null,
+        ctaEnabled: isPro ? ctaEnabled : false,
+        ctaLabel: isPro && ctaEnabled ? ctaLabel.trim() : null,
+        ctaUrl: isPro && ctaEnabled ? ctaUrl.trim() : null,
       });
 
       if (res.success) {
@@ -395,6 +433,144 @@ export function DesignEditor({
             )}
           </div>
         </div>
+      </div>
+
+      {/* 5. Hero Showreel Spotlight [PRO] */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-white">5. Hero Showreel Spotlight</h2>
+              <span className="rounded bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest text-amber-300 uppercase">
+                PRO
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">
+              Pin a signature master showreel at the top of your portfolio hero stage to immediately hook high-ticket clients.
+            </p>
+          </div>
+
+          {!isPro && (
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-zinc-500">Locked on Free Plan</span>
+              <Link
+                href="/dashboard/billing"
+                className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition inline-flex items-center gap-1.5"
+              >
+                <span>Upgrade to Pro</span>
+                <span>↗</span>
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {isPro && (
+          <div className="pt-2 max-w-lg space-y-2">
+            <label className="block text-xs font-medium text-zinc-300">
+              Select Signature Project to Spotlight:
+            </label>
+            <select
+              data-testid="spotlight-project-select"
+              value={spotlightProjectId || ""}
+              onChange={(e) => setSpotlightProjectId(e.target.value || null)}
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-sm text-white focus:border-zinc-600 focus:outline-none"
+            >
+              <option value="">None (Standard Hero Showcase)</option>
+              {projects
+                .filter((p) => p.isPublished)
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    ★ {p.title}
+                  </option>
+                ))}
+            </select>
+            {projects.filter((p) => p.isPublished).length === 0 && (
+              <p className="text-xs text-zinc-500">
+                You do not have any published projects yet. Publish a project first to spotlight it.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 6. Direct Client Booking & Inquiry Button [PRO] */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-white">6. Direct Client Booking &amp; Inquiry CTA</h2>
+              <span className="rounded bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest text-amber-300 uppercase">
+                PRO
+              </span>
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">
+              Add a high-converting action button (Calendly, WhatsApp, Rate Card) directly to your portfolio hero and footer.
+            </p>
+          </div>
+
+          <div>
+            {isPro ? (
+              <label className="relative inline-flex items-center cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  data-testid="cta-enabled-toggle"
+                  checked={ctaEnabled}
+                  onChange={(e) => setCtaEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-white peer-checked:after:bg-black"></div>
+                <span className="ml-3 text-xs font-medium text-zinc-300">
+                  {ctaEnabled ? "CTA Active" : "CTA Disabled"}
+                </span>
+              </label>
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-zinc-500">Locked on Free Plan</span>
+                <Link
+                  href="/dashboard/billing"
+                  className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition inline-flex items-center gap-1.5"
+                >
+                  <span>Upgrade to Pro</span>
+                  <span>↗</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {isPro && ctaEnabled && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-zinc-800/80">
+            <div>
+              <label className="block text-xs font-medium text-zinc-300 mb-1">
+                Button Label (e.g. &ldquo;Inquire for Commercials&rdquo;)
+              </label>
+              <input
+                type="text"
+                data-testid="cta-label-input"
+                maxLength={60}
+                value={ctaLabel}
+                onChange={(e) => setCtaLabel(e.target.value)}
+                placeholder="Inquire for Commercials"
+                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3.5 py-2 text-sm text-white focus:border-zinc-600 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-zinc-300 mb-1">
+                Destination URL (e.g. Calendly, WhatsApp, Rate Card)
+              </label>
+              <input
+                type="url"
+                data-testid="cta-url-input"
+                maxLength={500}
+                value={ctaUrl}
+                onChange={(e) => setCtaUrl(e.target.value)}
+                placeholder="https://calendly.com/your-name/commercial-booking"
+                className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3.5 py-2 text-sm text-white focus:border-zinc-600 focus:outline-none"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Save Button */}

@@ -1,8 +1,9 @@
 import React from "react";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { db } from "@/db";
 import { portfolioSettings } from "@/db/schema/auxiliary";
+import { projects } from "@/db/schema/projects";
 import { requireAuth, getCurrentProfile } from "@/lib/auth-guards";
 import { DesignEditor } from "./design-editor";
 
@@ -17,7 +18,7 @@ export default async function DesignPage() {
     redirect("/onboarding");
   }
 
-  const [settings, isPro] = await Promise.all([
+  const [settings, isPro, profileProjects] = await Promise.all([
     db
       .select()
       .from(portfolioSettings)
@@ -25,6 +26,16 @@ export default async function DesignPage() {
       .limit(1)
       .then(([s]) => s),
     isProProfile(profile.id),
+    db
+      .select({
+        id: projects.id,
+        title: projects.title,
+        slug: projects.slug,
+        isPublished: projects.isPublished,
+      })
+      .from(projects)
+      .where(eq(projects.profileId, profile.id))
+      .orderBy(asc(projects.sortOrder)),
   ]);
 
   const initialSettings = settings || {
@@ -53,6 +64,7 @@ export default async function DesignPage() {
         profileId={profile.id}
         initialSettings={initialSettings}
         isPro={isPro}
+        projects={profileProjects}
       />
     </div>
   );

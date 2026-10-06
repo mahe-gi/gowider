@@ -4,12 +4,20 @@ import {
   isReservedUsername,
 } from "@/features/onboarding/constants";
 
-export const THEMES = ["cinema", "editorial", "studio", "noir", "vogue"] as const;
+export const THEMES = [
+  "cinema",
+  "editorial",
+  "studio",
+  "noir",
+  "vogue",
+  "atelier",
+  "cyber",
+] as const;
 export const MOTION_LEVELS = ["full", "reduced"] as const;
 
 export const portfolioSettingsSchema = z.object({
   theme: z.enum(THEMES, {
-    message: "Theme must be one of: cinema, editorial, studio, noir, vogue",
+    message: "Theme must be one of: cinema, editorial, studio, noir, vogue, atelier, cyber",
   }),
   motionLevel: z.enum(MOTION_LEVELS, {
     message: "Motion level must be 'full' or 'reduced'",
@@ -22,6 +30,18 @@ export const portfolioSettingsSchema = z.object({
       "Accent color must be a valid 6-character hex code (e.g. #E5E5E5)"
     ),
   hideBranding: z.boolean().optional(),
+  spotlightProjectId: z.string().uuid().nullable().optional(),
+  ctaEnabled: z.boolean().optional(),
+  ctaLabel: z.string().trim().max(60).nullable().optional(),
+  ctaUrl: z
+    .string()
+    .trim()
+    .refine(
+      (val) => !val || /^https?:\/\//i.test(val) || /^mailto:/i.test(val) || /^tel:/i.test(val),
+      "CTA link must be a valid URL (https://), email (mailto:), or phone (tel:)"
+    )
+    .nullable()
+    .optional(),
 });
 
 export type PortfolioSettingsInput = z.infer<typeof portfolioSettingsSchema>;

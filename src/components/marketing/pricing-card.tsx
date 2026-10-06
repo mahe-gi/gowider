@@ -19,10 +19,12 @@ export function PricingCard() {
 
   const proFeatures = [
     "Unlimited published projects (no cap)",
-    "All 5 signature themes (including Noir & Vogue)",
+    "All 7 signature themes (including Noir, Vogue, Atelier, Cyber)",
+    "Hero Showreel Spotlight (pin signature mastercut to hero)",
+    "Direct Client Booking & Inquiry CTA button (Calendly/WhatsApp)",
     "100% White-Label: Remove GoWider watermark",
     "Noir (2.39:1 Anamorphic Scope) director layout",
-    "Vogue (High-Fashion Lookbook) luxury layout",
+    "Atelier (Fine-Art Travertine) & Cyber (Tokyo VFX HUD) layouts",
     "Pro creator badge on public profile",
     "Instant Razorpay payment activation",
     "Priority streaming & future Pro features",

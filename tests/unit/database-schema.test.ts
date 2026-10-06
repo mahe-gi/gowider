@@ -64,6 +64,10 @@ describe("Database Schema Contracts & Tables", () => {
     expect(settingsCols.id).toBeDefined();
     expect(settingsCols.profileId).toBeDefined();
     expect(settingsCols.theme).toBeDefined();
+    expect(settingsCols.spotlightProjectId).toBeDefined();
+    expect(settingsCols.ctaEnabled).toBeDefined();
+    expect(settingsCols.ctaLabel).toBeDefined();
+    expect(settingsCols.ctaUrl).toBeDefined();
 
     const linkCols = getTableColumns(socialLinks);
     expect(linkCols.id).toBeDefined();
@@ -103,6 +107,8 @@ describe("Database Schema Contracts & Tables", () => {
       "studio",
       "noir",
       "vogue",
+      "atelier",
+      "cyber",
     ]);
     expect(motionLevelEnum.enumValues).toEqual(["full", "reduced"]);
     expect(reportReasonEnum.enumValues).toEqual([

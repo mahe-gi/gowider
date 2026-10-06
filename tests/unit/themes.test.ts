@@ -18,20 +18,28 @@ import { NoirLayout } from "@/features/portfolio/themes/noir/noir-layout";
 import { NoirProjectPage } from "@/features/portfolio/themes/noir/noir-project-page";
 import { VogueLayout } from "@/features/portfolio/themes/vogue/vogue-layout";
 import { VogueProjectPage } from "@/features/portfolio/themes/vogue/vogue-project-page";
+import { AtelierLayout } from "@/features/portfolio/themes/atelier/atelier-layout";
+import { AtelierProjectPage } from "@/features/portfolio/themes/atelier/atelier-project-page";
+import { CyberLayout } from "@/features/portfolio/themes/cyber/cyber-layout";
+import { CyberProjectPage } from "@/features/portfolio/themes/cyber/cyber-project-page";
 import type {
   PublicPortfolioData,
   PublicProjectDetail,
 } from "@/features/portfolio/types";
 
 describe("Theme Registry & Resolution", () => {
-  it("registers all core and pro themes: cinema, editorial, studio, noir, and vogue", () => {
+  it("registers all core and pro themes: cinema, editorial, studio, noir, vogue, atelier, and cyber", () => {
     expect(THEME_REGISTRY).toHaveProperty("cinema");
     expect(THEME_REGISTRY).toHaveProperty("editorial");
     expect(THEME_REGISTRY).toHaveProperty("studio");
     expect(THEME_REGISTRY).toHaveProperty("noir");
     expect(THEME_REGISTRY).toHaveProperty("vogue");
+    expect(THEME_REGISTRY).toHaveProperty("atelier");
+    expect(THEME_REGISTRY).toHaveProperty("cyber");
     expect(THEME_REGISTRY.noir.isPro).toBe(true);
     expect(THEME_REGISTRY.vogue.isPro).toBe(true);
+    expect(THEME_REGISTRY.atelier.isPro).toBe(true);
+    expect(THEME_REGISTRY.cyber.isPro).toBe(true);
   });
 
   it("resolves 'cinema' theme accurately", () => {
@@ -89,6 +97,30 @@ describe("Theme Registry & Resolution", () => {
 
     expect(getThemeComponent("vogue")).toBe(VogueLayout);
     expect(getProjectThemeComponent("vogue")).toBe(VogueProjectPage);
+  });
+
+  it("resolves 'atelier' Pro theme accurately", () => {
+    const theme = getTheme("atelier");
+    expect(theme.id).toBe("atelier");
+    expect(theme.name).toContain("Atelier");
+    expect(theme.isPro).toBe(true);
+    expect(theme.component).toBe(AtelierLayout);
+    expect(theme.projectComponent).toBe(AtelierProjectPage);
+
+    expect(getThemeComponent("atelier")).toBe(AtelierLayout);
+    expect(getProjectThemeComponent("atelier")).toBe(AtelierProjectPage);
+  });
+
+  it("resolves 'cyber' Pro theme accurately", () => {
+    const theme = getTheme("cyber");
+    expect(theme.id).toBe("cyber");
+    expect(theme.name).toContain("Cyber");
+    expect(theme.isPro).toBe(true);
+    expect(theme.component).toBe(CyberLayout);
+    expect(theme.projectComponent).toBe(CyberProjectPage);
+
+    expect(getThemeComponent("cyber")).toBe(CyberLayout);
+    expect(getProjectThemeComponent("cyber")).toBe(CyberProjectPage);
   });
 
   it("handles case-insensitivity and whitespace in theme keys", () => {
@@ -337,6 +369,90 @@ describe("Multi-Theme Contract Parity", () => {
     expect(html).toContain("data-testid=\"project-navigation-bridge\"");
   });
 
+  it("renders AtelierLayout with standard PublicPortfolioData without error", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(AtelierLayout, { portfolio: mockPublicPortfolio })
+    );
+
+    expect(html).toContain("Elena Vance");
+    expect(html).toContain("Neon Drift");
+    expect(html).toContain("data-testid=\"atelier-theme-layout\"");
+    expect(html).toContain("data-testid=\"atelier-header\"");
+    expect(html).toContain("data-testid=\"atelier-hero\"");
+    expect(html).toContain("data-testid=\"atelier-showcase\"");
+    expect(html).toContain("data-testid=\"atelier-about\"");
+    expect(html).toContain("data-testid=\"atelier-footer\"");
+  });
+
+  it("renders AtelierProjectPage with standard PublicProjectDetail without error", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(AtelierProjectPage, mockProjectDetail)
+    );
+
+    expect(html).toContain("Neon Drift");
+    expect(html).toContain("Elena Vance");
+    expect(html).toContain("Aura Motor Corp");
+    expect(html).toContain("data-testid=\"atelier-project-page\"");
+    expect(html).toContain("data-testid=\"project-navigation-bridge\"");
+  });
+
+  it("renders CyberLayout with standard PublicPortfolioData without error", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(CyberLayout, { portfolio: mockPublicPortfolio })
+    );
+
+    expect(html).toContain("Elena Vance");
+    expect(html).toContain("Neon Drift");
+    expect(html).toContain("data-testid=\"cyber-theme-layout\"");
+    expect(html).toContain("data-testid=\"cyber-header\"");
+    expect(html).toContain("data-testid=\"cyber-hero\"");
+    expect(html).toContain("data-testid=\"cyber-showcase\"");
+    expect(html).toContain("data-testid=\"cyber-about\"");
+    expect(html).toContain("data-testid=\"cyber-footer\"");
+  });
+
+  it("renders CyberProjectPage with standard PublicProjectDetail without error", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(CyberProjectPage, mockProjectDetail)
+    );
+
+    expect(html).toContain("Neon Drift");
+    expect(html).toContain("Elena Vance");
+    expect(html).toContain("Aura Motor Corp");
+    expect(html).toContain("data-testid=\"cyber-project-page\"");
+    expect(html).toContain("data-testid=\"project-navigation-bridge\"");
+  });
+
+  it("renders spotlight showreel and booking CTA button when configured", () => {
+    const portfolioWithProSuite: PublicPortfolioData = {
+      ...mockPublicPortfolio,
+      settings: {
+        ...mockPublicPortfolio.settings,
+        theme: "atelier",
+        spotlightProject: mockPublicPortfolio.projects[0],
+        cta: {
+          enabled: true,
+          label: "Inquire for Commercial Commissions",
+          url: "https://calendly.com/elenavance/commercial",
+        },
+      },
+    };
+
+    const atelierHtml = renderToStaticMarkup(
+      React.createElement(AtelierLayout, { portfolio: portfolioWithProSuite })
+    );
+    expect(atelierHtml).toContain("SIGNATURE SHOWREEL SPOTLIGHT");
+    expect(atelierHtml).toContain("Inquire for Commercial Commissions");
+    expect(atelierHtml).toContain("https://calendly.com/elenavance/commercial");
+
+    const cyberHtml = renderToStaticMarkup(
+      React.createElement(CyberLayout, { portfolio: { ...portfolioWithProSuite, settings: { ...portfolioWithProSuite.settings, theme: "cyber" } } })
+    );
+    expect(cyberHtml).toContain("SIGNATURE SHOWREEL // ACTIVE GPU PIPELINE");
+    expect(cyberHtml).toContain("Inquire for Commercial Commissions");
+    expect(cyberHtml).toContain("https://calendly.com/elenavance/commercial");
+  });
+
   it("handles zero projects gracefully across all layouts", () => {
     const emptyPortfolio: PublicPortfolioData = {
       ...mockPublicPortfolio,
@@ -367,6 +483,16 @@ describe("Multi-Theme Contract Parity", () => {
       React.createElement(VogueLayout, { portfolio: emptyPortfolio })
     );
     expect(vogueHtml).toContain("No works documented in this issue.");
+
+    const atelierHtml = renderToStaticMarkup(
+      React.createElement(AtelierLayout, { portfolio: emptyPortfolio })
+    );
+    expect(atelierHtml).toContain("No works documented in this exhibition.");
+
+    const cyberHtml = renderToStaticMarkup(
+      React.createElement(CyberLayout, { portfolio: emptyPortfolio })
+    );
+    expect(cyberHtml).toContain("[ NO ACTIVE GPU NODES DETECTED IN PIPELINE ]");
   });
 
   it("verifies public data purity across theme footers (no email exposed)", () => {
@@ -404,5 +530,17 @@ describe("Multi-Theme Contract Parity", () => {
     );
     expect(vogueHtml).not.toContain("secret_owner@company.com");
     expect(vogueHtml).not.toContain("mailto:");
+
+    const atelierHtml = renderToStaticMarkup(
+      React.createElement(AtelierLayout, { portfolio: portfolioWithEmailSocial })
+    );
+    expect(atelierHtml).not.toContain("secret_owner@company.com");
+    expect(atelierHtml).not.toContain("mailto:");
+
+    const cyberHtml = renderToStaticMarkup(
+      React.createElement(CyberLayout, { portfolio: portfolioWithEmailSocial })
+    );
+    expect(cyberHtml).not.toContain("secret_owner@company.com");
+    expect(cyberHtml).not.toContain("mailto:");
   });
 });

@@ -98,6 +98,10 @@ export const portfolioSettings = pgTable(
       .default("#E5E5E5")
       .notNull(),
     hideBranding: boolean("hide_branding").default(false).notNull(),
+    spotlightProjectId: uuid("spotlight_project_id"),
+    ctaEnabled: boolean("cta_enabled").default(false).notNull(),
+    ctaLabel: varchar("cta_label", { length: 60 }),
+    ctaUrl: varchar("cta_url", { length: 500 }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
       .defaultNow()
       .notNull(),

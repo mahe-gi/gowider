@@ -23,6 +23,8 @@ export const portfolioThemeEnum = pgEnum("portfolio_theme", [
   "studio",
   "noir",
   "vogue",
+  "atelier",
+  "cyber",
 ]);
 
 export const motionLevelEnum = pgEnum("motion_level", ["full", "reduced"]);

@@ -60,10 +60,12 @@ export interface PublicSkill {
 }
 
 export interface PublicPortfolioSettings {
-  theme: "cinema" | "editorial" | "studio" | "noir" | "vogue";
+  theme: "cinema" | "editorial" | "studio" | "noir" | "vogue" | "atelier" | "cyber";
   motionLevel: "full" | "reduced";
   accentColor: string;
   hideBranding?: boolean;
+  spotlightProject?: PublicProject | null;
+  cta?: { enabled: boolean; label: string; url: string } | null;
 }
 
 export interface PublicProfile {
