@@ -22,34 +22,44 @@ async function runMigrations() {
   const sql = neon(connectionString);
 
   try {
-    // 1. Run 0000_wonderful_unus.sql
-    const schemaSqlPath = path.join(process.cwd(), "drizzle", "0000_wonderful_unus.sql");
-    if (fs.existsSync(schemaSqlPath)) {
-      console.log("Applying 0000_wonderful_unus.sql (Tables, Enums, Constraints, Indexes)...");
-      const rawSchemaSql = fs.readFileSync(schemaSqlPath, "utf-8");
-      const statements = rawSchemaSql
-        .split("--> statement-breakpoint")
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
+    // 1. Run all drizzle migration files in order
+    const drizzleDir = path.join(process.cwd(), "drizzle");
+    if (fs.existsSync(drizzleDir)) {
+      const sqlFiles = fs
+        .readdirSync(drizzleDir)
+        .filter((f) => f.endsWith(".sql") && !f.includes("triggers"))
+        .sort();
 
-      for (let i = 0; i < statements.length; i++) {
-        const stmt = statements[i];
-        try {
-          await sql.query(stmt);
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : String(err);
-          // If already exists (e.g. re-running migration), log and continue
-          if (msg.includes("already exists")) {
-            console.log(`Notice: Object already exists, skipping statement ${i + 1}`);
-          } else {
-            throw err;
+      for (const sqlFile of sqlFiles) {
+        console.log(`Applying ${sqlFile}...`);
+        const rawSql = fs.readFileSync(path.join(drizzleDir, sqlFile), "utf-8");
+        const statements = rawSql
+          .split("--> statement-breakpoint")
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+
+        for (let i = 0; i < statements.length; i++) {
+          const stmt = statements[i];
+          try {
+            await sql.query(stmt);
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            if (
+              msg.includes("already exists") ||
+              msg.includes("already a column") ||
+              msg.includes("duplicate key")
+            ) {
+              console.log(`Notice in ${sqlFile} stmt ${i + 1}: already exists, skipping.`);
+            } else {
+              throw err;
+            }
           }
         }
+        console.log(`Applied ${statements.length} statements from ${sqlFile}.`);
       }
-      console.log(`Applied ${statements.length} schema statements.`);
     }
 
-    // 2. Run 0001_triggers.sql
+    // 2. Run triggers
     const triggerStatements = [
       `CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -74,6 +84,8 @@ $$ LANGUAGE plpgsql;`,
       `CREATE TRIGGER trg_skills_updated_at BEFORE UPDATE ON "skills" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();`,
       `DROP TRIGGER IF EXISTS trg_portfolio_settings_updated_at ON "portfolio_settings";`,
       `CREATE TRIGGER trg_portfolio_settings_updated_at BEFORE UPDATE ON "portfolio_settings" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();`,
+      `DROP TRIGGER IF EXISTS trg_subscriptions_updated_at ON "subscriptions";`,
+      `CREATE TRIGGER trg_subscriptions_updated_at BEFORE UPDATE ON "subscriptions" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();`,
       `CREATE OR REPLACE FUNCTION trg_projects_update_fn()
 RETURNS TRIGGER AS $$
 BEGIN
