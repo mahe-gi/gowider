@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Script from "next/script";
 import clsx from "clsx";
 import type { Subscription } from "@/db/schema/subscriptions";
 import {
@@ -39,21 +40,6 @@ export function BillingClient({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Dynamically inject Razorpay checkout SDK
-  useEffect(() => {
-    if (typeof window === "undefined" || window.Razorpay) return;
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
-
   const handleUpgrade = () => {
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -73,7 +59,7 @@ export function BillingClient({
         checkoutRes.data;
 
       // Handle mock/development flow when placeholder keys are used
-      const isMock = keyId === "rzp_test_placeholder_key_id" || !window.Razorpay;
+      const isMock = keyId === "rzp_test_placeholder_key_id";
 
       if (isMock) {
         const activateRes = await verifyPaymentAndActivateAction({
@@ -93,6 +79,22 @@ export function BillingClient({
         return;
       }
 
+      // Ensure Razorpay SDK is available
+      if (!window.Razorpay) {
+        try {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load Razorpay SDK"));
+            document.body.appendChild(script);
+          });
+        } catch {
+          setErrorMessage("Failed to load payment gateway. Please check your internet connection or disable adblockers.");
+          return;
+        }
+      }
+
       // Initialize live Razorpay modal
       const options = {
         key: keyId,
@@ -102,6 +104,11 @@ export function BillingClient({
         description,
         order_id: orderId,
         subscription_id: subscriptionId,
+        modal: {
+          ondismiss: () => {
+            // Dismissed by user
+          },
+        },
         handler: async (response: {
           razorpay_payment_id: string;
           razorpay_order_id?: string;
@@ -132,6 +139,8 @@ export function BillingClient({
         const RazorpayClass = window.Razorpay;
         const razorpayInstance = new RazorpayClass(options);
         razorpayInstance.open();
+      } else {
+        setErrorMessage("Payment gateway is temporarily unavailable. Please refresh and try again.");
       }
     });
   };
@@ -160,6 +169,7 @@ export function BillingClient({
 
   return (
     <div className="space-y-8">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
       {/* Notifications */}
       {errorMessage && (
         <div className="rounded-xl border border-red-500/40 bg-red-950/40 p-4 text-sm text-red-300">

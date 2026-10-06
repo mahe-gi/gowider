@@ -13,7 +13,7 @@ const envSchema = z.object({
   // Razorpay Billing (V2)
   RAZORPAY_KEY_ID: z.string().default("rzp_test_placeholder_key_id"),
   RAZORPAY_KEY_SECRET: z.string().default("placeholder_secret"),
-  RAZORPAY_WEBHOOK_SECRET: z.string().default("placeholder_webhook_secret"),
+  RAZORPAY_WEBHOOK_SECRET: z.string().default("placeholder_secret"),
 
   // Public variables
   NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
@@ -59,7 +59,7 @@ function parseEnv(): Env {
     RAZORPAY_KEY_SECRET:
       process.env.RAZORPAY_KEY_SECRET || "placeholder_secret",
     RAZORPAY_WEBHOOK_SECRET:
-      process.env.RAZORPAY_WEBHOOK_SECRET || "placeholder_webhook_secret",
+      process.env.RAZORPAY_WEBHOOK_SECRET || "placeholder_secret",
     NODE_ENV: process.env.NODE_ENV || "development",
     NEXT_PUBLIC_APP_URL: detectedUrl,
     NEXT_PUBLIC_RAZORPAY_KEY_ID:

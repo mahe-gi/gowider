@@ -211,9 +211,10 @@ describe("GoWider V2 Billing & Pro Tier Gates", () => {
     it("verifies valid HMAC-SHA256 payment signature", () => {
       const orderId = "order_123456";
       const paymentId = "pay_789101";
+      const paymentSecret = "test_payment_secret_123";
       const payload = `${orderId}|${paymentId}`;
       const validSignature = crypto
-        .createHmac("sha256", "placeholder_secret")
+        .createHmac("sha256", paymentSecret)
         .update(payload)
         .digest("hex");
 
@@ -221,6 +222,7 @@ describe("GoWider V2 Billing & Pro Tier Gates", () => {
         razorpayOrderId: orderId,
         razorpayPaymentId: paymentId,
         razorpaySignature: validSignature,
+        secret: paymentSecret,
       });
 
       expect(isValid).toBe(true);
