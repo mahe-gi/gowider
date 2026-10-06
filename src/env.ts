@@ -19,13 +19,17 @@ export type Env = z.infer<typeof envSchema>;
 function parseEnv(): Env {
   const isServer = typeof window === "undefined";
 
-  // Auto-detect public URL from Vercel system environment variables or default to production domain
+  // Canonical production domain is gowider.in
   const detectedUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.BETTER_AUTH_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined) ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
-    (process.env.NODE_ENV === "production" ? "https://gowider.in" : "http://localhost:3000");
+    (process.env.NODE_ENV === "production"
+      ? "https://gowider.in"
+      : process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : process.env.VERCEL_URL
+          ? `https://${process.env.VERCEL_URL}`
+          : "http://localhost:3000");
 
   const rawEnv = {
     DATABASE_URL:

@@ -1,5 +1,5 @@
 export function ScatteredReality() {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gowider.in";
+  const appUrl = "https://gowider.in";
 
   return (
     <section className="py-24 border-t border-white/[0.08] bg-[#050505] relative overflow-hidden">

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export function InteractiveDemo() {
   const [isPlaying, setIsPlaying] = useState(false);
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gowider.in";
+  const appUrl = "https://gowider.in";
 
   return (
     <section id="demo" className="py-20 border-t border-white/[0.08] relative">
