@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { portfolioSettings } from "@/db/schema/auxiliary";
 import { requireAuth, getCurrentProfile } from "@/lib/auth-guards";
 import { getProjectsForProfile } from "@/features/projects";
+import { isProProfile } from "@/features/billing/subscription-service";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { QuickAddWork } from "@/components/dashboard/quick-add-work";
@@ -22,13 +23,14 @@ export default async function DashboardOverviewPage() {
     redirect("/onboarding");
   }
 
-  const [projectsList, [settings]] = await Promise.all([
+  const [projectsList, [settings], isPro] = await Promise.all([
     getProjectsForProfile(profile.id),
     db
       .select()
       .from(portfolioSettings)
       .where(eq(portfolioSettings.profileId, profile.id))
       .limit(1),
+    isProProfile(profile.id),
   ]);
 
   const totalProjects = projectsList.length;
@@ -74,9 +76,24 @@ export default async function DashboardOverviewPage() {
       {/* Header Greeting */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">
-            Welcome back, {profile.displayName}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-white">
+              Welcome back, {profile.displayName}
+            </h1>
+            {isPro ? (
+              <span className="rounded bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 px-2 py-0.5 text-[10px] font-mono font-bold tracking-wider text-amber-300 uppercase">
+                PRO ACTIVE
+              </span>
+            ) : (
+              <Link
+                href="/dashboard/billing"
+                className="rounded bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-2 py-0.5 text-[10px] font-mono font-medium text-zinc-300 hover:text-white transition inline-flex items-center gap-1"
+              >
+                <span>FREE PLAN</span>
+                <span className="text-amber-400 font-bold">UPGRADE ↗</span>
+              </Link>
+            )}
+          </div>
           <p className="text-sm text-zinc-400 mt-1">
             Manage your video projects, customize your design, and track your public portfolio.
           </p>

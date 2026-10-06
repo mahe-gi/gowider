@@ -130,9 +130,27 @@ export function DashboardSidebar() {
         </nav>
       </div>
 
-      {/* Footer subtle info */}
-      <div className="p-4 border-t border-zinc-800/80 text-xs text-zinc-600">
-        GoWider Creator Studio
+      {/* Footer subtle info & Pro Upgrade Callout */}
+      <div className="p-4 border-t border-zinc-800/80 space-y-3">
+        <Link
+          href="/dashboard/billing"
+          className="group block rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 hover:bg-amber-500/10 hover:border-amber-500/50 transition"
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[10px] font-bold tracking-widest text-amber-300 uppercase">
+              GoWider Pro
+            </span>
+            <span className="text-[10px] font-semibold text-amber-400 group-hover:underline">
+              Plans →
+            </span>
+          </div>
+          <p className="mt-1 text-[11px] text-zinc-400 leading-snug">
+            Unlimited works, Noir &amp; Vogue themes
+          </p>
+        </Link>
+        <div className="text-[11px] text-zinc-600">
+          GoWider Creator Studio
+        </div>
       </div>
     </aside>
   );

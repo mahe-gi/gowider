@@ -3,68 +3,83 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Pricing — GoWider",
-  description: "Transparent ₹0 launch pricing for video editors and creative directors.",
+  description:
+    "Transparent pricing for video editors, directors, and commercial filmmakers. Free starter tier and GoWider Pro with unlimited works.",
 };
 
-const LAUNCH_FEATURES = [
+const COMPARISON_ROWS = [
   {
-    title: "Unlimited Project Works",
-    desc: "Showcase as many commercials, reels, and film projects as you need. No artificial project caps.",
+    feature: "Published Projects",
+    free: "Up to 6 projects",
+    pro: "Unlimited projects",
   },
   {
-    title: "All 3 Signature Themes",
-    desc: "Switch between Cinema (OLED pitch-black), Editorial (Swiss typography), and Studio (technical grid) anytime.",
+    feature: "Core Themes (Cinema, Editorial, Studio)",
+    free: "Included",
+    pro: "Included",
   },
   {
-    title: "Personal Portfolio URL",
-    desc: "Claim your unique, professional creator handle: gowider.in/yourname.",
+    feature: "Pro Theme: Noir (2.39:1 Scope)",
+    free: "—",
+    pro: "Included",
   },
   {
-    title: "YouTube, Instagram & Google Drive",
-    desc: "Native embed support for 16:9 widescreen, 9:16 vertical reels, and private Drive client review streams.",
+    feature: "Pro Theme: Vogue (Luxury Lookbook)",
+    free: "—",
+    pro: "Included",
   },
   {
-    title: "Poster-First Caching Engine",
-    desc: "High-resolution posters load instantaneously on initial view with zero buffer lag or slow iframe chains.",
+    feature: "Watermark Removal (White-Label)",
+    free: "GoWider badge",
+    pro: "100% White-Label",
   },
   {
-    title: "Zero Video Re-Compression",
-    desc: "Your work streams directly from the source host in pristine original quality up to 4K / 60 FPS.",
+    feature: "Lossless 4K / 60 FPS Engine",
+    free: "Included",
+    pro: "Included",
   },
   {
-    title: "Zero Ads or Watermarks",
-    desc: "Your portfolio is your professional brand. We never place ads, promotional popups, or intrusive branding on your work.",
+    feature: "Supported Video Hosts",
+    free: "YouTube, IG, Drive",
+    pro: "YouTube, IG, Drive",
   },
   {
-    title: "Mobile & 4K Responsive Design",
-    desc: "Every portfolio looks flawless whether viewed by a director on an iPhone or an agency executive on a Pro Display XDR.",
+    feature: "Personal URL (gowider.in/yourname)",
+    free: "Included",
+    pro: "Included",
   },
   {
-    title: "Draft Preview Mode",
-    desc: "Test new projects, reorder works, and review layout tweaks privately before publishing live updates.",
+    feature: "Pro Verified Creator Badge",
+    free: "—",
+    pro: "Included",
+  },
+  {
+    feature: "Priority Directorial Support",
+    free: "Standard",
+    pro: "Priority",
   },
 ];
 
 const PRICING_FAQS = [
   {
-    q: "Why is GoWider free at launch?",
-    a: "Unlike traditional portfolio tools that host and transcode petabytes of video binaries, GoWider connects directly to your existing media hosts (YouTube, Instagram, Google Drive). This allows us to keep our server costs tiny and pass that efficiency directly to creators.",
+    q: "What is the difference between Free and GoWider Pro?",
+    a: "The Free plan gives you everything needed to launch: up to 6 published projects, 3 core themes (Cinema, Editorial, Studio), and your personal handle. GoWider Pro unlocks unlimited published works, the 2 Pro-exclusive themes (Noir and Vogue), and the ability to remove the GoWider watermark for a 100% white-label portfolio.",
   },
   {
-    q: "Will you suddenly start charging me for my existing portfolio?",
-    a: "No. If you claim your handle and launch your portfolio during the public launch phase, your core V1 portfolio features and claimed username remain yours with zero surprise lockouts.",
+    q: "How does payment processing work?",
+    a: "We process payments securely through Razorpay. You can pay via UPI (Google Pay, PhonePe, Paytm), Credit / Debit Cards, or Net Banking. Subscriptions activate instantly upon successful authorization.",
   },
   {
-    q: "Are there any hidden fees or transaction charges?",
-    a: "None. GoWider has zero setup fees, zero credit card requirements, and zero hosting surcharges.",
+    q: "Can I cancel my Pro subscription at any time?",
+    a: "Yes. You can cancel your subscription with a single click from your creator dashboard at /dashboard/billing. Your Pro benefits remain active until the end of your current billing period.",
   },
   {
-    q: "Can I use GoWider for commercial freelance client pitches?",
-    a: "Yes. GoWider is built specifically for commercial video editors, documentary filmmakers, colorists, and post-production studios to pitch agencies and high-ticket clients.",
+    q: "What happens to my published projects if I downgrade?",
+    a: "If you downgrade to Free, your existing works remain intact in your dashboard as drafts. You can keep up to 6 projects published at any time on the Free tier.",
   },
   {
-    q: "What happens if a video link changes or is removed from YouTube?",
-    a: "You can update or replace the source URL directly from your creator dashboard at any time. When you update a project link, your public portfolio revalidates instantly.",
+    q: "Does GoWider degrade or compress my original video files?",
+    a: "Never. GoWider connects directly to your existing media hosts (YouTube, Instagram, Google Drive). Your work streams in native master resolution up to 4K at 60 FPS without compression artifacts.",
   },
 ];
 
@@ -73,79 +88,183 @@ export default function PricingPage() {
     <div className="py-16 md:py-24">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-20">
+        <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 mb-6 border border-white/[0.1] bg-white/[0.03]">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
             <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-400">
-              TRANSPARENT LAUNCH PRICING
+              TRANSPARENT CREATOR PRICING
             </span>
           </div>
 
           <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight text-white leading-tight">
-            NO HIDDEN TIERS. FREE AT LAUNCH.
+            ENGINEERED FOR AUTEURS.
           </h1>
 
           <p className="mt-6 text-base sm:text-lg text-zinc-400 font-sans leading-relaxed">
-            Everything you need to launch a broadcast-grade portfolio. No credit card required. No artificial limits on your work.
+            Start free with up to 6 projects. Upgrade to GoWider Pro for unlimited reels, exclusive directorial themes, and complete white-label branding.
           </p>
         </div>
 
-        {/* The Free Launch Tier Card */}
-        <div className="max-w-3xl mx-auto border-2 border-white bg-black p-8 sm:p-14 relative shadow-2xl mb-24">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-8 border-b border-white/[0.12] gap-6">
+        {/* Pricing Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-24">
+          {/* Free Tier */}
+          <div className="border border-white/[0.1] bg-black p-8 sm:p-12 flex flex-col justify-between relative">
             <div>
-              <span className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-400 block mb-1">
-                LIFETIME LAUNCH ACCESS
-              </span>
-              <h2 className="font-display text-3xl font-bold uppercase text-white">
-                Creator Plan
-              </h2>
-            </div>
-            <div className="sm:text-right">
-              <div className="flex items-baseline sm:justify-end gap-2">
-                <span className="font-display text-6xl font-black text-white">
-                  ₹0
-                </span>
-                <span className="font-mono text-xs text-zinc-400 uppercase">
-                  / forever during launch
-                </span>
-              </div>
-              <span className="font-mono text-xs uppercase tracking-wider text-emerald-400 block mt-1">
-                ● 100% Free • No Payment Method Needed
-              </span>
-            </div>
-          </div>
-
-          {/* Features Grid */}
-          <div className="py-10 grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {LAUNCH_FEATURES.map((item, idx) => (
-              <div key={idx} className="flex items-start gap-3">
-                <span className="font-mono text-xs text-emerald-400 font-bold shrink-0 mt-0.5">
-                  ✓
-                </span>
+              <div className="flex items-center justify-between pb-8 border-b border-white/[0.08]">
                 <div>
-                  <h3 className="text-xs sm:text-sm font-sans font-bold text-white uppercase tracking-wide">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs font-sans text-zinc-400 mt-1 leading-relaxed">
-                    {item.desc}
-                  </p>
+                  <span className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-400 block mb-1">
+                    STARTER EDITION
+                  </span>
+                  <h2 className="font-display text-3xl font-bold uppercase text-white">
+                    Free Plan
+                  </h2>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-baseline justify-end gap-1">
+                    <span className="font-display text-5xl font-black text-white">
+                      ₹0
+                    </span>
+                    <span className="font-mono text-xs text-zinc-400">/ forever</span>
+                  </div>
+                  <span className="font-mono text-[10px] text-zinc-500 uppercase block mt-1">
+                    No card required
+                  </span>
                 </div>
               </div>
-            ))}
+
+              <div className="py-8 space-y-4 font-sans text-sm text-zinc-300">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-emerald-400 font-bold">✓</span>
+                  <span>Up to 6 published video works</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-emerald-400 font-bold">✓</span>
+                  <span>3 core themes: Cinema, Editorial &amp; Studio</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-emerald-400 font-bold">✓</span>
+                  <span>Personal URL: gowider.in/yourname</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-emerald-400 font-bold">✓</span>
+                  <span>Poster-first zero-lag media streaming</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-emerald-400 font-bold">✓</span>
+                  <span>YouTube, Instagram &amp; Drive embeds</span>
+                </div>
+                <div className="flex items-center gap-3 text-zinc-500">
+                  <span className="font-mono text-xs">ℹ</span>
+                  <span>GoWider watermark on public footer</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-white/[0.08]">
+              <Link
+                href="/signin"
+                className="w-full inline-flex items-center justify-center px-8 py-4 border border-white/20 bg-zinc-950 text-white font-sans text-xs uppercase tracking-[0.16em] font-bold hover:bg-zinc-900 transition-colors"
+              >
+                START FREE TODAY
+              </Link>
+            </div>
           </div>
 
-          {/* Action Dock */}
-          <div className="pt-8 border-t border-white/[0.12] flex flex-col sm:flex-row items-center justify-between gap-6">
-            <Link
-              href="/signin"
-              className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-5 bg-white text-black font-sans text-xs uppercase tracking-[0.16em] font-bold hover:bg-zinc-200 transition-colors"
-            >
-              CREATE YOUR FREE PORTFOLIO
-            </Link>
-            <span className="font-mono text-xs uppercase tracking-wider text-zinc-400">
-              One-click Google Sign-in
-            </span>
+          {/* Pro Tier */}
+          <div className="border-2 border-amber-400/80 bg-[#070707] p-8 sm:p-12 flex flex-col justify-between relative shadow-2xl">
+            <div className="absolute -top-3.5 right-6 bg-gradient-to-r from-amber-500 to-orange-500 text-black px-3 py-0.5 text-[10px] font-mono font-black uppercase tracking-widest rounded shadow">
+              RECOMMENDED // PRO
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between pb-8 border-b border-white/[0.08]">
+                <div>
+                  <span className="font-mono text-xs uppercase tracking-[0.2em] text-amber-300 block mb-1">
+                    AUTEUR &amp; STUDIO
+                  </span>
+                  <h2 className="font-display text-3xl font-bold uppercase text-white">
+                    GoWider Pro
+                  </h2>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-baseline justify-end gap-1">
+                    <span className="font-display text-5xl font-black text-amber-300">
+                      ₹499
+                    </span>
+                    <span className="font-mono text-xs text-zinc-400">/ month</span>
+                  </div>
+                  <span className="font-mono text-[10px] text-amber-400/80 uppercase block mt-1">
+                    or ₹4,999/yr (Save 17%)
+                  </span>
+                </div>
+              </div>
+
+              <div className="py-8 space-y-4 font-sans text-sm text-zinc-200">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-amber-400 font-bold">★</span>
+                  <span className="font-semibold text-white">Unlimited published projects</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-amber-400 font-bold">★</span>
+                  <span>Noir Theme (2.39:1 Scope Directorial Frame)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-amber-400 font-bold">★</span>
+                  <span>Vogue Theme (Luxury Editorial Lookbook)</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-amber-400 font-bold">★</span>
+                  <span>100% White-Label: Hide GoWider Watermark</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-amber-400 font-bold">★</span>
+                  <span>Verified Pro Creator badge on profile</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-amber-400 font-bold">★</span>
+                  <span>Instant Razorpay activation (Cards, UPI, Net Banking)</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-white/[0.08]">
+              <Link
+                href="/signin"
+                className="w-full inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-amber-400 to-amber-500 text-black font-sans text-xs uppercase tracking-[0.16em] font-bold hover:brightness-110 transition-all shadow-lg"
+              >
+                UPGRADE TO GOWIDER PRO
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Comparison Matrix */}
+        <div className="max-w-4xl mx-auto mb-24">
+          <div className="text-center mb-10">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white">
+              DETAILED PLAN COMPARISON
+            </h2>
+          </div>
+
+          <div className="overflow-hidden border border-white/[0.1] bg-black">
+            <table className="w-full text-left font-sans text-xs sm:text-sm">
+              <thead className="border-b border-white/[0.1] bg-zinc-950 font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+                <tr>
+                  <th className="p-4 sm:p-5">Feature</th>
+                  <th className="p-4 sm:p-5 w-32 sm:w-48 text-center">Free</th>
+                  <th className="p-4 sm:p-5 w-32 sm:w-48 text-center text-amber-300">Pro</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.06]">
+                {COMPARISON_ROWS.map((row, idx) => (
+                  <tr key={idx} className="hover:bg-zinc-900/40 transition-colors">
+                    <td className="p-4 sm:p-5 font-medium text-white">{row.feature}</td>
+                    <td className="p-4 sm:p-5 text-center text-zinc-400 font-mono text-xs">{row.free}</td>
+                    <td className="p-4 sm:p-5 text-center font-bold text-amber-300 font-mono text-xs">{row.pro}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -156,7 +275,7 @@ export default function PricingPage() {
               FREQUENTLY ASKED
             </span>
             <h2 className="font-display text-2xl sm:text-4xl font-bold uppercase tracking-tight text-white">
-              PRICING &amp; SUSTAINABILITY QUESTIONS
+              PRICING &amp; BILLING QUESTIONS
             </h2>
           </div>
 
@@ -177,20 +296,20 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* Final Bottom Banner */}
+        {/* Final CTA Banner */}
         <div className="mt-24 text-center p-12 border border-white/[0.1] bg-[#0A0A0A] max-w-4xl mx-auto">
           <h3 className="font-display text-2xl sm:text-3xl font-black uppercase text-white">
-            READY TO SHOWCASE YOUR EDITING WORK?
+            READY TO SHOWCASE YOUR WORK?
           </h3>
           <p className="mt-3 text-sm text-zinc-400 font-sans max-w-md mx-auto">
-            Claim your handle today while premium names are still available.
+            Claim your handle today and launch your broadcast-grade portfolio.
           </p>
           <div className="mt-6">
             <Link
               href="/signin"
               className="inline-flex items-center justify-center px-8 py-4 bg-white text-black font-sans text-xs uppercase tracking-[0.16em] font-bold hover:bg-zinc-200 transition-colors"
             >
-              GET STARTED NOW
+              CREATE YOUR PORTFOLIO NOW
             </Link>
           </div>
         </div>
