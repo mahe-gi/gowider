@@ -6,10 +6,15 @@ import { EditorialLayout } from "./themes/editorial/editorial-layout";
 import { EditorialProjectPage } from "./themes/editorial/editorial-project-page";
 import { StudioLayout } from "./themes/studio/studio-layout";
 import { StudioProjectPage } from "./themes/studio/studio-project-page";
+import { NoirLayout } from "./themes/noir/noir-layout";
+import { NoirProjectPage } from "./themes/noir/noir-project-page";
+import { VogueLayout } from "./themes/vogue/vogue-layout";
+import { VogueProjectPage } from "./themes/vogue/vogue-project-page";
 
 export interface ThemeRegistryEntry {
   id: string;
   name: string;
+  isPro?: boolean;
   component: ComponentType<{ portfolio: PublicPortfolioData }>;
   projectComponent: ComponentType<PublicProjectDetail>;
 }
@@ -32,6 +37,20 @@ export const THEME_REGISTRY: Record<string, ThemeRegistryEntry> = {
     name: "Studio",
     component: StudioLayout,
     projectComponent: StudioProjectPage,
+  },
+  noir: {
+    id: "noir",
+    name: "Noir (Scope 2.39:1)",
+    isPro: true,
+    component: NoirLayout,
+    projectComponent: NoirProjectPage,
+  },
+  vogue: {
+    id: "vogue",
+    name: "Vogue (Editorial Luxe)",
+    isPro: true,
+    component: VogueLayout,
+    projectComponent: VogueProjectPage,
   },
 };
 

@@ -203,6 +203,87 @@ describe("GoWider V2 Billing & Pro Tier Gates", () => {
         expect(result.error).toContain("Removing GoWider branding is a Pro tier feature");
       }
     });
+
+    it("rejects updatePortfolioSettingsAction with theme: 'noir' when user is on Free tier", async () => {
+      // 1. requireProfileOwner -> [mockProfile]
+      // 2. getProfileSubscription -> [] (Free)
+      mockSelect
+        .mockReturnValueOnce([mockProfile])
+        .mockReturnValueOnce([]);
+
+      const result = await updatePortfolioSettingsAction("profile_test_123", {
+        theme: "noir",
+        motionLevel: "full",
+        accentColor: "#F59E0B",
+        hideBranding: false,
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain("Noir theme is exclusive to GoWider Pro creators");
+      }
+    });
+
+    it("rejects updatePortfolioSettingsAction with theme: 'vogue' when user is on Free tier", async () => {
+      // 1. requireProfileOwner -> [mockProfile]
+      // 2. getProfileSubscription -> [] (Free)
+      mockSelect
+        .mockReturnValueOnce([mockProfile])
+        .mockReturnValueOnce([]);
+
+      const result = await updatePortfolioSettingsAction("profile_test_123", {
+        theme: "vogue",
+        motionLevel: "full",
+        accentColor: "#EFE3C3",
+        hideBranding: false,
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.error).toContain("Vogue theme is exclusive to GoWider Pro creators");
+      }
+    });
+
+    it("allows updatePortfolioSettingsAction with theme: 'noir' when user has active Pro subscription", async () => {
+      const activeProSub = {
+        id: "sub_1",
+        profileId: "profile_test_123",
+        plan: "pro",
+        status: "active",
+      };
+      const existingSettings = {
+        id: "ps_1",
+        profileId: "profile_test_123",
+        theme: "cinema",
+        hideBranding: false,
+      };
+      const updatedSettings = {
+        id: "ps_1",
+        profileId: "profile_test_123",
+        theme: "noir",
+        motionLevel: "full",
+        accentColor: "#F59E0B",
+        hideBranding: false,
+      };
+
+      mockSelect
+        .mockReturnValueOnce([mockProfile])
+        .mockReturnValueOnce([activeProSub])
+        .mockReturnValueOnce([existingSettings]);
+      mockUpdate.mockReturnValueOnce([updatedSettings]);
+
+      const result = await updatePortfolioSettingsAction("profile_test_123", {
+        theme: "noir",
+        motionLevel: "full",
+        accentColor: "#F59E0B",
+        hideBranding: false,
+      });
+
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.theme).toBe("noir");
+      }
+    });
   });
 
   describe("Razorpay Signature Verification", () => {

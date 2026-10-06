@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 
-type ThemeType = "cinema" | "editorial" | "studio";
+type ThemeType = "cinema" | "editorial" | "studio" | "noir" | "vogue";
 
 interface ThemeDetails {
   name: string;
@@ -17,6 +17,7 @@ interface ThemeDetails {
   sampleTitle: string;
   sampleMeta: string;
   sampleRole: string;
+  isPro?: boolean;
 }
 
 const THEMES: Record<ThemeType, ThemeDetails> = {
@@ -62,6 +63,36 @@ const THEMES: Record<ThemeType, ThemeDetails> = {
     sampleMeta: "[STU-2026 // TIME: 03:42:12]",
     sampleRole: "3D MOTION & COMPOSITING LEAD",
   },
+  noir: {
+    name: "Noir",
+    badge: "PRO • 2.39:1 ANAMORPHIC SCOPE",
+    tagline: "Amber Darkroom • Optical Lens Data",
+    accent: "#F59E0B",
+    description: "Engineered for auteur directors, indie cinematographers, and colorists. True 2.39:1 scope frames, camera lens package chips, and atmospheric amber darkroom glow.",
+    bgColor: "bg-[#050505]",
+    borderColor: "border-amber-500/30",
+    textColor: "text-white",
+    accentColor: "text-amber-400",
+    sampleTitle: "DIRECTORIAL SCOPE // PANAVISION C-SERIES",
+    sampleMeta: "2.39:1 // 35MM ANAMORPHIC",
+    sampleRole: "DIRECTOR OF PHOTOGRAPHY",
+    isPro: true,
+  },
+  vogue: {
+    name: "Vogue",
+    badge: "PRO • HIGH-FASHION EDITORIAL",
+    tagline: "Champagne Platinum • Asymmetric Lookbook",
+    accent: "#EFE3C3",
+    description: "Designed for fashion filmmakers, luxury campaigns, and editorial stylists. Dramatic oversized serif italics, champagne platinum accents, and asymmetric runway magazine pacing.",
+    bgColor: "bg-[#070707]",
+    borderColor: "border-[#EFE3C3]/30",
+    textColor: "text-white",
+    accentColor: "text-[#EFE3C3]",
+    sampleTitle: "MAISON DE L'OMBRE // WINTER CAMPAIGN",
+    sampleMeta: "HAUTE COUTURE // LOOKBOOK 26",
+    sampleRole: "FASHION FILMMAKER & CREATIVE DIRECTOR",
+    isPro: true,
+  },
 };
 
 const THEME_BACKGROUNDS: Record<ThemeType, string> = {
@@ -71,6 +102,10 @@ const THEME_BACKGROUNDS: Record<ThemeType, string> = {
     "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1200&q=80",
   studio:
     "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80",
+  noir:
+    "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=1200&q=80",
+  vogue:
+    "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80",
 };
 
 export function ThemeSwitcher() {
@@ -101,36 +136,48 @@ export function ThemeSwitcher() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-400 block mb-2">
-              04 // THE THREE AESTHETICS
+              04 // SIGNATURE AESTHETICS
             </span>
             <h2 className="font-display text-3xl sm:text-5xl font-black uppercase tracking-tight text-white">
-              ONE WORKFLOW. THREE SIGNATURE LOOKS.
+              ONE WORKFLOW. FIVE SIGNATURE LOOKS.
             </h2>
           </div>
           <p className="text-xs sm:text-sm font-sans text-zinc-400 max-w-sm">
-            Switch your portfolio aesthetic with a single click in your dashboard. Zero rebuilding. Zero CSS tinkering.
+            Switch your portfolio aesthetic with a single click in your dashboard. Includes Pro-exclusive directorial and luxury magazine layouts.
           </p>
         </div>
 
         {/* Tab Controls */}
         <div className="flex flex-wrap gap-2 border-b border-white/[0.1] pb-4 mb-8">
-          {(["cinema", "editorial", "studio"] as ThemeType[]).map((themeKey) => {
+          {(["cinema", "editorial", "studio", "noir", "vogue"] as ThemeType[]).map((themeKey) => {
             const isSelected = activeTheme === themeKey;
+            const themeItem = THEMES[themeKey];
             return (
               <button
                 key={themeKey}
                 onClick={() => setActiveTheme(themeKey)}
-                className={`px-6 py-3 font-mono text-xs uppercase tracking-[0.18em] transition-all flex items-center gap-3 ${
+                className={`px-5 py-3 font-mono text-xs uppercase tracking-[0.18em] transition-all flex items-center gap-2.5 ${
                   isSelected
                     ? "bg-white text-black font-bold"
                     : "bg-[#111] text-zinc-400 border border-white/[0.08] hover:text-white hover:border-white/20"
                 }`}
               >
-                <span>{THEMES[themeKey].name}</span>
+                <span>{themeItem.name}</span>
+                {themeItem.isPro && (
+                  <span
+                    className={`text-[9px] px-1 py-0.5 rounded font-mono font-bold tracking-wider ${
+                      isSelected
+                        ? "bg-black text-amber-300"
+                        : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                    }`}
+                  >
+                    PRO
+                  </span>
+                )}
                 {isSelected && (
                   <span
                     className="h-1.5 w-1.5 rounded-full"
-                    style={{ backgroundColor: THEMES[themeKey].accent === "#E5E5E5" ? "#000" : THEMES[themeKey].accent }}
+                    style={{ backgroundColor: themeItem.accent === "#E5E5E5" ? "#000" : themeItem.accent }}
                   />
                 )}
               </button>

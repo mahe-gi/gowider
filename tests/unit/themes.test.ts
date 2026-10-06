@@ -14,16 +14,24 @@ import { EditorialLayout } from "@/features/portfolio/themes/editorial/editorial
 import { EditorialProjectPage } from "@/features/portfolio/themes/editorial/editorial-project-page";
 import { StudioLayout } from "@/features/portfolio/themes/studio/studio-layout";
 import { StudioProjectPage } from "@/features/portfolio/themes/studio/studio-project-page";
+import { NoirLayout } from "@/features/portfolio/themes/noir/noir-layout";
+import { NoirProjectPage } from "@/features/portfolio/themes/noir/noir-project-page";
+import { VogueLayout } from "@/features/portfolio/themes/vogue/vogue-layout";
+import { VogueProjectPage } from "@/features/portfolio/themes/vogue/vogue-project-page";
 import type {
   PublicPortfolioData,
   PublicProjectDetail,
 } from "@/features/portfolio/types";
 
 describe("Theme Registry & Resolution", () => {
-  it("registers all three core themes: cinema, editorial, and studio", () => {
+  it("registers all core and pro themes: cinema, editorial, studio, noir, and vogue", () => {
     expect(THEME_REGISTRY).toHaveProperty("cinema");
     expect(THEME_REGISTRY).toHaveProperty("editorial");
     expect(THEME_REGISTRY).toHaveProperty("studio");
+    expect(THEME_REGISTRY).toHaveProperty("noir");
+    expect(THEME_REGISTRY).toHaveProperty("vogue");
+    expect(THEME_REGISTRY.noir.isPro).toBe(true);
+    expect(THEME_REGISTRY.vogue.isPro).toBe(true);
   });
 
   it("resolves 'cinema' theme accurately", () => {
@@ -57,6 +65,30 @@ describe("Theme Registry & Resolution", () => {
 
     expect(getThemeComponent("studio")).toBe(StudioLayout);
     expect(getProjectThemeComponent("studio")).toBe(StudioProjectPage);
+  });
+
+  it("resolves 'noir' Pro theme accurately", () => {
+    const theme = getTheme("noir");
+    expect(theme.id).toBe("noir");
+    expect(theme.name).toContain("Noir");
+    expect(theme.isPro).toBe(true);
+    expect(theme.component).toBe(NoirLayout);
+    expect(theme.projectComponent).toBe(NoirProjectPage);
+
+    expect(getThemeComponent("noir")).toBe(NoirLayout);
+    expect(getProjectThemeComponent("noir")).toBe(NoirProjectPage);
+  });
+
+  it("resolves 'vogue' Pro theme accurately", () => {
+    const theme = getTheme("vogue");
+    expect(theme.id).toBe("vogue");
+    expect(theme.name).toContain("Vogue");
+    expect(theme.isPro).toBe(true);
+    expect(theme.component).toBe(VogueLayout);
+    expect(theme.projectComponent).toBe(VogueProjectPage);
+
+    expect(getThemeComponent("vogue")).toBe(VogueLayout);
+    expect(getProjectThemeComponent("vogue")).toBe(VogueProjectPage);
   });
 
   it("handles case-insensitivity and whitespace in theme keys", () => {
@@ -260,6 +292,51 @@ describe("Multi-Theme Contract Parity", () => {
     expect(html).toContain("data-testid=\"project-navigation-bridge\"");
   });
 
+  it("renders NoirLayout with standard PublicPortfolioData without error", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(NoirLayout, { portfolio: mockPublicPortfolio })
+    );
+
+    expect(html).toContain("Elena Vance");
+    expect(html).toContain("Neon Drift");
+    expect(html).toContain("data-testid=\"noir-theme-layout\"");
+    expect(html).toContain("[2.39:1 NOIR]");
+  });
+
+  it("renders NoirProjectPage with standard PublicProjectDetail without error", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(NoirProjectPage, mockProjectDetail)
+    );
+
+    expect(html).toContain("Neon Drift");
+    expect(html).toContain("Elena Vance");
+    expect(html).toContain("Aura Motor Corp");
+    expect(html).toContain("data-testid=\"noir-project-page\"");
+    expect(html).toContain("data-testid=\"project-navigation-bridge\"");
+  });
+
+  it("renders VogueLayout with standard PublicPortfolioData without error", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(VogueLayout, { portfolio: mockPublicPortfolio })
+    );
+
+    expect(html).toContain("Elena Vance");
+    expect(html).toContain("Neon Drift");
+    expect(html).toContain("data-testid=\"vogue-theme-layout\"");
+  });
+
+  it("renders VogueProjectPage with standard PublicProjectDetail without error", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(VogueProjectPage, mockProjectDetail)
+    );
+
+    expect(html).toContain("Neon Drift");
+    expect(html).toContain("Elena Vance");
+    expect(html).toContain("Aura Motor Corp");
+    expect(html).toContain("data-testid=\"vogue-project-page\"");
+    expect(html).toContain("data-testid=\"project-navigation-bridge\"");
+  });
+
   it("handles zero projects gracefully across all layouts", () => {
     const emptyPortfolio: PublicPortfolioData = {
       ...mockPublicPortfolio,
@@ -280,6 +357,16 @@ describe("Multi-Theme Contract Parity", () => {
       React.createElement(StudioLayout, { portfolio: emptyPortfolio })
     );
     expect(studioHtml).toContain("No projects available in the studio showcase");
+
+    const noirHtml = renderToStaticMarkup(
+      React.createElement(NoirLayout, { portfolio: emptyPortfolio })
+    );
+    expect(noirHtml).toContain("[ ARCHIVE EMPTY // NO PUBLISHED WORKS RECORDED ]");
+
+    const vogueHtml = renderToStaticMarkup(
+      React.createElement(VogueLayout, { portfolio: emptyPortfolio })
+    );
+    expect(vogueHtml).toContain("No works documented in this issue.");
   });
 
   it("verifies public data purity across theme footers (no email exposed)", () => {
@@ -305,5 +392,17 @@ describe("Multi-Theme Contract Parity", () => {
     );
     expect(studioHtml).not.toContain("secret_owner@company.com");
     expect(studioHtml).not.toContain("mailto:");
+
+    const noirHtml = renderToStaticMarkup(
+      React.createElement(NoirLayout, { portfolio: portfolioWithEmailSocial })
+    );
+    expect(noirHtml).not.toContain("secret_owner@company.com");
+    expect(noirHtml).not.toContain("mailto:");
+
+    const vogueHtml = renderToStaticMarkup(
+      React.createElement(VogueLayout, { portfolio: portfolioWithEmailSocial })
+    );
+    expect(vogueHtml).not.toContain("secret_owner@company.com");
+    expect(vogueHtml).not.toContain("mailto:");
   });
 });

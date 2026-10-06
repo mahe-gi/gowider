@@ -60,7 +60,7 @@ export interface PublicSkill {
 }
 
 export interface PublicPortfolioSettings {
-  theme: "cinema" | "editorial" | "studio";
+  theme: "cinema" | "editorial" | "studio" | "noir" | "vogue";
   motionLevel: "full" | "reduced";
   accentColor: string;
   hideBranding?: boolean;

@@ -21,6 +21,7 @@ const THEME_OPTIONS = [
     description:
       "Deep blacks, dramatic typography, and full-bleed video posters designed for directors and cinematographers.",
     previewGradient: "from-zinc-950 via-zinc-900 to-black",
+    isPro: false,
   },
   {
     id: "editorial" as const,
@@ -29,6 +30,7 @@ const THEME_OPTIONS = [
     description:
       "Generous white space, serif headings, and structured caption rails inspired by contemporary art publications.",
     previewGradient: "from-neutral-900 via-zinc-900 to-stone-950",
+    isPro: false,
   },
   {
     id: "studio" as const,
@@ -37,6 +39,25 @@ const THEME_OPTIONS = [
     description:
       "Precision multi-column grids and crisp metadata ribbons optimized for commercial editing houses.",
     previewGradient: "from-zinc-900 via-neutral-950 to-black",
+    isPro: false,
+  },
+  {
+    id: "noir" as const,
+    title: "Noir",
+    subtitle: "Directorial Scope & Darkroom Optics",
+    description:
+      "2.39:1 anamorphic scope frames, camera lens package chips, and warm amber accents engineered for auteur filmmakers.",
+    previewGradient: "from-amber-950/40 via-stone-900 to-black",
+    isPro: true,
+  },
+  {
+    id: "vogue" as const,
+    title: "Vogue",
+    subtitle: "High-Fashion Editorial & Lookbook",
+    description:
+      "Dramatic oversized serif italics, champagne platinum tones, and asymmetric lookbook pacing for fashion & luxury creators.",
+    previewGradient: "from-stone-900 via-zinc-900 to-stone-950",
+    isPro: true,
   },
 ];
 
@@ -119,36 +140,64 @@ export function DesignEditor({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
           {THEME_OPTIONS.map((item) => {
             const isSelected = theme === item.id;
+            const isLocked = item.isPro && !isPro;
+
             return (
               <div
                 key={item.id}
                 data-testid={`theme-card-${item.id}`}
-                onClick={() => setTheme(item.id)}
+                onClick={() => {
+                  if (isLocked) {
+                    setMessage({
+                      type: "error",
+                      text: `${item.title} theme is exclusive to GoWider Pro creators. Upgrade to unlock this signature aesthetic.`,
+                    });
+                    return;
+                  }
+                  setTheme(item.id);
+                }}
                 className={clsx(
                   "relative flex flex-col justify-between rounded-xl border p-5 cursor-pointer transition select-none",
                   isSelected
                     ? "border-white bg-zinc-900 ring-1 ring-white"
+                    : isLocked
+                    ? "border-zinc-800/80 bg-zinc-950/60 opacity-80 hover:opacity-100 hover:border-zinc-700"
                     : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"
                 )}
               >
                 <div>
                   <div
                     className={clsx(
-                      "h-20 w-full rounded-lg bg-gradient-to-br mb-4 border border-white/10 flex items-center justify-center",
+                      "h-20 w-full rounded-lg bg-gradient-to-br mb-4 border border-white/10 flex items-center justify-center relative overflow-hidden",
                       item.previewGradient
                     )}
                   >
                     <span className="font-mono text-xs tracking-widest text-zinc-400 uppercase">
-                      {item.title} Preview
+                      {item.title}
                     </span>
+                    {item.isPro && (
+                      <span className="absolute top-2 right-2 rounded bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.5 text-[9px] font-mono font-bold tracking-widest text-amber-300 uppercase">
+                        PRO
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-white">{item.title}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-white">{item.title}</h3>
+                      {item.isPro && (
+                        <span className="rounded bg-amber-400/10 px-1.5 py-0.2 text-[9px] font-mono font-semibold text-amber-300">
+                          PRO
+                        </span>
+                      )}
+                    </div>
                     {isSelected && (
                       <span className="h-2 w-2 rounded-full bg-white" />
+                    )}
+                    {isLocked && !isSelected && (
+                      <span className="text-[10px] font-mono text-zinc-500">🔒 PRO</span>
                     )}
                   </div>
                   <p className="text-xs font-medium text-zinc-400 mt-0.5">
@@ -158,6 +207,19 @@ export function DesignEditor({
                     {item.description}
                   </p>
                 </div>
+
+                {isLocked && (
+                  <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between">
+                    <span className="text-[11px] text-zinc-500">Pro Feature</span>
+                    <Link
+                      href="/dashboard/billing"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[11px] font-semibold text-amber-400 hover:underline"
+                    >
+                      Unlock with Pro →
+                    </Link>
+                  </div>
+                )}
               </div>
             );
           })}

@@ -5,4 +5,8 @@ export * from "./registry";
 export * from "./renderer/portfolio-renderer";
 export { CinemaLayout } from "./themes/cinema/cinema-layout";
 export { CinemaProjectPage } from "./themes/cinema/cinema-project-page";
+export { NoirLayout } from "./themes/noir/noir-layout";
+export { NoirProjectPage } from "./themes/noir/noir-project-page";
+export { VogueLayout } from "./themes/vogue/vogue-layout";
+export { VogueProjectPage } from "./themes/vogue/vogue-project-page";
 export { CinemaCursor } from "./shared/cursor";

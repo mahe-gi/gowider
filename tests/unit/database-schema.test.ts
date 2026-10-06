@@ -97,7 +97,13 @@ describe("Database Schema Contracts & Tables", () => {
       "whatsapp",
       "website",
     ]);
-    expect(portfolioThemeEnum.enumValues).toEqual(["cinema", "editorial", "studio"]);
+    expect(portfolioThemeEnum.enumValues).toEqual([
+      "cinema",
+      "editorial",
+      "studio",
+      "noir",
+      "vogue",
+    ]);
     expect(motionLevelEnum.enumValues).toEqual(["full", "reduced"]);
     expect(reportReasonEnum.enumValues).toEqual([
       "spam",

@@ -16,7 +16,9 @@ import {
 } from "../validation";
 import type { PortfolioSettings } from "@/db/schema";
 
-import { canHideBranding } from "@/features/billing/subscription-service";
+import { canHideBranding, isProProfile } from "@/features/billing/subscription-service";
+
+const PRO_THEMES = ["noir", "vogue"];
 
 /**
  * Updates or upserts portfolio appearance settings (theme, motionLevel, accentColor, hideBranding).
@@ -39,6 +41,17 @@ export async function updatePortfolioSettingsAction(
     }
 
     const { theme, motionLevel, accentColor, hideBranding } = parsed.data;
+
+    // Enforce Pro tier gate for Pro-exclusive themes (Noir, Vogue)
+    if (theme && PRO_THEMES.includes(theme)) {
+      const isPro = await isProProfile(profileId);
+      if (!isPro) {
+        const themeName = theme === "noir" ? "Noir" : "Vogue";
+        throw AppError.forbidden(
+          `The ${themeName} theme is exclusive to GoWider Pro creators. Upgrade to GoWider Pro to activate it.`
+        );
+      }
+    }
 
     // Enforce Pro tier gate for hiding GoWider branding
     if (hideBranding === true) {
