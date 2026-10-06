@@ -189,12 +189,12 @@ export default function PricingPage() {
                 <div className="text-right">
                   <div className="flex items-baseline justify-end gap-1">
                     <span className="font-display text-5xl font-black text-amber-300">
-                      ₹499
+                      ₹299
                     </span>
                     <span className="font-mono text-xs text-zinc-400">/ month</span>
                   </div>
                   <span className="font-mono text-[10px] text-amber-400/80 uppercase block mt-1">
-                    or ₹4,999/yr (Save 17%)
+                    or ₹3,229/yr (Save 10%)
                   </span>
                 </div>
               </div>

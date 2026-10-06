@@ -236,7 +236,7 @@ export function BillingClient({
                 disabled={isPending}
                 className="rounded-lg bg-white px-5 py-2.5 text-xs font-bold text-black hover:bg-zinc-200 transition disabled:opacity-50 shadow-lg shadow-white/5"
               >
-                {isPending ? "Processing..." : "Upgrade to Pro (₹799/mo)"}
+                {isPending ? "Processing..." : "Upgrade to Pro (₹299/mo)"}
               </button>
             )}
           </div>
@@ -459,7 +459,7 @@ export function BillingClient({
               <div>
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-3xl font-extrabold text-white">
-                    {billingInterval === "yearly" ? "₹7,999" : "₹799"}
+                    {billingInterval === "yearly" ? "₹3,229" : "₹299"}
                   </span>
                   <span className="text-xs text-zinc-400">
                     {billingInterval === "yearly" ? "/ year" : "/ month"}
@@ -467,7 +467,7 @@ export function BillingClient({
                 </div>
                 <p className="text-xs text-zinc-500 mt-1">
                   {billingInterval === "yearly"
-                    ? "Billed annually (₹666/month equivalent)"
+                    ? "Billed annually (Save 10% — ₹269/month equivalent)"
                     : "Billed monthly. Cancel anytime."}
                 </p>
               </div>
@@ -511,7 +511,7 @@ export function BillingClient({
                 >
                   {isPending
                     ? "Initializing Checkout..."
-                    : `Upgrade to Pro (${billingInterval === "yearly" ? "₹7,999/yr" : "₹799/mo"})`}
+                    : `Upgrade to Pro (${billingInterval === "yearly" ? "₹3,229/yr" : "₹299/mo"})`}
                 </button>
               )}
             </div>

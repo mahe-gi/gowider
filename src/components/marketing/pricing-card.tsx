@@ -63,7 +63,7 @@ export function PricingCard() {
             >
               <span>Yearly</span>
               <span className="rounded bg-amber-400/20 px-1.5 py-0.2 text-[9px] text-amber-300 font-bold">
-                SAVE 17%
+                SAVE 10%
               </span>
             </button>
           </div>
@@ -144,14 +144,14 @@ export function PricingCard() {
                 <div className="text-right">
                   <div className="flex items-baseline justify-end gap-1">
                     <span className="font-display text-4xl sm:text-5xl font-black text-amber-300">
-                      ₹{isYearly ? "4,999" : "499"}
+                      ₹{isYearly ? "3,229" : "299"}
                     </span>
                     <span className="font-mono text-xs text-zinc-400">
                       /{isYearly ? "yr" : "mo"}
                     </span>
                   </div>
                   <span className="font-mono text-[10px] text-amber-400/80 uppercase block mt-1">
-                    {isYearly ? "Billed annually (Save ₹989)" : "Billed monthly via Razorpay"}
+                    {isYearly ? "Billed annually (Save 10% — ₹359 off)" : "Billed monthly via Razorpay"}
                   </span>
                 </div>
               </div>

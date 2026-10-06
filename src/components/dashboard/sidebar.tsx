@@ -141,7 +141,7 @@ export function DashboardSidebar() {
               GoWider Pro
             </span>
             <span className="text-[10px] font-semibold text-amber-400 group-hover:underline">
-              Plans →
+              ₹299/mo →
             </span>
           </div>
           <p className="mt-1 text-[11px] text-zinc-400 leading-snug">
