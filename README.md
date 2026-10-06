@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GoWider — Broadcast-Grade Portfolios for Video Editors
+
+> Step out of the chat thread. Go wider.
+
+**GoWider** (`gowider.in`) is an editorial portfolio platform designed specifically for commercial video editors, documentary filmmakers, colorists, and post-production artists. Connect your YouTube, Instagram Reels, and Google Drive edits into an Awwwards-grade portfolio in minutes.
+
+---
+
+## Architecture & Technology Stack
+
+* **Framework:** [Next.js 15.2.1](https://nextjs.org) (App Router, React 19 Server Components)
+* **Styling:** [Tailwind CSS v4](https://tailwindcss.com) + CSS Variables + Syne, Plus Jakarta Sans, Geist Mono typography
+* **Database & ORM:** [Drizzle ORM](https://orm.drizzle.team) + [Neon Serverless PostgreSQL](https://neon.tech)
+* **Authentication:** [Better Auth](https://better-auth.com) (Google OAuth 2.0, secure sessions)
+* **Testing:** [Vitest](https://vitest.dev) + `@testing-library/react` (151 unit and security tests)
+* **Media Engine:** Zero binary video uploads. Poster-first streaming engine for YouTube, Instagram Reels, and Google Drive
+
+---
+
+## Key Features
+
+1. **Poster-First Media Streaming Engine:**
+   * High-impact typographic and cached image posters render instantly. Zero iframes or autoplaying video mounted on initial page shell load.
+   * Native streaming from YouTube, Instagram Reels, and Google Drive.
+
+2. **Three Bespoke Signature Themes:**
+   * **Cinema:** Deep pitch-black canvas, dramatic fullscreen posters, and fullscreen typography.
+   * **Editorial:** Asymmetrical grid, structured caption rails, and vermillion accent styling.
+   * **Studio:** Precision multi-column layouts, camera package chips, and technical timecode metadata.
+
+3. **Creator Studio Dashboard:**
+   * Intuitive project management with optimistic reordering and instant publish/draft toggles.
+   * Full profile customizer, service offerings, verified tool skills, and live device preview drawer.
+
+4. **Public Discovery & Safety:**
+   * Creator directory (`/explore`) with category filters and text search.
+   * Public data sanitization: zero database UUIDs, user IDs, or emails exposed on public routes.
+   * Moderation and reporting pipeline with privacy-preserving IP hashing.
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+* Node.js 20+
+* Neon PostgreSQL database
+
+### 1. Installation
+
+```bash
+git clone git@github.com:mahe-gi/gowider.git
+cd gowider
+npm install
+```
+
+### 2. Environment Configuration
+
+Copy `.env.example` to `.env` and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+```env
+DATABASE_URL=postgresql://user:password@endpoint.neon.tech/neondb?sslmode=require
+BETTER_AUTH_SECRET=your_32_character_secret_key_here
+BETTER_AUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your_google_oauth_client_id
+GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+REPORT_PEPPER_SECRET=your_32_character_pepper_secret
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### 3. Database Migration
+
+```bash
+npm run db:migrate
+```
+
+### 4. Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Verification & Quality Gates
 
-## Learn More
+Run the automated test suite and type check:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run check        # Runs TypeScript typecheck + Vitest suite (151/151 tests)
+npm run lint         # Runs ESLint (0 errors, 0 warnings)
+npm run verify       # Full verification (tests, purity audit, forbidden features firewall)
+npm run build        # Production Next.js build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Documentation
 
-## Deploy on Vercel
+Full architectural specifications, data models, design tokens, and operational rules are located in the [`docs/`](./docs) directory:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+* [`docs/architecture.md`](./docs/architecture.md) — System architecture, routing, and boundaries
+* [`docs/database.md`](./docs/database.md) — Database schema, triggers, and indices
+* [`docs/design.md`](./docs/design.md) — Design system tokens and theme specifications
+* [`docs/rules.md`](./docs/rules.md) — Engineering constraints and security standards
+* [`docs/tasks.md`](./docs/tasks.md) — Completed implementation roadmap
+* [`docs/project-plan.md`](./docs/project-plan.md) — Product requirements and milestones
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## License
+
+Private repository. All rights reserved. © GoWider.
