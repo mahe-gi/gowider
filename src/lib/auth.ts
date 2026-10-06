@@ -39,6 +39,16 @@ export const auth = betterAuth({
   },
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://gowider.in",
+    "https://*.gowider.in",
+    "https://*.vercel.app",
+    "https://v1-mahe-devs-projects.vercel.app",
+    env.BETTER_AUTH_URL,
+    env.NEXT_PUBLIC_APP_URL,
+  ].filter(Boolean),
 });
 
 export type Auth = typeof auth;
