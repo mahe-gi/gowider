@@ -55,10 +55,10 @@ export function Hero() {
           >
             <img
               alt="GoWider — Broadcast - The editorial portfolio platform | Product Hunt"
-              width={250}
-              height={54}
+              width={190}
+              height={41}
               src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1273329&theme=light&t=1791432575187"
-              className="w-[250px] h-[54px]"
+              className="w-[190px] h-[41px]"
             />
           </a>
         </div>
