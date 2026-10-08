@@ -6,13 +6,13 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { LogoMark } from "@/components/brand";
 
-interface NavItem {
+export interface NavItem {
   name: string;
   href: string;
   icon: (props: { className?: string }) => React.ReactNode;
 }
 
-const navItems: NavItem[] = [
+export const navItems: NavItem[] = [
   {
     name: "Overview",
     href: "/dashboard",
@@ -85,7 +85,7 @@ export function DashboardSidebar() {
   return (
     <aside
       data-testid="dashboard-sidebar"
-      className="w-64 shrink-0 border-r border-zinc-800 bg-zinc-950 flex flex-col justify-between"
+      className="hidden md:flex w-64 shrink-0 border-r border-zinc-800 bg-zinc-950 flex-col justify-between"
     >
       <div>
         {/* Brand header */}
