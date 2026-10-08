@@ -1,5 +1,6 @@
 import React from "react";
 import type { PublicSkill } from "../../../types";
+import { ToolIcon } from "../../../shared/tool-icon";
 
 interface CinemaToolsProps {
   tools: PublicSkill[];
@@ -33,7 +34,7 @@ export function CinemaTools({ tools }: CinemaToolsProps) {
           >
             <div className="flex items-center justify-between text-zinc-600 font-mono text-[10px] tracking-widest group-hover:text-zinc-400 transition-colors">
               <span>{String(idx + 1).padStart(2, "0")}</span>
-              <span className="opacity-0 group-hover:opacity-100 transition-opacity">●</span>
+              <ToolIcon name={tool.name} className="w-5 h-5 shrink-0" />
             </div>
             <div className="mt-4 sm:mt-6">
               <span className="font-mono text-xs sm:text-sm font-medium uppercase tracking-wider text-zinc-200 group-hover:text-white transition-colors block truncate">

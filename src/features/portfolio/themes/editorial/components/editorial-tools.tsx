@@ -1,5 +1,6 @@
 import React from "react";
 import type { PublicSkill } from "../../../types";
+import { ToolIcon } from "../../../shared/tool-icon";
 
 interface EditorialToolsProps {
   tools: PublicSkill[];
@@ -32,12 +33,15 @@ export function EditorialTools({ tools }: EditorialToolsProps) {
         {tools.map((tool, idx) => (
           <div
             key={tool.name}
-            className="group bg-[#080808] p-5 sm:p-6 hover:bg-white/[0.03] transition-colors flex flex-col justify-between min-h-[90px]"
+            className="group bg-[#080808] p-5 sm:p-6 hover:bg-white/[0.03] transition-colors flex flex-col justify-between min-h-[100px]"
           >
-            <span className="font-mono text-[10px] text-[#FF3B30] tracking-widest">
-              {String(idx + 1).padStart(2, "0")} / TECH
-            </span>
-            <span className="font-serif italic text-base sm:text-lg text-white group-hover:text-[#FF3B30] transition-colors truncate">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] text-[#FF3B30] tracking-widest">
+                {String(idx + 1).padStart(2, "0")} / TECH
+              </span>
+              <ToolIcon name={tool.name} className="w-5 h-5 shrink-0" />
+            </div>
+            <span className="font-serif italic text-base sm:text-lg text-white group-hover:text-[#FF3B30] transition-colors truncate mt-4">
               {tool.name}
             </span>
           </div>

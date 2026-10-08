@@ -1,5 +1,6 @@
 import React from "react";
 import type { PublicSkill } from "../../../types";
+import { ToolIcon } from "../../../shared/tool-icon";
 
 interface CyberToolsProps {
   tools: PublicSkill[];
@@ -41,7 +42,7 @@ export function CyberTools({ tools }: CyberToolsProps) {
 
             <div className="flex items-center justify-between text-[10px] text-emerald-400/70 tracking-widest pt-1">
               <span>{`[MOD_${String(idx + 1).padStart(2, "0")}]`}</span>
-              <span className="h-1 w-1 rounded-none bg-[#00FF88] opacity-0 group-hover:opacity-100" />
+              <ToolIcon name={tool.name} className="w-4 h-4 shrink-0 text-[#00FF88]" />
             </div>
 
             <span className="text-xs font-bold uppercase tracking-wider text-zinc-100 truncate mt-3 group-hover:text-[#00FF88] transition-colors">

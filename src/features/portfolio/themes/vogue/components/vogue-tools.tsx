@@ -1,5 +1,6 @@
 import React from "react";
 import type { PublicSkill } from "../../../types";
+import { ToolIcon } from "../../../shared/tool-icon";
 
 interface VogueToolsProps {
   tools: PublicSkill[];
@@ -36,9 +37,12 @@ export function VogueTools({ tools }: VogueToolsProps) {
             key={tool.name}
             className="p-5 bg-stone-950/60 border border-white/[0.08] hover:border-[#EFE3C3]/60 transition-all flex flex-col justify-between min-h-[95px]"
           >
-            <span className="font-serif italic text-xs text-[#EFE3C3]/80">
-              {ROMAN_NUMERALS[idx] || `${idx + 1}.`}
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="font-serif italic text-xs text-[#EFE3C3]/80">
+                {ROMAN_NUMERALS[idx] || `${idx + 1}.`}
+              </span>
+              <ToolIcon name={tool.name} className="w-5 h-5 shrink-0" />
+            </div>
             <span className="font-sans text-xs sm:text-sm font-medium tracking-wide text-stone-200 truncate mt-3">
               {tool.name}
             </span>

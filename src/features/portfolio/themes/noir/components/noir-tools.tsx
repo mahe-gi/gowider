@@ -1,5 +1,6 @@
 import React from "react";
 import type { PublicSkill } from "../../../types";
+import { ToolIcon } from "../../../shared/tool-icon";
 
 interface NoirToolsProps {
   tools: PublicSkill[];
@@ -33,6 +34,7 @@ export function NoirTools({ tools }: NoirToolsProps) {
           >
             <div className="flex items-center justify-between font-mono text-[10px] text-amber-400/80 tracking-wider">
               <span>{`[0${idx + 1}:00]`}</span>
+              <ToolIcon name={tool.name} className="w-5 h-5 shrink-0" />
             </div>
             <span className="font-mono text-xs font-semibold uppercase tracking-wider text-zinc-200 truncate mt-3">
               {tool.name}

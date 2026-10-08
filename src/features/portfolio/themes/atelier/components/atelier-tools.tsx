@@ -1,5 +1,6 @@
 import React from "react";
 import type { PublicSkill } from "../../../types";
+import { ToolIcon } from "../../../shared/tool-icon";
 
 interface AtelierToolsProps {
   tools: PublicSkill[];
@@ -31,9 +32,12 @@ export function AtelierTools({ tools }: AtelierToolsProps) {
             key={tool.name}
             className="p-5 bg-[#141210] border border-[#292524] hover:border-[#D6D3CD]/50 transition-colors flex flex-col justify-between min-h-[95px]"
           >
-            <span className="font-mono text-[10px] text-[#A8A29E] tracking-widest">
-              [CAT. {String(idx + 1).padStart(2, "0")}]
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] text-[#A8A29E] tracking-widest">
+                [CAT. {String(idx + 1).padStart(2, "0")}]
+              </span>
+              <ToolIcon name={tool.name} className="w-5 h-5 shrink-0" />
+            </div>
             <span className="font-serif text-xs sm:text-sm text-[#F5F5F4] truncate mt-3">
               {tool.name}
             </span>
