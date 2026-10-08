@@ -96,14 +96,12 @@ export function BillingClient({
       }
 
       // Initialize live Razorpay modal
-      const options = {
+      const options: Record<string, unknown> = {
         key: keyId,
         amount,
         currency,
         name,
         description,
-        order_id: orderId,
-        subscription_id: subscriptionId,
         modal: {
           ondismiss: () => {
             // Dismissed by user
@@ -135,9 +133,21 @@ export function BillingClient({
         },
       };
 
+      if (orderId) {
+        options.order_id = orderId;
+      } else if (subscriptionId) {
+        options.subscription_id = subscriptionId;
+      }
+
       if (window.Razorpay) {
         const RazorpayClass = window.Razorpay;
         const razorpayInstance = new RazorpayClass(options);
+        if (typeof (razorpayInstance as { on?: (event: string, handler: (res: unknown) => void) => void }).on === "function") {
+          (razorpayInstance as { on: (event: string, handler: (res: unknown) => void) => void }).on("payment.failed", (response: unknown) => {
+            console.error("Razorpay payment failed:", response);
+            setErrorMessage("Payment failed or cancelled. Please try again.");
+          });
+        }
         razorpayInstance.open();
       } else {
         setErrorMessage("Payment gateway is temporarily unavailable. Please refresh and try again.");
