@@ -23,7 +23,7 @@ export function EditorialAbout({
         <div className="flex items-center gap-3">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#FF3B30]" />
           <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-300">
-            [ PRACTICE // EDITORIAL STATEMENT ]
+            [ ABOUT &amp; SERVICES ]
           </h2>
         </div>
         <span className="font-mono text-xs uppercase tracking-widest text-zinc-500">
@@ -46,13 +46,13 @@ export function EditorialAbout({
           <div className="pt-6 border-t border-white/[0.08] flex flex-wrap gap-8 font-mono text-xs uppercase tracking-wider text-zinc-400">
             {profile.location && (
               <div>
-                <span className="text-zinc-600">ORIGIN: </span>
+                <span className="text-zinc-600">LOCATION: </span>
                 <span className="text-zinc-200">{profile.location}</span>
               </div>
             )}
             {profile.availability && (
               <div>
-                <span className="text-zinc-600">AVAILABILITY: </span>
+                <span className="text-zinc-600">STATUS: </span>
                 <span className="text-[#FF3B30]">{profile.availability}</span>
               </div>
             )}
@@ -65,7 +65,7 @@ export function EditorialAbout({
           {services.length > 0 && (
             <div className="space-y-4">
               <h4 className="font-mono text-xs uppercase tracking-widest text-zinc-400 border-b border-white/[0.08] pb-2 flex items-center justify-between">
-                <span>SERVICES & DISCIPLINES</span>
+                <span>SERVICES</span>
                 <span className="text-[#FF3B30] font-mono text-[10px]">
                   {services.length}
                 </span>
@@ -95,7 +95,7 @@ export function EditorialAbout({
           {skills.length > 0 && (
             <div className="space-y-4">
               <h4 className="font-mono text-xs uppercase tracking-widest text-zinc-400 border-b border-white/[0.08] pb-2">
-                CORE PROFICIENCIES & SOFTWARE
+                TOOLS &amp; SOFTWARE
               </h4>
               <div className="flex flex-wrap gap-2 pt-1">
                 {skills.map((skill) => (

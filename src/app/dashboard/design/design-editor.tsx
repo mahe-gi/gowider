@@ -18,64 +18,71 @@ const THEME_OPTIONS = [
   {
     id: "cinema" as const,
     title: "Cinema",
-    subtitle: "Dark, High-Contrast, Immersive",
+    subtitle: "Split Director's Cut (60/40)",
     description:
-      "Deep blacks, dramatic typography, and full-bleed video posters designed for directors and cinematographers.",
+      "Asymmetric split layout with 60% widescreen video and 40% project details, plus a theater showreel spotlight.",
     previewGradient: "from-zinc-950 via-zinc-900 to-black",
+    layoutType: "60/40 Split Rows",
     isPro: false,
   },
   {
     id: "editorial" as const,
     title: "Editorial",
-    subtitle: "Typography-Forward & Refined",
+    subtitle: "Interactive Table Index",
     description:
-      "Generous white space, serif headings, and structured caption rails inspired by contemporary art publications.",
+      "Editorial spreadsheet table with instant hover video preview on the right and italic serif styling.",
     previewGradient: "from-neutral-900 via-zinc-900 to-stone-950",
+    layoutType: "Table + Live Preview",
     isPro: false,
   },
   {
     id: "studio" as const,
     title: "Studio",
-    subtitle: "Clean Grid & Minimalist Structure",
+    subtitle: "3-Column Agency Grid",
     description:
-      "Precision multi-column grids and crisp metadata ribbons optimized for commercial editing houses.",
+      "Multi-column grid with live category filtering (All, Commercials, Music Videos) and numbered cards.",
     previewGradient: "from-zinc-900 via-neutral-950 to-black",
+    layoutType: "3-Column Grid",
     isPro: false,
   },
   {
     id: "noir" as const,
     title: "Noir",
-    subtitle: "Directorial Scope & Darkroom Optics",
+    subtitle: "Widescreen 2.39:1 Scope",
     description:
-      "2.39:1 anamorphic scope frames, camera lens package chips, and warm amber accents engineered for auteur filmmakers.",
+      "Cinematic anamorphic letterbox framing with warm amber accents and 2.39:1 scope aspect ratio guides.",
     previewGradient: "from-amber-950/40 via-stone-900 to-black",
+    layoutType: "2.39:1 Letterbox",
     isPro: true,
   },
   {
     id: "vogue" as const,
     title: "Vogue",
-    subtitle: "High-Fashion Editorial & Lookbook",
+    subtitle: "Staggered Lookbook",
     description:
-      "Dramatic oversized serif italics, champagne platinum tones, and asymmetric lookbook pacing for fashion & luxury creators.",
+      "Luxury fashion aesthetic with Roman numerals (I, II, III), champagne gold accents, and alternating offset cards.",
     previewGradient: "from-stone-900 via-zinc-900 to-stone-950",
+    layoutType: "Staggered Lookbook",
     isPro: true,
   },
   {
     id: "atelier" as const,
     title: "Atelier",
-    subtitle: "Fine-Art Gallery & Museum Plaque",
+    subtitle: "Museum Gallery Wall",
     description:
-      "Travertine stone tones, museum exhibition numbering, and curatorial plaque cards for fine-art colorists & documentarians.",
+      "Warm travertine stone background, double-border framing stages, and clean classical project numbering.",
     previewGradient: "from-stone-900 via-stone-800 to-neutral-950",
+    layoutType: "Museum Wall",
     isPro: true,
   },
   {
     id: "cyber" as const,
     title: "Cyber",
-    subtitle: "Tokyo Neon & VFX Telemetry",
+    subtitle: "Tech HUD Terminal",
     description:
-      "Deep jet black, neon emerald & cyan HUD glow, CRT scanlines, and real-time GPU timecodes for 3D animators & motion designers.",
+      "Sci-fi interface with matrix green borders, corner crosshairs (+), monospace terminal font, and timecodes.",
     previewGradient: "from-emerald-950 via-teal-950 to-black",
+    layoutType: "Terminal HUD",
     isPro: true,
   },
 ];
@@ -209,13 +216,52 @@ export function DesignEditor({
                 <div>
                   <div
                     className={clsx(
-                      "h-20 w-full rounded-lg bg-gradient-to-br mb-4 border border-white/10 flex items-center justify-center relative overflow-hidden",
+                      "h-20 w-full rounded-lg bg-gradient-to-br mb-4 border border-white/10 flex flex-col items-center justify-center relative overflow-hidden p-2",
                       item.previewGradient
                     )}
                   >
-                    <span className="font-mono text-xs tracking-widest text-zinc-400 uppercase">
-                      {item.title}
-                    </span>
+                    {/* Visual Mini Wireframe */}
+                    {item.id === "studio" && (
+                      <div className="grid grid-cols-3 gap-1 w-24 h-8 opacity-70">
+                        <div className="bg-white/30 rounded-sm" />
+                        <div className="bg-white/30 rounded-sm" />
+                        <div className="bg-white/30 rounded-sm" />
+                      </div>
+                    )}
+                    {item.id === "cinema" && (
+                      <div className="w-24 h-10 border border-white/30 bg-white/10 rounded-sm flex items-center justify-center opacity-70">
+                        <div className="h-1.5 w-12 bg-white/40 rounded-full" />
+                      </div>
+                    )}
+                    {item.id === "noir" && (
+                      <div className="w-24 h-8 bg-black border-y-2 border-amber-400/60 flex items-center justify-center opacity-80">
+                        <span className="font-mono text-[8px] text-amber-300">2.39:1</span>
+                      </div>
+                    )}
+                    {item.id === "editorial" && (
+                      <div className="flex gap-1.5 w-24 h-9 opacity-70">
+                        <div className="w-1/2 h-full bg-white/30 rounded-sm" />
+                        <div className="w-1/2 h-3/4 bg-white/20 rounded-sm self-end" />
+                      </div>
+                    )}
+                    {item.id === "vogue" && (
+                      <div className="flex gap-2 w-24 h-9 opacity-80">
+                        <div className="w-2/5 h-3/4 bg-stone-300/40 rounded-sm" />
+                        <div className="w-3/5 h-full bg-stone-200/50 rounded-sm self-end" />
+                      </div>
+                    )}
+                    {item.id === "atelier" && (
+                      <div className="flex flex-col items-center justify-center w-24 h-9 border border-[#78716C]/50 bg-[#1C1917] p-1 opacity-80">
+                        <span className="font-mono text-[8px] text-stone-300">EXHIBITION 01</span>
+                      </div>
+                    )}
+                    {item.id === "cyber" && (
+                      <div className="w-24 h-8 border border-[#00FF88]/50 bg-[#00FF88]/10 flex items-center justify-center gap-1 opacity-80">
+                        <span className="h-1 w-1 rounded-full bg-[#00FF88] animate-pulse" />
+                        <span className="font-mono text-[8px] text-[#00FF88]">4K // 60FPS</span>
+                      </div>
+                    )}
+
                     {item.isPro && (
                       <span className="absolute top-2 right-2 rounded bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.5 text-[9px] font-mono font-bold tracking-widest text-amber-300 uppercase">
                         PRO
@@ -225,11 +271,9 @@ export function DesignEditor({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <h3 className="text-sm font-bold text-white">{item.title}</h3>
-                      {item.isPro && (
-                        <span className="rounded bg-amber-400/10 px-1.5 py-0.2 text-[9px] font-mono font-semibold text-amber-300">
-                          PRO
-                        </span>
-                      )}
+                      <span className="rounded bg-zinc-800 border border-zinc-700/60 px-1.5 py-0.5 text-[9px] font-mono text-zinc-300">
+                        {item.layoutType}
+                      </span>
                     </div>
                     {isSelected && (
                       <span className="h-2 w-2 rounded-full bg-white" />
@@ -238,7 +282,7 @@ export function DesignEditor({
                       <span className="text-[10px] font-mono text-zinc-500">🔒 PRO</span>
                     )}
                   </div>
-                  <p className="text-xs font-medium text-zinc-400 mt-0.5">
+                  <p className="text-xs font-medium text-zinc-400 mt-1">
                     {item.subtitle}
                   </p>
                   <p className="text-xs text-zinc-500 mt-2 leading-relaxed">

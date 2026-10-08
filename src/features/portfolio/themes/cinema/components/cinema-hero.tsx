@@ -50,7 +50,7 @@ export function CinemaHero({ profile }: CinemaHeroProps) {
             href="#work"
             className="group inline-flex items-center gap-2 self-start font-mono text-xs uppercase tracking-widest text-zinc-400 hover:text-white transition-colors"
           >
-            <span>SELECTED WORKS</span>
+            <span>VIEW WORK</span>
             <span className="transition-transform duration-300 group-hover:translate-y-1">
               ↓
             </span>

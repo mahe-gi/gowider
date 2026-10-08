@@ -21,7 +21,7 @@ export function VogueShowcase({ projects, username }: VogueShowcaseProps) {
     return (
       <section id="repertoire" className="py-24 text-center border-b border-white/[0.08]">
         <p className="font-mono text-sm uppercase tracking-widest text-stone-500">
-          No works documented in this issue.
+          No published projects yet.
         </p>
       </section>
     );
@@ -33,10 +33,10 @@ export function VogueShowcase({ projects, username }: VogueShowcaseProps) {
       data-testid="vogue-showcase"
       className="py-20 sm:py-32 border-b border-white/[0.08]"
     >
-      {/* Editorial Header */}
+      {/* Works Header */}
       <div className="mb-20 sm:mb-28 flex items-baseline justify-between border-b border-white/[0.08] pb-6">
         <h2 className="font-serif italic text-base sm:text-lg text-amber-200/90 tracking-wide">
-          Selected Visual Archive
+          Selected Works
         </h2>
         <span className="font-mono text-xs uppercase tracking-widest text-stone-500">
           {projects.length} Works
@@ -150,7 +150,7 @@ export function VogueShowcase({ projects, username }: VogueShowcaseProps) {
                   href={`/${username}/work/${project.slug}`}
                   className="font-mono text-xs uppercase tracking-[0.2em] text-amber-200/90 hover:text-white transition-colors shrink-0 self-start sm:self-auto py-2 inline-flex items-center gap-2"
                 >
-                  <span>VIEW LOOK</span>
+                  <span>VIEW PROJECT</span>
                   <span>→</span>
                 </Link>
               </div>

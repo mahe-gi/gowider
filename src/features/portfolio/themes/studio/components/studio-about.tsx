@@ -19,11 +19,11 @@ export function StudioAbout({ profile, services, skills }: StudioAboutProps) {
         <div className="flex items-center gap-3">
           <span className="inline-block h-2 w-2 rounded-full bg-[#2997FF]" />
           <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-300">
-            [ CAPABILITIES & INFRASTRUCTURE ]
+            [ ABOUT &amp; SERVICES ]
           </h2>
         </div>
         <span className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-          OPERATIONAL RANGE // {profile.location || "GLOBAL"}
+          {profile.location || "AVAILABLE WORLDWIDE"}
         </span>
       </div>
 
@@ -32,7 +32,7 @@ export function StudioAbout({ profile, services, skills }: StudioAboutProps) {
         <div className="lg:col-span-6 space-y-8">
           <div className="space-y-4">
             <span className="font-mono text-xs uppercase tracking-widest text-[#2997FF]">
-              SYSTEM OVERVIEW
+              ABOUT
             </span>
             <h3 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold uppercase tracking-tight text-white leading-snug">
               {profile.headline}
@@ -41,7 +41,7 @@ export function StudioAbout({ profile, services, skills }: StudioAboutProps) {
 
           <div className="font-sans text-base sm:text-lg text-zinc-300 leading-relaxed space-y-4 whitespace-pre-line">
             {profile.bio ||
-              "Specialized studio engineering high-impact visual narratives, color pipelines, and motion sequences."}
+              "Specialized studio crafting high-impact visual narratives, color pipelines, and motion sequences."}
           </div>
 
           {/* Operational Metrics */}
@@ -51,22 +51,22 @@ export function StudioAbout({ profile, services, skills }: StudioAboutProps) {
               <span className="text-zinc-200">{profile.location || "Remote / Global"}</span>
             </div>
             <div>
-              <span className="text-zinc-500 block mb-1">CURRENT STATUS:</span>
+              <span className="text-zinc-500 block mb-1">STATUS:</span>
               <span className="text-[#2997FF]">
-                {profile.availability || "Available for Commissions"}
+                {profile.availability || "Available for Work"}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Services Cards & Technical Skills Badges (6 cols) */}
+        {/* Right Column: Services Cards & Skills (6 cols) */}
         <div className="lg:col-span-6 space-y-12">
           {/* Services Cards */}
           {services.length > 0 && (
             <div className="space-y-4">
               <h4 className="font-mono text-xs uppercase tracking-widest text-zinc-400 border-b border-white/[0.08] pb-2 flex items-center justify-between">
-                <span>DEPLOYED SERVICES</span>
-                <span className="text-[#2997FF]">{services.length} MODULES</span>
+                <span>SERVICES</span>
+                <span className="text-[#2997FF]">{services.length} SERVICES</span>
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -76,7 +76,7 @@ export function StudioAbout({ profile, services, skills }: StudioAboutProps) {
                     className="p-4 border border-white/[0.08] bg-[#0E0E0E] hover:border-[#2997FF]/40 transition-colors space-y-2"
                   >
                     <div className="flex items-center justify-between font-mono text-[10px] text-zinc-500">
-                      <span>MODULE // {String(i + 1).padStart(2, "0")}</span>
+                      <span>0{i + 1}</span>
                       <span className="h-1.5 w-1.5 rounded-full bg-[#2997FF]/60" />
                     </div>
                     <div className="font-sans text-sm font-semibold text-zinc-200">
@@ -92,7 +92,7 @@ export function StudioAbout({ profile, services, skills }: StudioAboutProps) {
           {skills.length > 0 && (
             <div className="space-y-4">
               <h4 className="font-mono text-xs uppercase tracking-widest text-zinc-400 border-b border-white/[0.08] pb-2">
-                TECHNICAL SKILLS & HARDWARE STACK
+                TOOLS &amp; SOFTWARE
               </h4>
 
               <div className="flex flex-wrap gap-2 pt-1">

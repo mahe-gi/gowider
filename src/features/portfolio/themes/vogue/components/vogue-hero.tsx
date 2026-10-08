@@ -18,18 +18,18 @@ export function VogueHero({ profile }: VogueHeroProps) {
       />
 
       <div className="relative z-10 space-y-10">
-        {/* Magazine Masthead Ribbon */}
+        {/* Magazine Ribbon */}
         <div className="flex flex-wrap items-center justify-between gap-4 font-mono text-xs uppercase tracking-[0.25em] text-stone-400 border-b border-white/[0.08] pb-4">
           <div className="flex items-center gap-3">
-            <span className="text-amber-200/90 font-serif italic text-sm">Vol. XXVI</span>
+            <span className="text-amber-200/90 font-serif italic text-sm">PORTFOLIO</span>
             <span>{"//"}</span>
-            <span>AUTEUR PORTFOLIO</span>
+            <span>SELECTED WORK</span>
           </div>
 
           <div className="flex items-center gap-4 text-stone-400">
             {profile.location && <span>{profile.location}</span>}
             <span className="rounded bg-stone-800/80 px-2 py-0.5 text-[10px] text-amber-200 font-mono tracking-widest">
-              PRO STUDIO
+              PORTFOLIO
             </span>
           </div>
         </div>
@@ -37,7 +37,7 @@ export function VogueHero({ profile }: VogueHeroProps) {
         {/* Dramatic Editorial Serif Headline */}
         <div className="space-y-3">
           <span className="font-mono text-xs uppercase tracking-[0.3em] text-stone-500 block">
-            PORTFOLIO OF DIRECTION
+            PORTFOLIO
           </span>
           <h1
             data-testid="vogue-hero-headline"
@@ -57,7 +57,7 @@ export function VogueHero({ profile }: VogueHeroProps) {
             href="#repertoire"
             className="group inline-flex items-center gap-2 self-start font-mono text-xs uppercase tracking-[0.2em] text-amber-200/80 hover:text-white transition-colors"
           >
-            <span>DISCOVER WORKS</span>
+            <span>VIEW WORK</span>
             <span className="transition-transform duration-300 group-hover:translate-y-1">
               ↓
             </span>

@@ -33,15 +33,15 @@ export function CyberFooter({
   const getPlatformLabel = (platform: string) => {
     switch (platform) {
       case "instagram":
-        return "IG_FEED";
+        return "INSTAGRAM";
       case "youtube":
-        return "YT_STREAM";
+        return "YOUTUBE";
       case "linkedin":
-        return "LINKEDIN_NET";
+        return "LINKEDIN";
       case "x":
-        return "X_FEED";
+        return "X";
       case "website":
-        return "EXT_NODE";
+        return "WEBSITE";
       default:
         return platform.toUpperCase();
     }
@@ -57,12 +57,12 @@ export function CyberFooter({
         <div className="flex items-center gap-3">
           <span className="inline-block h-2 w-2 rounded-none bg-[#00FF88] shadow-[0_0_8px_#00FF88] animate-pulse" />
           <span className="text-xs uppercase tracking-[0.25em] text-[#00FF88]">
-            [ TERMINAL TRANSMIT // CLIENT INTAKE ]
+            [ GET IN TOUCH // CONTACT ]
           </span>
         </div>
 
         <h2 className="font-mono text-3xl sm:text-5xl lg:text-6xl font-black uppercase text-white leading-tight max-w-4xl tracking-tight drop-shadow-[0_0_20px_rgba(0,255,136,0.15)]">
-          INITIALIZE RENDER PIPELINE OR DISPATCH COMMERCIAL INQUIRY.
+          LET&apos;S WORK TOGETHER ON YOUR NEXT PROJECT.
         </h2>
 
         {/* Direct Action Buttons */}
@@ -86,7 +86,7 @@ export function CyberFooter({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-8 py-4 text-xs font-semibold uppercase tracking-widest text-[#00FF88] border border-emerald-500/40 bg-emerald-950/20 hover:border-[#00FF88] transition-all"
             >
-              <span>INITIATE ENCRYPTED WHATSAPP</span>
+              <span>CHAT ON WHATSAPP</span>
               <span>↗</span>
             </a>
           )}
@@ -110,7 +110,7 @@ export function CyberFooter({
         </div>
 
         <div className="text-xs text-zinc-500">
-          © {new Date().getFullYear()} {displayName}. CYBER TELEMETRY ENGINE.
+          © {new Date().getFullYear()} {displayName}. ALL RIGHTS RESERVED.
         </div>
       </div>
 

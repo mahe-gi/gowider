@@ -441,14 +441,14 @@ describe("Multi-Theme Contract Parity", () => {
     const atelierHtml = renderToStaticMarkup(
       React.createElement(AtelierLayout, { portfolio: portfolioWithProSuite })
     );
-    expect(atelierHtml).toContain("SIGNATURE SHOWREEL SPOTLIGHT");
+    expect(atelierHtml).toContain("FEATURED SHOWREEL");
     expect(atelierHtml).toContain("Inquire for Commercial Commissions");
     expect(atelierHtml).toContain("https://calendly.com/elenavance/commercial");
 
     const cyberHtml = renderToStaticMarkup(
       React.createElement(CyberLayout, { portfolio: { ...portfolioWithProSuite, settings: { ...portfolioWithProSuite.settings, theme: "cyber" } } })
     );
-    expect(cyberHtml).toContain("SIGNATURE SHOWREEL // ACTIVE GPU PIPELINE");
+    expect(cyberHtml).toContain("FEATURED SHOWREEL");
     expect(cyberHtml).toContain("Inquire for Commercial Commissions");
     expect(cyberHtml).toContain("https://calendly.com/elenavance/commercial");
   });
@@ -467,7 +467,7 @@ describe("Multi-Theme Contract Parity", () => {
     const editorialHtml = renderToStaticMarkup(
       React.createElement(EditorialLayout, { portfolio: emptyPortfolio })
     );
-    expect(editorialHtml).toContain("No published projects in the editorial index yet");
+    expect(editorialHtml).toContain("No published projects yet.");
 
     const studioHtml = renderToStaticMarkup(
       React.createElement(StudioLayout, { portfolio: emptyPortfolio })
@@ -482,17 +482,17 @@ describe("Multi-Theme Contract Parity", () => {
     const vogueHtml = renderToStaticMarkup(
       React.createElement(VogueLayout, { portfolio: emptyPortfolio })
     );
-    expect(vogueHtml).toContain("No works documented in this issue.");
+    expect(vogueHtml).toContain("No published projects yet.");
 
     const atelierHtml = renderToStaticMarkup(
       React.createElement(AtelierLayout, { portfolio: emptyPortfolio })
     );
-    expect(atelierHtml).toContain("No works documented in this exhibition.");
+    expect(atelierHtml).toContain("No published projects yet.");
 
     const cyberHtml = renderToStaticMarkup(
       React.createElement(CyberLayout, { portfolio: emptyPortfolio })
     );
-    expect(cyberHtml).toContain("[ NO ACTIVE GPU NODES DETECTED IN PIPELINE ]");
+    expect(cyberHtml).toContain("[ NO PUBLISHED PROJECTS YET ]");
   });
 
   it("verifies public data purity across theme footers (no email exposed)", () => {

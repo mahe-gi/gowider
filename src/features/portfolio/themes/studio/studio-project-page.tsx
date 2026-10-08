@@ -95,7 +95,7 @@ export function StudioProjectPage({
             <span className="transition-transform duration-200 group-hover:-translate-x-1 text-[#2997FF]">
               ←
             </span>
-            <span>BACK TO SHOWCASE</span>
+            <span>BACK TO WORK</span>
           </Link>
 
           <div className="flex items-center gap-3 font-mono text-xs text-zinc-400">
@@ -135,28 +135,28 @@ export function StudioProjectPage({
         {/* Media Player Stage */}
         <div className="overflow-hidden bg-[#0A0A0A] border border-white/[0.12] shadow-2xl relative">
           <div className="absolute top-2 right-2 z-10 font-mono text-[9px] px-2 py-0.5 bg-black/80 text-[#2997FF] border border-[#2997FF]/30 uppercase">
-            STAGE // {project.sourceType}
+            {project.category}
           </div>
           {renderMediaStage()}
         </div>
 
-        {/* Technical Specs & Narrative Split */}
+        {/* Narrative & Details Split */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 border-b border-white/[0.08] pb-16">
-          {/* Narrative / Case Study Breakdown (7 cols) */}
+          {/* Narrative Breakdown (7 cols) */}
           <div className="lg:col-span-7 space-y-6">
             <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-[#2997FF]">
-              [ SPECIFICATION & PROJECT OVERVIEW ]
+              [ ABOUT THIS PROJECT ]
             </h2>
             <div className="font-sans text-base sm:text-lg text-zinc-300 leading-relaxed whitespace-pre-line space-y-4">
               {project.description ||
-                "No technical project breakdown supplied for this production."}
+                "No description provided."}
             </div>
           </div>
 
-          {/* Project Specs Table & Tools Used (5 cols) */}
+          {/* Project Details & Tools Used (5 cols) */}
           <div className="lg:col-span-5 space-y-8 border-t lg:border-t-0 lg:border-l border-white/[0.08] pt-8 lg:pt-0 lg:pl-10">
             <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">
-              [ TECHNICAL SPECIFICATIONS ]
+              [ PROJECT DETAILS ]
             </h2>
 
             <div className="space-y-4 font-mono text-xs">

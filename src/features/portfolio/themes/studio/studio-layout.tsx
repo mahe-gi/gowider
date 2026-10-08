@@ -37,7 +37,7 @@ export function StudioLayout({ portfolio }: StudioLayoutProps) {
           <div className="hidden md:flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-zinc-400">
             <span className="inline-block h-2 w-2 rounded-full bg-[#2997FF] animate-pulse" />
             <span className="text-zinc-300">
-              {profile.availability || "STUDIO ONLINE"}
+              {profile.availability || "AVAILABLE FOR WORK"}
             </span>
           </div>
 
@@ -47,19 +47,19 @@ export function StudioLayout({ portfolio }: StudioLayoutProps) {
               href="#showcase"
               className="hover:text-[#2997FF] transition-colors"
             >
-              SHOWCASE
+              WORK
             </a>
             <a
               href="#about"
               className="hover:text-[#2997FF] transition-colors"
             >
-              CAPABILITIES
+              ABOUT
             </a>
             <a
               href="#contact"
               className="hover:text-[#2997FF] transition-colors"
             >
-              TRANSMIT
+              CONTACT
             </a>
           </nav>
         </div>

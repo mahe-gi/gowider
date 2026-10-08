@@ -39,19 +39,19 @@ export function NoirLayout({ portfolio }: NoirLayoutProps) {
           {/* Status Dot */}
           <div className="hidden md:flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-zinc-400">
             <span className="inline-block h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-            <span>{profile.availability || "DIRECTORIAL ONLINE"}</span>
+            <span>{profile.availability || "AVAILABLE FOR WORK"}</span>
           </div>
 
           {/* Navigation Links */}
           <nav className="flex items-center gap-6 sm:gap-8 font-mono text-xs uppercase tracking-widest text-zinc-400">
             <a href="#repertoire" className="hover:text-amber-300 transition-colors">
-              REPERTOIRE
+              WORK
             </a>
             <a href="#practice" className="hover:text-amber-300 transition-colors">
-              PRACTICE
+              ABOUT
             </a>
             <a href="#contact" className="hover:text-amber-300 transition-colors">
-              TRANSMIT
+              CONTACT
             </a>
           </nav>
         </div>

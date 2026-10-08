@@ -30,7 +30,7 @@ export function CinemaWork({ projects, username }: CinemaWorkProps) {
       {/* Section Header */}
       <div className="mb-16 sm:mb-24 flex items-baseline justify-between border-b border-white/[0.08] pb-6">
         <h2 className="font-display text-xs font-mono uppercase tracking-[0.25em] text-zinc-400">
-          [ 01 // SELECTED ARCHIVE ]
+          [ SELECTED WORK ]
         </h2>
         <span className="font-mono text-xs uppercase tracking-widest text-zinc-500">
           {projects.length} {projects.length === 1 ? "PROJECT" : "PROJECTS"}
@@ -187,13 +187,13 @@ export function CinemaWork({ projects, username }: CinemaWorkProps) {
                   </div>
                 )}
 
-                {/* Case Study CTA Link */}
+                {/* Project CTA Link */}
                 <div className="pt-2">
                   <Link
                     href={`/${username}/work/${project.slug}`}
                     className="group inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-white border-b border-white pb-1 hover:border-zinc-400 hover:text-zinc-400 transition-all"
                   >
-                    <span>CASE STUDY</span>
+                    <span>VIEW PROJECT</span>
                     <span className="transition-transform duration-200 group-hover:translate-x-1">
                       →
                     </span>

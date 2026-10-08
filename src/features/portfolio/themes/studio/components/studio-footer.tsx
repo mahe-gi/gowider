@@ -51,17 +51,17 @@ export function StudioFooter({
       data-testid="studio-footer"
       className="pt-20 sm:pt-32 pb-16"
     >
-      {/* Studio Contact / Transmission */}
+      {/* Studio Contact */}
       <div className="space-y-10">
         <div className="flex items-center gap-3">
           <span className="inline-block h-2 w-2 rounded-full bg-[#2997FF]" />
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">
-            [ CONTACT // INITIATE TRANSMISSION ]
+            [ GET IN TOUCH // CONTACT ]
           </span>
         </div>
 
         <h2 className="font-display font-extrabold uppercase text-white leading-[0.9] tracking-[-0.03em] select-none text-[clamp(2.5rem,7vw,6.5rem)]">
-          READY FOR PRODUCTION PROTOCOLS.
+          LET&apos;S WORK TOGETHER ON YOUR NEXT PROJECT.
         </h2>
 
         {/* WhatsApp Direct Action Button */}
@@ -73,7 +73,7 @@ export function StudioFooter({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-8 py-4 font-mono text-xs font-semibold uppercase tracking-widest text-black bg-[#2997FF] hover:bg-[#1A82E2] transition-all shadow-xl hover:scale-[1.02]"
             >
-              <span>DIRECT WHATSAPP CHANNEL</span>
+              <span>CHAT ON WHATSAPP</span>
               <span>↗</span>
             </a>
           </div>
@@ -97,7 +97,7 @@ export function StudioFooter({
         </div>
 
         <div className="font-mono text-xs text-zinc-500">
-          © {new Date().getFullYear()} {displayName}. STUDIO SYSTEMS RESERVED.
+          © {new Date().getFullYear()} {displayName}. ALL RIGHTS RESERVED.
         </div>
       </div>
 

@@ -29,21 +29,21 @@ export function AtelierHero({ profile, spotlightProject, cta }: AtelierHeroProps
         aria-hidden="true"
       />
 
-      {/* Museum Plaque Index Bar */}
+      {/* Header Info Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 font-mono text-[11px] uppercase tracking-[0.25em] text-[#A8A29E] pb-8 border-b border-[#292524]/40">
         <div className="flex items-center gap-2.5">
           <span className="inline-block h-2 w-2 rounded-none bg-[#D6D3CD]" />
           <span className="text-[#D6D3CD] font-medium">
-            EXHIBITION CATALOGUE // {profile.availability || "ATELIER OPEN FOR COMMISSIONS"}
+            {profile.availability || "AVAILABLE FOR COMMISSIONS"}
           </span>
         </div>
 
         <div className="flex items-center gap-4 text-[#78716C]">
           {profile.location && (
-            <span>ARCHIVE LOCATION: <span className="text-[#D6D3CD]">{profile.location}</span></span>
+            <span>LOCATION: <span className="text-[#D6D3CD]">{profile.location}</span></span>
           )}
           <span className="rounded-none border border-[#78716C]/40 bg-[#1C1917] px-2 py-0.5 text-[10px] text-[#D6D3CD] font-mono">
-            FINE ART ATELIER
+            PORTFOLIO
           </span>
         </div>
       </div>
@@ -52,7 +52,7 @@ export function AtelierHero({ profile, spotlightProject, cta }: AtelierHeroProps
       <div className="pt-12 sm:pt-16 space-y-8">
         <div className="space-y-4">
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#A8A29E]">
-            THE WORKS &amp; OEUVRE OF
+            PORTFOLIO OF
           </p>
           <h1
             data-testid="atelier-hero-headline"
@@ -85,7 +85,7 @@ export function AtelierHero({ profile, spotlightProject, cta }: AtelierHeroProps
               href="#exhibitions"
               className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[#A8A29E] hover:text-[#F5F5F4] transition-colors py-3"
             >
-              <span>[ VIEW WORKS ]</span>
+              <span>[ VIEW WORK ]</span>
               <span>↓</span>
             </a>
           </div>
@@ -99,9 +99,9 @@ export function AtelierHero({ profile, spotlightProject, cta }: AtelierHeroProps
             <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[0.2em] text-[#A8A29E]">
               <div className="flex items-center gap-2">
                 <span className="h-1.5 w-1.5 bg-[#D6D3CD]" />
-                <span className="text-[#D6D3CD] font-medium">SIGNATURE SHOWREEL SPOTLIGHT</span>
+                <span className="text-[#D6D3CD] font-medium">FEATURED SHOWREEL</span>
               </div>
-              <span className="text-[11px] text-[#78716C]">[CURATOR&apos;S SELECTION]</span>
+              <span className="text-[11px] text-[#78716C]">[FEATURED]</span>
             </div>
 
             <div className="relative border border-[#292524] bg-[#141210] p-3 sm:p-5 shadow-2xl">
@@ -169,7 +169,7 @@ export function AtelierHero({ profile, spotlightProject, cta }: AtelierHeroProps
                   href={`/${profile.username}/work/${spotlightProject.slug}`}
                   className="font-mono text-xs uppercase tracking-widest text-[#D6D3CD] hover:text-white inline-flex items-center gap-1.5 transition-colors self-start sm:self-auto"
                 >
-                  <span>[ VIEW CURATORIAL BREAKDOWN ]</span>
+                  <span>[ VIEW PROJECT ]</span>
                   <span>↗</span>
                 </Link>
               </div>

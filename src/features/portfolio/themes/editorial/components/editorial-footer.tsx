@@ -56,12 +56,12 @@ export function EditorialFooter({
         <div className="flex items-center gap-3">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#FF3B30]" />
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">
-            [ INQUIRIES & COLLABORATION ]
+            [ GET IN TOUCH // CONTACT ]
           </span>
         </div>
 
         <h2 className="font-serif italic font-normal text-white leading-[0.95] tracking-[-0.02em] select-none text-[clamp(2.5rem,6.5vw,6rem)]">
-          Open for editorial commissions, commercial narratives, & select direction.
+          Available for projects, commercials, and visual direction.
         </h2>
 
         {/* WhatsApp Direct Action */}
@@ -73,7 +73,7 @@ export function EditorialFooter({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-8 py-4 font-mono text-xs font-semibold uppercase tracking-widest text-white bg-[#FF3B30] hover:bg-[#E03429] transition-all shadow-xl hover:scale-[1.02]"
             >
-              <span>CONNECT VIA WHATSAPP</span>
+              <span>CHAT ON WHATSAPP</span>
               <span>↗</span>
             </a>
           </div>

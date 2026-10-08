@@ -56,7 +56,7 @@ export function NoirFooter({
         <div className="flex items-center gap-3">
           <span className="inline-block h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-amber-500/80">
-            [ END SLATE // DIRECTORIAL CONTACT ]
+            [ GET IN TOUCH // CONTACT ]
           </span>
         </div>
 

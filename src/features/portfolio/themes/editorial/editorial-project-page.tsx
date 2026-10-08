@@ -95,7 +95,7 @@ export function EditorialProjectPage({
             <span className="transition-transform duration-200 group-hover:-translate-x-1 text-[#FF3B30]">
               ←
             </span>
-            <span>BACK TO ARCHIVE</span>
+            <span>BACK TO WORK</span>
           </Link>
 
           <span className="font-serif italic text-base text-zinc-300">
@@ -129,18 +129,18 @@ export function EditorialProjectPage({
           {/* Narrative Writeup (7 cols) */}
           <div className="lg:col-span-7 space-y-6">
             <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-[#FF3B30]">
-              [ SYNOPSIS & EDITORIAL NOTES ]
+              [ ABOUT THIS PROJECT ]
             </h2>
             <div className="font-sans text-base sm:text-lg text-zinc-200 leading-relaxed whitespace-pre-line space-y-4">
               {project.description ||
-                "No editorial notes recorded for this piece."}
+                "No description provided."}
             </div>
           </div>
 
-          {/* Editorial Credits Table (5 cols) */}
+          {/* Credits Table (5 cols) */}
           <div className="lg:col-span-5 space-y-6 border-t lg:border-t-0 lg:border-l border-white/[0.08] pt-8 lg:pt-0 lg:pl-10">
             <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-400">
-              [ PRODUCTION CREDITS ]
+              [ PROJECT DETAILS ]
             </h2>
 
             <table className="w-full text-left font-mono text-xs border-collapse">

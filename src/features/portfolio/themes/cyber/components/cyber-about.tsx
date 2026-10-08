@@ -24,7 +24,7 @@ export function CyberAbout({
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-none bg-[#00FF88] shadow-[0_0_8px_#00FF88]" />
             <h2 className="text-xs uppercase tracking-[0.25em] text-[#00FF88]">
-              [ PIPELINE DIRECTIVE &amp; METHODOLOGY ]
+              [ ABOUT ME ]
             </h2>
           </div>
 
@@ -34,17 +34,17 @@ export function CyberAbout({
 
           {profile.location && (
             <div className="pt-4 text-xs uppercase tracking-widest text-zinc-500">
-              PHYSICAL COMPUTE NODE: <span className="text-cyan-400">{profile.location}</span>
+              LOCATION: <span className="text-cyan-400">{profile.location}</span>
             </div>
           )}
         </div>
 
-        {/* Deployable Disciplines & Pipeline */}
+        {/* Services & Skills */}
         <div className="lg:col-span-5 space-y-12">
           {services.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-xs uppercase tracking-[0.2em] text-emerald-400 border-b border-emerald-500/20 pb-3">
-                DEPLOYABLE DISCIPLINES
+                SERVICES
               </h3>
               <ul className="space-y-2.5">
                 {services.map((svc) => (
@@ -63,7 +63,7 @@ export function CyberAbout({
           {skills.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-xs uppercase tracking-[0.2em] text-cyan-400 border-b border-cyan-500/20 pb-3">
-                GRAPHICS PIPELINE &amp; TOOLKIT
+                TOOLS &amp; SKILLS
               </h3>
               <div className="flex flex-wrap gap-2">
                 {skills.map((skill) => (

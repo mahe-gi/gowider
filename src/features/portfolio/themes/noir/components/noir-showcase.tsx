@@ -36,11 +36,11 @@ export function NoirShowcase({ projects, username }: NoirShowcaseProps) {
         <div className="flex items-center gap-3">
           <span className="h-2 w-2 rounded-full bg-amber-500" />
           <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-300">
-            [ DIRECTORIAL REPERTOIRE // 2.39:1 SCOPE ]
+            [ SELECTED WORK // 2.39:1 WIDESCREEN ]
           </h2>
         </div>
         <span className="font-mono text-xs uppercase tracking-widest text-amber-500/70">
-          {projects.length} {projects.length === 1 ? "PRODUCTION" : "PRODUCTIONS"}
+          {projects.length} {projects.length === 1 ? "PROJECT" : "PROJECTS"}
         </span>
       </div>
 

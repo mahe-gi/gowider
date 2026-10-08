@@ -19,12 +19,12 @@ export function AtelierAbout({
       className="py-20 sm:py-32 border-b border-[#292524]/60"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-        {/* Curatorial Statement */}
+        {/* About Statement */}
         <div className="lg:col-span-7 space-y-8">
           <div className="flex items-center gap-3">
             <span className="h-2 w-2 rounded-none bg-[#D6D3CD]" />
             <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-[#D6D3CD]">
-              CURATORIAL STATEMENT &amp; OEUVRE
+              ABOUT ME
             </h2>
           </div>
 
@@ -34,17 +34,17 @@ export function AtelierAbout({
 
           {profile.location && (
             <div className="pt-4 font-mono text-xs uppercase tracking-widest text-[#78716C]">
-              PERMANENT STUDIO BASE: <span className="text-[#D6D3CD]">{profile.location}</span>
+              LOCATION: <span className="text-[#D6D3CD]">{profile.location}</span>
             </div>
           )}
         </div>
 
-        {/* Disciplines & Archival Toolkit */}
+        {/* Services & Skills */}
         <div className="lg:col-span-5 space-y-12">
           {services.length > 0 && (
             <div className="space-y-4">
               <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-[#A8A29E] border-b border-[#292524]/60 pb-3">
-                CURATORIAL DISCIPLINES
+                SERVICES
               </h3>
               <ul className="space-y-2.5">
                 {services.map((svc) => (
@@ -63,7 +63,7 @@ export function AtelierAbout({
           {skills.length > 0 && (
             <div className="space-y-4">
               <h3 className="font-mono text-xs uppercase tracking-[0.2em] text-[#A8A29E] border-b border-[#292524]/60 pb-3">
-                MEDIUM &amp; PALETTE PROFICIENCIES
+                TOOLS &amp; SKILLS
               </h3>
               <div className="flex flex-wrap gap-2">
                 {skills.map((skill) => (

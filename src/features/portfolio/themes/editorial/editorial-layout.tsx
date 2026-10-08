@@ -51,7 +51,7 @@ export function EditorialLayout({ portfolio }: EditorialLayoutProps) {
               href="#index"
               className="hover:text-[#FF3B30] transition-colors"
             >
-              INDEX
+              WORK
             </a>
             <a
               href="#about"

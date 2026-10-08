@@ -29,23 +29,21 @@ export function CyberHero({ profile, spotlightProject, cta }: CyberHeroProps) {
         aria-hidden="true"
       />
 
-      {/* Cyber Telemetry HUD Status Ribbon */}
+      {/* Cyber Status Ribbon */}
       <div className="flex flex-wrap items-center justify-between gap-4 font-mono text-[11px] uppercase tracking-[0.2em] text-emerald-400/80 pb-6 border-b border-emerald-500/20">
         <div className="flex items-center gap-2.5">
           <span className="inline-block h-2 w-2 rounded-none bg-[#00FF88] shadow-[0_0_8px_#00FF88] animate-pulse" />
           <span className="text-[#00FF88] font-bold">
-            SYS_ONLINE // {profile.availability || "GPU PIPELINE ACTIVE"}
+            {profile.availability || "AVAILABLE FOR WORK"}
           </span>
         </div>
 
         <div className="flex items-center gap-4 text-zinc-500">
-          <span>TC: 00:04:12:18</span>
-          <span className="hidden sm:inline">REFRESH: 120HZ // DCI 4K</span>
           {profile.location && (
-            <span className="text-zinc-400">NODE: {profile.location}</span>
+            <span className="text-zinc-400">LOCATION: {profile.location}</span>
           )}
           <span className="rounded-none border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-300 font-mono">
-            VFX HUD [PRO]
+            PORTFOLIO
           </span>
         </div>
       </div>
@@ -54,8 +52,8 @@ export function CyberHero({ profile, spotlightProject, cta }: CyberHeroProps) {
       <div className="pt-10 sm:pt-16 space-y-8">
         <div className="space-y-3">
           <div className="font-mono text-xs uppercase tracking-widest text-cyan-400 flex items-center gap-2">
-            <span>&gt;&gt; OPERATOR_IDENT:</span>
-            <span className="text-zinc-500">#009-CYBER</span>
+            <span>&gt;&gt; PORTFOLIO //</span>
+            <span className="text-zinc-400">SELECTED WORKS</span>
           </div>
           <h1
             data-testid="cyber-hero-headline"
@@ -88,7 +86,7 @@ export function CyberHero({ profile, spotlightProject, cta }: CyberHeroProps) {
               href="#telemetry"
               className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-zinc-400 hover:text-[#00FF88] transition-colors py-3"
             >
-              <span>[ VIEW TELEMETRY ]</span>
+              <span>[ VIEW WORK ]</span>
               <span>↓</span>
             </a>
           </div>
@@ -102,9 +100,9 @@ export function CyberHero({ profile, spotlightProject, cta }: CyberHeroProps) {
             <div className="flex items-center justify-between font-mono text-xs uppercase tracking-[0.2em] text-emerald-400">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 bg-[#00FF88] shadow-[0_0_6px_#00FF88]" />
-                <span className="font-bold text-white">SIGNATURE SHOWREEL // ACTIVE GPU PIPELINE</span>
+                <span className="font-bold text-white">FEATURED SHOWREEL</span>
               </div>
-              <span className="text-[11px] text-cyan-400">[PRIORITY RENDER]</span>
+              <span className="text-[11px] text-cyan-400">[FEATURED]</span>
             </div>
 
             <div className="relative border border-emerald-500/40 bg-black/90 p-3 sm:p-5 shadow-[0_0_30px_rgba(0,255,136,0.1)]">
@@ -178,7 +176,7 @@ export function CyberHero({ profile, spotlightProject, cta }: CyberHeroProps) {
                   href={`/${profile.username}/work/${spotlightProject.slug}`}
                   className="font-mono text-xs uppercase tracking-widest text-[#00FF88] hover:text-white inline-flex items-center gap-1.5 transition-colors self-start sm:self-auto"
                 >
-                  <span>[ ACCESS PIPELINE TELEMETRY ]</span>
+                  <span>[ VIEW PROJECT ]</span>
                   <span>↗</span>
                 </Link>
               </div>

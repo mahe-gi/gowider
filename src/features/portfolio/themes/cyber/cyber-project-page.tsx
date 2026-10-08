@@ -91,7 +91,7 @@ export function CyberProjectPage({
             href={`/${profile.username}`}
             className="flex items-center gap-2 text-xs uppercase tracking-widest text-zinc-400 hover:text-[#00FF88] transition-colors"
           >
-            <span>← RETURN TO TELEMETRY</span>
+            <span>← BACK TO WORK</span>
           </Link>
 
           <Link
@@ -109,9 +109,9 @@ export function CyberProjectPage({
           {/* Work Heading */}
           <div className="space-y-3">
             <div className="flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-emerald-400">
-              <span className="text-[#00FF88] font-bold">[NODE_RUN: {project.category}]</span>
+              <span className="text-[#00FF88] font-bold">[{project.category}]</span>
               {project.year && <span>{"//"} {project.year}</span>}
-              {project.client && <span>{"//"} TARGET: {project.client}</span>}
+              {project.client && <span>{"//"} CLIENT: {project.client}</span>}
             </div>
 
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-tight">
@@ -131,46 +131,46 @@ export function CyberProjectPage({
             </div>
           </div>
 
-          {/* VFX Pipeline Breakdown */}
+          {/* Overview Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-6 border-t border-emerald-500/20">
             <div className="lg:col-span-8 space-y-6">
               <h2 className="text-xs uppercase tracking-[0.2em] text-[#00FF88]">
-                [ RENDER DIRECTIVE &amp; VFX PIPELINE SPEC ]
+                [ ABOUT THIS PROJECT ]
               </h2>
               <div className="text-sm sm:text-base text-zinc-300 leading-relaxed border-l-2 border-[#00FF88] pl-6 py-2 bg-emerald-950/20">
-                {project.description || "Project telemetry recorded without supplementary pipeline logs."}
+                {project.description || "No description provided."}
               </div>
             </div>
 
             <div className="lg:col-span-4 space-y-8 text-xs">
               <div className="border border-emerald-500/30 bg-black/80 p-6 space-y-6">
                 <h3 className="uppercase tracking-[0.2em] text-emerald-400 border-b border-emerald-500/20 pb-2">
-                  TELEMETRY METRICS
+                  PROJECT DETAILS
                 </h3>
 
                 <div className="space-y-3">
                   <div>
-                    <span className="text-zinc-500 block uppercase tracking-wider text-[10px]">PASS CATEGORY</span>
+                    <span className="text-zinc-500 block uppercase tracking-wider text-[10px]">CATEGORY</span>
                     <span className="text-white font-bold">{project.category}</span>
                   </div>
 
                   {project.client && (
                     <div>
-                      <span className="text-zinc-500 block uppercase tracking-wider text-[10px]">COMMISSIONING CLIENT</span>
+                      <span className="text-zinc-500 block uppercase tracking-wider text-[10px]">CLIENT</span>
                       <span className="text-cyan-400">{project.client}</span>
                     </div>
                   )}
 
                   {project.year && (
                     <div>
-                      <span className="text-zinc-500 block uppercase tracking-wider text-[10px]">PRODUCTION YEAR</span>
+                      <span className="text-zinc-500 block uppercase tracking-wider text-[10px]">YEAR</span>
                       <span className="text-white">{project.year}</span>
                     </div>
                   )}
 
                   {project.tools.length > 0 && (
                     <div>
-                      <span className="text-zinc-500 block uppercase tracking-wider text-[10px] mb-1.5">PIPELINE TOOLKIT</span>
+                      <span className="text-zinc-500 block uppercase tracking-wider text-[10px] mb-1.5">TOOLS USED</span>
                       <div className="flex flex-wrap gap-1.5">
                         {project.tools.map((tool) => (
                           <span

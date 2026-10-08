@@ -39,19 +39,19 @@ export function AtelierLayout({ portfolio }: AtelierLayoutProps) {
           {/* Exhibition Status Indicator */}
           <div className="hidden md:flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[#A8A29E]">
             <span className="inline-block h-2 w-2 rounded-none bg-[#D6D3CD]" />
-            <span>{profile.availability || "ATELIER ACTIVE"}</span>
+            <span>{profile.availability || "AVAILABLE FOR WORK"}</span>
           </div>
 
           {/* Navigation Links + CTA Button */}
           <nav className="flex items-center gap-6 sm:gap-8 font-mono text-xs uppercase tracking-widest text-[#A8A29E]">
             <a href="#exhibitions" className="hover:text-[#F5F5F4] transition-colors">
-              WORKS
+              WORK
             </a>
             <a href="#practice" className="hover:text-[#F5F5F4] transition-colors">
-              STATEMENT
+              ABOUT
             </a>
             <a href="#contact" className="hover:text-[#F5F5F4] transition-colors">
-              INQUIRE
+              CONTACT
             </a>
             {settings?.cta?.enabled && (
               <a

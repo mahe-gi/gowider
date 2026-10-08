@@ -89,7 +89,7 @@ export function VogueProjectPage({
               className="font-mono text-xs uppercase tracking-[0.2em] text-stone-400 hover:text-white transition-colors flex items-center gap-2"
             >
               <span>←</span>
-              <span>Back to Lookbook</span>
+              <span>Back to Work</span>
             </Link>
 
             <span className="font-serif italic text-sm text-amber-200">
@@ -105,7 +105,7 @@ export function VogueProjectPage({
               <span className="uppercase tracking-widest">{project.category}</span>
               {project.client && (
                 <span className="uppercase tracking-widest">
-                  COMMISSIONED BY {project.client}
+                  CLIENT: {project.client}
                 </span>
               )}
             </div>
@@ -124,7 +124,7 @@ export function VogueProjectPage({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-4">
             <div className="lg:col-span-8 space-y-6">
               <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-amber-200/90">
-                Editorial Note
+                About this Project
               </h2>
               {project.description ? (
                 <div className="font-serif italic text-lg sm:text-xl text-stone-300 leading-relaxed whitespace-pre-line">
@@ -132,7 +132,7 @@ export function VogueProjectPage({
                 </div>
               ) : (
                 <p className="font-mono text-sm text-stone-500 uppercase">
-                  No additional editorial notes archived.
+                  No description provided.
                 </p>
               )}
             </div>
@@ -141,7 +141,7 @@ export function VogueProjectPage({
               {project.tools.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="font-mono text-xs uppercase tracking-widest text-stone-400 border-b border-white/[0.06] pb-2">
-                    Production Palette
+                    Tools Used
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {project.tools.map((tool) => (

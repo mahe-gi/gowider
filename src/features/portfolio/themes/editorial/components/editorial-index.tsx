@@ -27,7 +27,7 @@ export function EditorialIndex({ projects, username }: EditorialIndexProps) {
         className="py-24 text-center border-b border-white/[0.08]"
       >
         <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-          No published projects in the editorial index yet.
+          No published projects yet.
         </p>
       </section>
     );
@@ -44,11 +44,11 @@ export function EditorialIndex({ projects, username }: EditorialIndexProps) {
         <div className="flex items-center gap-3">
           <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#FF3B30]" />
           <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-300">
-            [ PROJECT ARCHIVE // INDEX TABLE ]
+            [ SELECTED WORK ]
           </h2>
         </div>
         <span className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-          {projects.length} {projects.length === 1 ? "ENTRY" : "ENTRIES"}
+          {projects.length} {projects.length === 1 ? "PROJECT" : "PROJECTS"}
         </span>
       </div>
 
@@ -217,7 +217,7 @@ export function EditorialIndex({ projects, username }: EditorialIndexProps) {
                     href={`/${username}/work/${activeProject.slug}`}
                     className="font-mono text-xs uppercase tracking-wider text-[#FF3B30] hover:text-white transition-colors inline-flex items-center gap-1.5"
                   >
-                    <span>OPEN CASE STUDY</span>
+                    <span>VIEW PROJECT</span>
                     <span>↗</span>
                   </Link>
                 </div>

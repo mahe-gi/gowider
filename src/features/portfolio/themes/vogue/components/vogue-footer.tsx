@@ -51,11 +51,11 @@ export function VogueFooter({
     >
       <div className="space-y-12">
         <div className="font-mono text-xs uppercase tracking-[0.3em] text-amber-200/80">
-          Inquiries & Representation
+          Contact
         </div>
 
         <h2 className="font-serif italic text-4xl sm:text-6xl lg:text-7xl text-white tracking-tight select-none leading-[0.95]">
-          Let&apos;s Create Visual Poetry.
+          Let&apos;s Work Together.
         </h2>
 
         {whatsappLink && (
@@ -66,7 +66,7 @@ export function VogueFooter({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-8 py-4 font-mono text-xs font-semibold uppercase tracking-widest text-black bg-[#EFE3C3] hover:bg-white transition-all shadow-xl hover:scale-[1.02]"
             >
-              <span>DIRECT INQUIRY CHANNEL</span>
+              <span>CHAT ON WHATSAPP</span>
               <span>→</span>
             </a>
           </div>

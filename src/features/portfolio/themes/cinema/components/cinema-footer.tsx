@@ -50,11 +50,11 @@ export function CinemaFooter({
       {/* Top Section / Display Headline */}
       <div className="space-y-12">
         <span className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-500 block">
-          [ 03 // CONTACT & COMMISSION ]
+          [ GET IN TOUCH // CONTACT ]
         </span>
 
         <h2 className="font-display font-extrabold uppercase text-white leading-[0.92] tracking-[-0.03em] select-none text-[clamp(2.5rem,7vw,6.5rem)]">
-          LET&apos;S CREATE SOMETHING UNFORGETTABLE.
+          LET&apos;S WORK TOGETHER ON YOUR NEXT PROJECT.
         </h2>
 
         {/* WhatsApp Direct Action (if creator configured WhatsApp) */}
@@ -66,7 +66,7 @@ export function CinemaFooter({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-8 py-4 font-mono text-xs font-semibold uppercase tracking-widest text-black bg-white hover:bg-zinc-200 transition-all shadow-xl hover:scale-[1.02]"
             >
-              <span>MESSAGE ON WHATSAPP</span>
+              <span>CHAT ON WHATSAPP</span>
               <span>↗</span>
             </a>
           </div>

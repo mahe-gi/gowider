@@ -39,9 +39,9 @@ export function AtelierFooter({
       case "linkedin":
         return "LINKEDIN";
       case "x":
-        return "X / TWITTER";
+        return "X";
       case "website":
-        return "PORTAL";
+        return "WEBSITE";
       default:
         return platform.toUpperCase();
     }
@@ -57,12 +57,12 @@ export function AtelierFooter({
         <div className="flex items-center gap-3">
           <span className="inline-block h-2 w-2 rounded-none bg-[#D6D3CD]" />
           <span className="font-mono text-xs uppercase tracking-[0.25em] text-[#A8A29E]">
-            ACQUISITIONS &amp; COMMISSIONS
+            [ GET IN TOUCH // CONTACT ]
           </span>
         </div>
 
         <h2 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-normal text-[#F5F5F4] leading-[1.05] tracking-[-0.02em] max-w-4xl">
-          INITIATE A COMMISSION OR INQUIRE FOR EXHIBITION SCREENINGS.
+          LET&apos;S WORK TOGETHER ON YOUR NEXT PROJECT.
         </h2>
 
         {/* Direct Action Buttons */}
@@ -86,7 +86,7 @@ export function AtelierFooter({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-8 py-4 font-mono text-xs font-semibold uppercase tracking-widest text-[#D6D3CD] border border-[#292524] bg-[#141210] hover:border-[#78716C] transition-all"
             >
-              <span>DIRECT WHATSAPP INQUIRY</span>
+              <span>CHAT ON WHATSAPP</span>
               <span>↗</span>
             </a>
           )}
@@ -110,7 +110,7 @@ export function AtelierFooter({
         </div>
 
         <div className="font-mono text-xs text-[#78716C]">
-          © {new Date().getFullYear()} {displayName}. FINE-ART ATELIER ARCHIVE.
+          © {new Date().getFullYear()} {displayName}. ALL RIGHTS RESERVED.
         </div>
       </div>
 

@@ -36,22 +36,22 @@ export function CyberLayout({ portfolio }: CyberLayoutProps) {
             <span>{profile.displayName}</span>
           </Link>
 
-          {/* Telemetry Status Indicator */}
+          {/* Status Indicator */}
           <div className="hidden md:flex items-center gap-2 text-xs uppercase tracking-widest text-zinc-400">
             <span className="inline-block h-2 w-2 rounded-none bg-[#00FF88] animate-pulse" />
-            <span>{profile.availability || "GPU ONLINE"}</span>
+            <span>{profile.availability || "AVAILABLE FOR WORK"}</span>
           </div>
 
           {/* Navigation Links + CTA Button */}
           <nav className="flex items-center gap-6 sm:gap-8 text-xs uppercase tracking-widest text-zinc-400">
             <a href="#telemetry" className="hover:text-[#00FF88] transition-colors">
-              TELEMETRY
+              WORK
             </a>
             <a href="#pipeline" className="hover:text-[#00FF88] transition-colors">
-              PIPELINE
+              ABOUT
             </a>
             <a href="#contact" className="hover:text-[#00FF88] transition-colors">
-              TRANSMIT
+              CONTACT
             </a>
             {settings?.cta?.enabled && (
               <a

@@ -18,34 +18,34 @@ export function StudioHero({ profile }: StudioHeroProps) {
       />
 
       <div className="relative z-10 space-y-10">
-        {/* Technical Sub-bar / Telemetry */}
+        {/* Sub-bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 font-mono text-xs uppercase tracking-widest text-zinc-400">
           <div className="flex items-center gap-2.5">
             <span className="inline-block h-2 w-2 rounded-full bg-[#2997FF] animate-pulse" />
             <span className="text-zinc-200">
-              {profile.availability || "STUDIO ACTIVE // AVAILABLE FOR BOOKING"}
+              {profile.availability || "AVAILABLE FOR WORK"}
             </span>
           </div>
 
           <div className="flex items-center gap-6 font-mono text-[11px] text-zinc-500">
             {profile.location && (
               <div>
-                <span>COORDINATES: </span>
+                <span>LOCATION: </span>
                 <span className="text-zinc-300">{profile.location}</span>
               </div>
             )}
             <span className="hidden sm:inline text-zinc-700">|</span>
             <span className="hidden sm:inline text-[#2997FF]/80">
-              SPEC: 4K UHD / DCI COLOR
+              4K VIDEO
             </span>
           </div>
         </div>
 
-        {/* Studio Technical Title in 12-Column Grid */}
+        {/* Studio Title in 12-Column Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
           <div className="lg:col-span-8 space-y-3">
             <div className="font-mono text-xs uppercase tracking-[0.25em] text-[#2997FF] flex items-center gap-2">
-              <span>[ STUDIO IDENTITY ]</span>
+              <span>[ PORTFOLIO ]</span>
             </div>
             <h1
               data-testid="studio-hero-headline"
@@ -55,9 +55,9 @@ export function StudioHero({ profile }: StudioHeroProps) {
             </h1>
           </div>
 
-          {/* Technical Index Metric (4 cols) */}
+          {/* About Metric (4 cols) */}
           <div className="lg:col-span-4 border-l border-white/[0.08] pl-6 space-y-2 font-mono text-xs text-zinc-400">
-            <div className="text-[#2997FF] font-semibold">PRACTICE DOMAIN:</div>
+            <div className="text-[#2997FF] font-semibold">ABOUT:</div>
             <p className="font-sans text-sm text-zinc-300 leading-snug">
               {profile.headline}
             </p>
@@ -67,14 +67,14 @@ export function StudioHero({ profile }: StudioHeroProps) {
         {/* Bottom Bar: Action & Anchor */}
         <div className="pt-4 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-4 font-mono text-xs uppercase tracking-wider text-zinc-400">
           <span className="text-zinc-500 text-[11px]">
-            POST-PRODUCTION // MOTION DESIGN // DIRECTION
+            VIDEO PRODUCTION &amp; POST-PRODUCTION
           </span>
 
           <a
             href="#showcase"
             className="group inline-flex items-center gap-2 text-zinc-300 hover:text-[#2997FF] transition-colors"
           >
-            <span>EXPLORE SHOWCASE</span>
+            <span>VIEW WORK</span>
             <span className="transition-transform duration-300 group-hover:translate-y-1 text-[#2997FF]">
               ↓
             </span>

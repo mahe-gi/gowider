@@ -25,24 +25,24 @@ export function NoirHero({ profile }: NoirHeroProps) {
       </div>
 
       <div className="relative z-10 space-y-8 pt-8">
-        {/* Production Slate Header */}
+        {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 font-mono text-xs uppercase tracking-widest text-zinc-400">
           <div className="flex items-center gap-2.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
             <span className="text-amber-400/90 font-semibold">
-              {profile.availability || "AVAILABLE FOR DIRECTORIAL COMMISSIONS"}
+              {profile.availability || "AVAILABLE FOR WORK"}
             </span>
           </div>
 
           <div className="flex items-center gap-4 text-zinc-500">
             {profile.location && (
               <div>
-                <span>BASE: </span>
+                <span>LOCATION: </span>
                 <span className="text-zinc-300">{profile.location}</span>
               </div>
             )}
             <span className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-300 font-mono">
-              PRO ARCHIVE
+              PORTFOLIO
             </span>
           </div>
         </div>
@@ -65,7 +65,7 @@ export function NoirHero({ profile }: NoirHeroProps) {
             href="#repertoire"
             className="group inline-flex items-center gap-2 self-start font-mono text-xs uppercase tracking-widest text-amber-400/80 hover:text-amber-300 transition-colors"
           >
-            <span>[ VIEW REPERTOIRE ]</span>
+            <span>[ VIEW WORK ]</span>
             <span className="transition-transform duration-300 group-hover:translate-y-1">
               ↓
             </span>

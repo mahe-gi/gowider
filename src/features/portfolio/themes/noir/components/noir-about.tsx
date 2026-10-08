@@ -17,10 +17,10 @@ export function NoirAbout({ profile, services, skills }: NoirAboutProps) {
       {/* Section Header */}
       <div className="mb-16 sm:mb-20 flex items-baseline justify-between border-b border-white/[0.08] pb-6">
         <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-300">
-          [ DIRECTORIAL METHODOLOGY & CAPABILITIES ]
+          [ ABOUT & SERVICES ]
         </h2>
         <span className="font-mono text-xs uppercase tracking-widest text-amber-500/80">
-          {profile.location || "WORLDWIDE COMMISSIONS"}
+          {profile.location || "AVAILABLE WORLDWIDE"}
         </span>
       </div>
 
@@ -33,19 +33,19 @@ export function NoirAbout({ profile, services, skills }: NoirAboutProps) {
 
           <div className="font-sans text-base sm:text-lg text-zinc-400 leading-relaxed space-y-4 whitespace-pre-line">
             {profile.bio ||
-              "Filmmaker and directorial editor crafting visceral cinematic narratives, rhythm-driven commercials, and anamorphic visual statements."}
+              "Filmmaker and editor crafting high-impact commercials, music videos, and narrative films."}
           </div>
 
           <div className="pt-6 border-t border-white/[0.06] flex flex-wrap gap-8 font-mono text-xs uppercase tracking-wider text-zinc-500">
             {profile.location && (
               <div>
-                <span className="text-zinc-600">PRODUCTION BASE: </span>
+                <span className="text-zinc-600">LOCATION: </span>
                 <span className="text-zinc-200">{profile.location}</span>
               </div>
             )}
             {profile.availability && (
               <div>
-                <span className="text-zinc-600">AVAILABILITY: </span>
+                <span className="text-zinc-600">STATUS: </span>
                 <span className="text-amber-400">{profile.availability}</span>
               </div>
             )}
@@ -58,7 +58,7 @@ export function NoirAbout({ profile, services, skills }: NoirAboutProps) {
           {services.length > 0 && (
             <div className="space-y-4">
               <h4 className="font-mono text-xs uppercase tracking-widest text-amber-400/90 border-b border-white/[0.06] pb-2">
-                DIRECTORIAL DISCIPLINES
+                SERVICES
               </h4>
               <ul className="space-y-3 font-sans text-sm sm:text-base text-zinc-300">
                 {services.map((svc, i) => (
@@ -77,7 +77,7 @@ export function NoirAbout({ profile, services, skills }: NoirAboutProps) {
           {skills.length > 0 && (
             <div className="space-y-4">
               <h4 className="font-mono text-xs uppercase tracking-widest text-zinc-400 border-b border-white/[0.06] pb-2">
-                POST-PRODUCTION SYSTEMS
+                TOOLS & SOFTWARE
               </h4>
               <div className="flex flex-wrap gap-2 pt-1">
                 {skills.map((skill, i) => (

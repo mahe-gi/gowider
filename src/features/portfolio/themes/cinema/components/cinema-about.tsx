@@ -13,7 +13,7 @@ export function CinemaAbout({ profile, services, skills }: CinemaAboutProps) {
       {/* Section Header */}
       <div className="mb-16 sm:mb-20 flex items-baseline justify-between border-b border-white/[0.08] pb-6">
         <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-400">
-          [ 02 // PRACTICE & CAPABILITIES ]
+          [ ABOUT &amp; SERVICES ]
         </h2>
         <span className="font-mono text-xs uppercase tracking-widest text-zinc-500">
           {profile.location || "GLOBAL"}
@@ -35,7 +35,7 @@ export function CinemaAbout({ profile, services, skills }: CinemaAboutProps) {
           <div className="pt-4 border-t border-white/[0.06] flex flex-wrap gap-8 font-mono text-xs uppercase tracking-wider text-zinc-500">
             {profile.location && (
               <div>
-                <span className="text-zinc-600">BASED: </span>
+                <span className="text-zinc-600">LOCATION: </span>
                 <span className="text-zinc-300">{profile.location}</span>
               </div>
             )}
@@ -73,7 +73,7 @@ export function CinemaAbout({ profile, services, skills }: CinemaAboutProps) {
           {skills.length > 0 && (
             <div className="space-y-4">
               <h4 className="font-mono text-xs uppercase tracking-widest text-zinc-400 border-b border-white/[0.06] pb-2">
-                TOOLKIT & CRAFT
+                TOOLS &amp; SOFTWARE
               </h4>
               <div className="flex flex-wrap gap-2">
                 {skills.map((skill) => (

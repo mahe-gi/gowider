@@ -98,7 +98,7 @@ export function CinemaProjectPage({
             <span className="transition-transform duration-200 group-hover:-translate-x-1">
               ←
             </span>
-            <span>BACK TO ARCHIVE</span>
+            <span>BACK TO WORK</span>
           </Link>
 
           <span className="font-display text-sm font-bold uppercase tracking-wider text-zinc-400">
@@ -116,7 +116,7 @@ export function CinemaProjectPage({
               {project.category}
             </span>
             {project.year && <span>{project.year}</span>}
-            {project.client && <span>{"//"} {project.client}</span>}
+            {project.client && <span>{"//"} CLIENT: {project.client}</span>}
           </div>
 
           <h1 className="font-display font-extrabold uppercase text-white leading-[0.95] tracking-[-0.03em] text-[clamp(2.5rem,6vw,5.5rem)]">
@@ -134,11 +134,11 @@ export function CinemaProjectPage({
           {/* Narrative Text (8 cols) */}
           <div className="lg:col-span-8 space-y-6">
             <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">
-              [ SYNOPSIS & EDITORIAL NOTES ]
+              [ ABOUT THIS PROJECT ]
             </h2>
             <div className="font-sans text-base sm:text-lg text-zinc-300 leading-relaxed whitespace-pre-line space-y-4">
               {project.description ||
-                "No additional editorial notes supplied for this case study."}
+                "No description provided."}
             </div>
           </div>
 

@@ -44,7 +44,7 @@ export function EditorialHero({ profile }: EditorialHeroProps) {
         {/* Dramatic Editorial Headline */}
         <div className="space-y-4">
           <span className="font-mono text-xs uppercase tracking-[0.3em] text-[#FF3B30] block">
-            SELECTED PORTFOLIO & REELS
+            PORTFOLIO
           </span>
           <h1
             data-testid="editorial-hero-headline"
@@ -64,7 +64,7 @@ export function EditorialHero({ profile }: EditorialHeroProps) {
             href="#index"
             className="group inline-flex items-center gap-2.5 self-start font-mono text-xs uppercase tracking-widest text-zinc-400 hover:text-[#FF3B30] transition-colors"
           >
-            <span>BROWSE INDEX</span>
+            <span>VIEW WORK</span>
             <span className="transition-transform duration-300 group-hover:translate-y-1 text-[#FF3B30]">
               ↓
             </span>

@@ -33,15 +33,15 @@ export function VogueLayout({ portfolio }: VogueLayoutProps) {
 
           <div className="hidden md:flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-stone-400">
             <span className="inline-block h-2 w-2 rounded-full bg-amber-200 animate-pulse" />
-            <span>{profile.availability || "AVAILABLE FOR COMMISSIONS"}</span>
+            <span>{profile.availability || "AVAILABLE FOR WORK"}</span>
           </div>
 
           <nav className="flex items-center gap-6 sm:gap-8 font-mono text-xs uppercase tracking-widest text-stone-400">
             <a href="#repertoire" className="hover:text-amber-200 transition-colors">
-              WORKS
+              WORK
             </a>
             <a href="#profile" className="hover:text-amber-200 transition-colors">
-              PROFILE
+              ABOUT
             </a>
             <a href="#contact" className="hover:text-amber-200 transition-colors">
               CONTACT

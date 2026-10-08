@@ -91,7 +91,7 @@ export function AtelierProjectPage({
             href={`/${profile.username}`}
             className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[#A8A29E] hover:text-[#F5F5F4] transition-colors"
           >
-            <span>← RETURN TO ATELIER</span>
+            <span>← BACK TO WORK</span>
           </Link>
 
           <Link
@@ -111,7 +111,7 @@ export function AtelierProjectPage({
             <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-[0.2em] text-[#A8A29E]">
               <span className="text-[#D6D3CD] font-medium">{project.category}</span>
               {project.year && <span>{"//"} {project.year}</span>}
-              {project.client && <span>{"//"} COMMISSIONED BY {project.client}</span>}
+              {project.client && <span>{"//"} CLIENT: {project.client}</span>}
             </div>
 
             <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-normal text-[#F5F5F4] tracking-[-0.02em] leading-tight">
@@ -126,46 +126,46 @@ export function AtelierProjectPage({
             </div>
           </div>
 
-          {/* Curatorial Breakdown Plaque */}
+          {/* Project Details */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-6 border-t border-[#292524]/60">
             <div className="lg:col-span-8 space-y-6">
               <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-[#A8A29E]">
-                CURATORIAL ESSAY &amp; DIRECTION
+                ABOUT THIS PROJECT
               </h2>
               <div className="font-serif text-lg sm:text-xl text-[#D6D3CD] leading-relaxed italic">
-                {project.description || "Archival study recorded without expanded curatorial notes."}
+                {project.description || "No description provided."}
               </div>
             </div>
 
             <div className="lg:col-span-4 space-y-8 font-mono text-xs">
               <div className="border border-[#292524] bg-[#141210] p-6 space-y-6">
                 <h3 className="uppercase tracking-[0.2em] text-[#A8A29E] border-b border-[#292524] pb-2">
-                  ARCHIVAL SPECIFICATION
+                  PROJECT DETAILS
                 </h3>
 
                 <div className="space-y-3">
                   <div>
-                    <span className="text-[#78716C] block uppercase tracking-wider text-[10px]">MEDIUM</span>
+                    <span className="text-[#78716C] block uppercase tracking-wider text-[10px]">CATEGORY</span>
                     <span className="text-[#F5F5F4]">{project.category}</span>
                   </div>
 
                   {project.client && (
                     <div>
-                      <span className="text-[#78716C] block uppercase tracking-wider text-[10px]">COMMISSIONER</span>
+                      <span className="text-[#78716C] block uppercase tracking-wider text-[10px]">CLIENT</span>
                       <span className="text-[#F5F5F4]">{project.client}</span>
                     </div>
                   )}
 
                   {project.year && (
                     <div>
-                      <span className="text-[#78716C] block uppercase tracking-wider text-[10px]">YEAR OF RECORD</span>
+                      <span className="text-[#78716C] block uppercase tracking-wider text-[10px]">YEAR</span>
                       <span className="text-[#F5F5F4]">{project.year}</span>
                     </div>
                   )}
 
                   {project.tools.length > 0 && (
                     <div>
-                      <span className="text-[#78716C] block uppercase tracking-wider text-[10px] mb-1.5">MEDIUM PROFICIENCIES</span>
+                      <span className="text-[#78716C] block uppercase tracking-wider text-[10px] mb-1.5">TOOLS USED</span>
                       <div className="flex flex-wrap gap-1.5">
                         {project.tools.map((tool) => (
                           <span

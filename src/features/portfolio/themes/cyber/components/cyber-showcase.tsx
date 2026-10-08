@@ -19,7 +19,7 @@ export function CyberShowcase({ projects, username }: CyberShowcaseProps) {
     return (
       <section id="telemetry" className="py-24 text-center border-b border-emerald-500/20">
         <p className="font-mono text-sm uppercase tracking-widest text-zinc-500">
-          [ NO ACTIVE GPU NODES DETECTED IN PIPELINE ]
+          [ NO PUBLISHED PROJECTS YET ]
         </p>
       </section>
     );
@@ -31,16 +31,16 @@ export function CyberShowcase({ projects, username }: CyberShowcaseProps) {
       data-testid="cyber-showcase"
       className="py-20 sm:py-32 border-b border-emerald-500/20"
     >
-      {/* Telemetry Index Header */}
+      {/* Work Header */}
       <div className="mb-16 sm:mb-24 flex items-baseline justify-between border-b border-emerald-500/20 pb-6">
         <div className="flex items-center gap-3">
           <span className="h-2 w-2 rounded-none bg-[#00FF88] shadow-[0_0_8px_#00FF88]" />
           <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-[#00FF88]">
-            [ GPU COMPUTE PIPELINE // TELEMETRY NODES ]
+            [ SELECTED WORK ]
           </h2>
         </div>
         <span className="font-mono text-xs uppercase tracking-widest text-cyan-400">
-          {projects.length} {projects.length === 1 ? "NODE ACTIVE" : "NODES ACTIVE"}
+          {projects.length} {projects.length === 1 ? "PROJECT" : "PROJECTS"}
         </span>
       </div>
 
@@ -152,7 +152,7 @@ export function CyberShowcase({ projects, username }: CyberShowcaseProps) {
                     </span>
                     {project.featured && (
                       <span className="text-[10px] px-2 py-0.5 border border-[#00FF88]/50 bg-emerald-950/40 text-[#00FF88] uppercase">
-                        PRIMARY BUFFER
+                        FEATURED
                       </span>
                     )}
                   </div>
@@ -170,7 +170,7 @@ export function CyberShowcase({ projects, username }: CyberShowcaseProps) {
                   href={`/${username}/work/${project.slug}`}
                   className="text-xs uppercase tracking-widest text-[#00FF88] hover:text-white transition-colors inline-flex items-center gap-1.5 shrink-0 self-start sm:self-auto py-2"
                 >
-                  <span>[ ACCESS PIPELINE TELEMETRY ]</span>
+                  <span>[ VIEW PROJECT ]</span>
                   <span>↗</span>
                 </Link>
               </div>

@@ -93,26 +93,25 @@ export function NoirProjectPage({
               className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-zinc-400 hover:text-amber-300 transition-colors"
             >
               <span>←</span>
-              <span>[ RETURN TO REPERTOIRE ]</span>
+              <span>[ BACK TO WORK ]</span>
             </Link>
 
             <span className="font-mono text-xs uppercase tracking-widest text-amber-400/80">
-              {profile.displayName} {"//"} 2.39:1 NOIR
+              {profile.displayName}
             </span>
           </div>
         </header>
 
         {/* Main Stage */}
         <main className="mx-auto max-w-[1800px] px-6 py-12 sm:px-10 sm:py-16 lg:px-16 space-y-12">
-          {/* Production Slate Header */}
+          {/* Header */}
           <div className="space-y-4 border-b border-white/[0.08] pb-8">
             <div className="flex flex-wrap items-center justify-between gap-4 font-mono text-xs uppercase tracking-widest text-zinc-400">
               <div className="flex items-center gap-3">
-                <span className="text-amber-400 font-semibold">[PRODUCTION MASTER]</span>
-                <span>CATEGORY: {project.category}</span>
+                <span className="text-amber-400 font-semibold">[{project.category}]</span>
               </div>
               <div className="flex items-center gap-4">
-                {project.year && <span>RELEASE: {project.year}</span>}
+                {project.year && <span>YEAR: {project.year}</span>}
                 {project.client && <span className="text-zinc-300">CLIENT: {project.client}</span>}
               </div>
             </div>
@@ -122,16 +121,16 @@ export function NoirProjectPage({
             </h1>
           </div>
 
-          {/* Anamorphic Framing Video Player Stage */}
+          {/* Video Player Stage */}
           <div className="relative overflow-hidden border border-white/[0.08] bg-black shadow-2xl">
             {renderMediaStage()}
           </div>
 
-          {/* Project Details & Production Notes */}
+          {/* Project Details */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-4">
             <div className="lg:col-span-8 space-y-6">
               <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-amber-400">
-                [ DIRECTORIAL NOTES & VISION ]
+                [ ABOUT THIS PROJECT ]
               </h2>
               {project.description ? (
                 <div className="font-sans text-base sm:text-lg text-zinc-300 leading-relaxed whitespace-pre-line">
@@ -139,7 +138,7 @@ export function NoirProjectPage({
                 </div>
               ) : (
                 <p className="font-mono text-sm text-zinc-500 uppercase tracking-wider">
-                  No additional directorial notes logged for this production cut.
+                  No description provided.
                 </p>
               )}
             </div>
@@ -148,7 +147,7 @@ export function NoirProjectPage({
               {project.tools.length > 0 && (
                 <div className="space-y-3">
                   <h3 className="font-mono text-xs uppercase tracking-widest text-zinc-400 border-b border-white/[0.06] pb-2">
-                    CAMERA & POST PIPELINE
+                    TOOLS &amp; SOFTWARE
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {project.tools.map((tool) => (

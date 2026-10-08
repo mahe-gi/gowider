@@ -56,11 +56,11 @@ export function StudioShowcase({ projects, username }: StudioShowcaseProps) {
           <div className="flex items-center gap-3">
             <span className="inline-block h-2 w-2 rounded-full bg-[#2997FF]" />
             <h2 className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-300">
-              [ SHOWCASE // PROJECT INDEX ]
+              [ SELECTED WORK ]
             </h2>
           </div>
           <span className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-            {filteredProjects.length} / {projects.length} UNITS
+            {filteredProjects.length} / {projects.length} PROJECTS
           </span>
         </div>
 
@@ -237,7 +237,7 @@ export function StudioShowcase({ projects, username }: StudioShowcaseProps) {
                       className="inline-flex items-center gap-2 text-zinc-300 group-hover:text-[#2997FF] transition-colors"
                     >
                       <span className="uppercase tracking-widest text-[11px]">
-                        TECHNICAL CASE STUDY
+                        VIEW PROJECT
                       </span>
                       <span className="transition-transform group-hover:translate-x-1">
                         →
