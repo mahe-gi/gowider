@@ -38,6 +38,7 @@ export function BillingClient({
   const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleUpgrade = () => {
@@ -155,11 +156,8 @@ export function BillingClient({
     });
   };
 
-  const handleCancelSubscription = () => {
-    if (!confirm("Are you sure you want to cancel your Pro subscription? You will retain access until the current period ends.")) {
-      return;
-    }
-
+  const executeCancelSubscription = () => {
+    setShowCancelModal(false);
     setErrorMessage(null);
     setSuccessMessage(null);
 
@@ -231,7 +229,7 @@ export function BillingClient({
                 <button
                   type="button"
                   data-testid="cancel-subscription-btn"
-                  onClick={handleCancelSubscription}
+                  onClick={() => setShowCancelModal(true)}
                   disabled={isPending}
                   className="rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-400 hover:text-rose-400 hover:border-rose-900/60 transition disabled:opacity-50"
                 >
@@ -528,6 +526,73 @@ export function BillingClient({
           </div>
         </div>
       </div>
+
+      {/* Custom GoWider Modal for Subscription Cancellation */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/85 backdrop-blur-md transition-opacity"
+            onClick={() => !isPending && setShowCancelModal(false)}
+          />
+
+          {/* Modal Card */}
+          <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl shadow-black/80 space-y-5">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400">
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Cancel Pro Subscription?</h3>
+                  <p className="text-xs text-zinc-400 mt-0.5">GoWider Pro Studio</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => !isPending && setShowCancelModal(false)}
+                className="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-900 hover:text-white transition"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="text-sm text-zinc-300 leading-relaxed">
+              Are you sure you want to cancel? You will keep full access to unlimited projects, custom themes, and showreels until the end of your billing cycle. After that, your portfolio will revert to the Free Starter plan.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-900">
+              <button
+                type="button"
+                onClick={() => setShowCancelModal(false)}
+                disabled={isPending}
+                className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-300 hover:bg-zinc-800 hover:text-white transition disabled:opacity-50"
+              >
+                Keep My Subscription
+              </button>
+
+              <button
+                type="button"
+                onClick={executeCancelSubscription}
+                disabled={isPending}
+                className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-xs font-bold text-rose-300 hover:bg-rose-500/20 hover:border-rose-500/60 transition disabled:opacity-50"
+              >
+                {isPending ? "Canceling..." : "Confirm Cancellation"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
