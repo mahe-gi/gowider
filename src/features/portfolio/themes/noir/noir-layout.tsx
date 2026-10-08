@@ -3,9 +3,11 @@ import Link from "next/link";
 import type { PublicPortfolioData } from "../../types";
 import { NoirHero } from "./components/noir-hero";
 import { NoirShowcase } from "./components/noir-showcase";
+import { NoirTools } from "./components/noir-tools";
 import { NoirAbout } from "./components/noir-about";
 import { NoirFooter } from "./components/noir-footer";
 import { CinemaCursor } from "../../shared/cursor";
+import { resolveDisplayTools } from "../../shared/tools";
 
 interface NoirLayoutProps {
   portfolio: PublicPortfolioData;
@@ -13,6 +15,7 @@ interface NoirLayoutProps {
 
 export function NoirLayout({ portfolio }: NoirLayoutProps) {
   const { profile, projects, services, skills, socialLinks, settings } = portfolio;
+  const displayTools = resolveDisplayTools(skills, projects);
 
   return (
     <div
@@ -47,6 +50,11 @@ export function NoirLayout({ portfolio }: NoirLayoutProps) {
             <a href="#repertoire" className="hover:text-amber-300 transition-colors">
               WORK
             </a>
+            {displayTools.length > 0 && (
+              <a href="#tools" className="hover:text-amber-300 transition-colors">
+                TOOLS
+              </a>
+            )}
             <a href="#practice" className="hover:text-amber-300 transition-colors">
               ABOUT
             </a>
@@ -61,6 +69,7 @@ export function NoirLayout({ portfolio }: NoirLayoutProps) {
       <main className="mx-auto max-w-[1800px] px-6 sm:px-10 lg:px-16">
         <NoirHero profile={profile} />
         <NoirShowcase projects={projects} username={profile.username} />
+        {displayTools.length > 0 && <NoirTools tools={displayTools} />}
         <NoirAbout
           profile={profile}
           services={services}

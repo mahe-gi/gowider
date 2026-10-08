@@ -3,8 +3,10 @@ import Link from "next/link";
 import type { PublicPortfolioData } from "../../types";
 import { VogueHero } from "./components/vogue-hero";
 import { VogueShowcase } from "./components/vogue-showcase";
+import { VogueTools } from "./components/vogue-tools";
 import { VogueAbout } from "./components/vogue-about";
 import { VogueFooter } from "./components/vogue-footer";
+import { resolveDisplayTools } from "../../shared/tools";
 
 interface VogueLayoutProps {
   portfolio: PublicPortfolioData;
@@ -12,6 +14,7 @@ interface VogueLayoutProps {
 
 export function VogueLayout({ portfolio }: VogueLayoutProps) {
   const { profile, projects, services, skills, socialLinks, settings } = portfolio;
+  const displayTools = resolveDisplayTools(skills, projects);
 
   return (
     <div
@@ -40,6 +43,11 @@ export function VogueLayout({ portfolio }: VogueLayoutProps) {
             <a href="#repertoire" className="hover:text-amber-200 transition-colors">
               WORK
             </a>
+            {displayTools.length > 0 && (
+              <a href="#tools" className="hover:text-amber-200 transition-colors">
+                TOOLS
+              </a>
+            )}
             <a href="#profile" className="hover:text-amber-200 transition-colors">
               ABOUT
             </a>
@@ -54,6 +62,7 @@ export function VogueLayout({ portfolio }: VogueLayoutProps) {
       <main className="mx-auto max-w-[1500px] px-6 sm:px-10 lg:px-16">
         <VogueHero profile={profile} />
         <VogueShowcase projects={projects} username={profile.username} />
+        {displayTools.length > 0 && <VogueTools tools={displayTools} />}
         <VogueAbout
           profile={profile}
           services={services}

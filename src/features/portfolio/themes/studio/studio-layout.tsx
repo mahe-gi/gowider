@@ -3,8 +3,10 @@ import Link from "next/link";
 import type { PublicPortfolioData } from "../../types";
 import { StudioHero } from "./components/studio-hero";
 import { StudioShowcase } from "./components/studio-showcase";
+import { StudioTools } from "./components/studio-tools";
 import { StudioAbout } from "./components/studio-about";
 import { StudioFooter } from "./components/studio-footer";
+import { resolveDisplayTools } from "../../shared/tools";
 
 interface StudioLayoutProps {
   portfolio: PublicPortfolioData;
@@ -12,6 +14,7 @@ interface StudioLayoutProps {
 
 export function StudioLayout({ portfolio }: StudioLayoutProps) {
   const { profile, projects, services, skills, socialLinks } = portfolio;
+  const displayTools = resolveDisplayTools(skills, projects);
 
   return (
     <div
@@ -49,6 +52,14 @@ export function StudioLayout({ portfolio }: StudioLayoutProps) {
             >
               WORK
             </a>
+            {displayTools.length > 0 && (
+              <a
+                href="#tools"
+                className="hover:text-[#2997FF] transition-colors"
+              >
+                TOOLS
+              </a>
+            )}
             <a
               href="#about"
               className="hover:text-[#2997FF] transition-colors"
@@ -69,6 +80,7 @@ export function StudioLayout({ portfolio }: StudioLayoutProps) {
       <main className="mx-auto max-w-[1600px] px-6 sm:px-10 lg:px-16">
         <StudioHero profile={profile} />
         <StudioShowcase projects={projects} username={profile.username} />
+        {displayTools.length > 0 && <StudioTools tools={displayTools} />}
         <StudioAbout
           profile={profile}
           services={services}

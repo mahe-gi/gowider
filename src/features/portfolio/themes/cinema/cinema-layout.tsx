@@ -4,9 +4,11 @@ import type { PublicPortfolioData } from "../../types";
 import { CinemaHero } from "./components/cinema-hero";
 import { CinemaShowreel } from "./components/cinema-showreel";
 import { CinemaWork } from "./components/cinema-work";
+import { CinemaTools } from "./components/cinema-tools";
 import { CinemaAbout } from "./components/cinema-about";
 import { CinemaFooter } from "./components/cinema-footer";
 import { CinemaCursor } from "../../shared/cursor";
+import { resolveDisplayTools } from "../../shared/tools";
 
 interface CinemaLayoutProps {
   portfolio: PublicPortfolioData;
@@ -14,6 +16,7 @@ interface CinemaLayoutProps {
 
 export function CinemaLayout({ portfolio }: CinemaLayoutProps) {
   const { profile, projects, services, skills, socialLinks, settings } = portfolio;
+  const displayTools = resolveDisplayTools(skills, projects);
 
   return (
     <div
@@ -47,6 +50,11 @@ export function CinemaLayout({ portfolio }: CinemaLayoutProps) {
             <a href="#work" className="hover:text-white transition-colors">
               WORK
             </a>
+            {displayTools.length > 0 && (
+              <a href="#tools" className="hover:text-white transition-colors">
+                TOOLS
+              </a>
+            )}
             <a href="#about" className="hover:text-white transition-colors">
               ABOUT
             </a>
@@ -62,6 +70,7 @@ export function CinemaLayout({ portfolio }: CinemaLayoutProps) {
         <CinemaHero profile={profile} />
         <CinemaShowreel projects={projects} />
         <CinemaWork projects={projects} username={profile.username} />
+        {displayTools.length > 0 && <CinemaTools tools={displayTools} />}
         <CinemaAbout
           profile={profile}
           services={services}

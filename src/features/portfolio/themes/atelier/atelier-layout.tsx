@@ -3,9 +3,11 @@ import Link from "next/link";
 import type { PublicPortfolioData } from "../../types";
 import { AtelierHero } from "./components/atelier-hero";
 import { AtelierShowcase } from "./components/atelier-showcase";
+import { AtelierTools } from "./components/atelier-tools";
 import { AtelierAbout } from "./components/atelier-about";
 import { AtelierFooter } from "./components/atelier-footer";
 import { CinemaCursor } from "../../shared/cursor";
+import { resolveDisplayTools } from "../../shared/tools";
 
 interface AtelierLayoutProps {
   portfolio: PublicPortfolioData;
@@ -13,6 +15,7 @@ interface AtelierLayoutProps {
 
 export function AtelierLayout({ portfolio }: AtelierLayoutProps) {
   const { profile, projects, services, skills, socialLinks, settings } = portfolio;
+  const displayTools = resolveDisplayTools(skills, projects);
 
   return (
     <div
@@ -47,6 +50,11 @@ export function AtelierLayout({ portfolio }: AtelierLayoutProps) {
             <a href="#exhibitions" className="hover:text-[#F5F5F4] transition-colors">
               WORK
             </a>
+            {displayTools.length > 0 && (
+              <a href="#tools" className="hover:text-[#F5F5F4] transition-colors">
+                TOOLS
+              </a>
+            )}
             <a href="#practice" className="hover:text-[#F5F5F4] transition-colors">
               ABOUT
             </a>
@@ -76,6 +84,7 @@ export function AtelierLayout({ portfolio }: AtelierLayoutProps) {
           cta={settings?.cta}
         />
         <AtelierShowcase projects={projects} username={profile.username} />
+        {displayTools.length > 0 && <AtelierTools tools={displayTools} />}
         <AtelierAbout
           profile={profile}
           services={services}

@@ -3,8 +3,10 @@ import Link from "next/link";
 import type { PublicPortfolioData } from "../../types";
 import { EditorialHero } from "./components/editorial-hero";
 import { EditorialIndex } from "./components/editorial-index";
+import { EditorialTools } from "./components/editorial-tools";
 import { EditorialAbout } from "./components/editorial-about";
 import { EditorialFooter } from "./components/editorial-footer";
+import { resolveDisplayTools } from "../../shared/tools";
 
 interface EditorialLayoutProps {
   portfolio: PublicPortfolioData;
@@ -12,6 +14,7 @@ interface EditorialLayoutProps {
 
 export function EditorialLayout({ portfolio }: EditorialLayoutProps) {
   const { profile, projects, services, skills, socialLinks, settings } = portfolio;
+  const displayTools = resolveDisplayTools(skills, projects);
 
   return (
     <div
@@ -53,6 +56,14 @@ export function EditorialLayout({ portfolio }: EditorialLayoutProps) {
             >
               WORK
             </a>
+            {displayTools.length > 0 && (
+              <a
+                href="#tools"
+                className="hover:text-[#FF3B30] transition-colors"
+              >
+                TOOLS
+              </a>
+            )}
             <a
               href="#about"
               className="hover:text-[#FF3B30] transition-colors"
@@ -73,6 +84,7 @@ export function EditorialLayout({ portfolio }: EditorialLayoutProps) {
       <main className="mx-auto max-w-[1440px] px-6 sm:px-10 lg:px-12">
         <EditorialHero profile={profile} />
         <EditorialIndex projects={projects} username={profile.username} />
+        {displayTools.length > 0 && <EditorialTools tools={displayTools} />}
         <EditorialAbout
           profile={profile}
           services={services}

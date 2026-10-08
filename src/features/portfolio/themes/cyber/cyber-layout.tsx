@@ -3,9 +3,11 @@ import Link from "next/link";
 import type { PublicPortfolioData } from "../../types";
 import { CyberHero } from "./components/cyber-hero";
 import { CyberShowcase } from "./components/cyber-showcase";
+import { CyberTools } from "./components/cyber-tools";
 import { CyberAbout } from "./components/cyber-about";
 import { CyberFooter } from "./components/cyber-footer";
 import { CinemaCursor } from "../../shared/cursor";
+import { resolveDisplayTools } from "../../shared/tools";
 
 interface CyberLayoutProps {
   portfolio: PublicPortfolioData;
@@ -13,6 +15,7 @@ interface CyberLayoutProps {
 
 export function CyberLayout({ portfolio }: CyberLayoutProps) {
   const { profile, projects, services, skills, socialLinks, settings } = portfolio;
+  const displayTools = resolveDisplayTools(skills, projects);
 
   return (
     <div
@@ -47,6 +50,11 @@ export function CyberLayout({ portfolio }: CyberLayoutProps) {
             <a href="#telemetry" className="hover:text-[#00FF88] transition-colors">
               WORK
             </a>
+            {displayTools.length > 0 && (
+              <a href="#tools" className="hover:text-[#00FF88] transition-colors">
+                TOOLS
+              </a>
+            )}
             <a href="#pipeline" className="hover:text-[#00FF88] transition-colors">
               ABOUT
             </a>
@@ -76,6 +84,7 @@ export function CyberLayout({ portfolio }: CyberLayoutProps) {
           cta={settings?.cta}
         />
         <CyberShowcase projects={projects} username={profile.username} />
+        {displayTools.length > 0 && <CyberTools tools={displayTools} />}
         <CyberAbout
           profile={profile}
           services={services}

@@ -543,4 +543,57 @@ describe("Multi-Theme Contract Parity", () => {
     expect(cyberHtml).not.toContain("secret_owner@company.com");
     expect(cyberHtml).not.toContain("mailto:");
   });
+
+  describe("Tools & Technologies Section & Dynamic Navigation", () => {
+    it("renders dedicated Tools & Technologies section and nav link across all 7 themes when skills are present", () => {
+      const themes = [
+        { name: "Cinema", component: CinemaLayout, testId: "cinema-tools" },
+        { name: "Editorial", component: EditorialLayout, testId: "editorial-tools" },
+        { name: "Studio", component: StudioLayout, testId: "studio-tools" },
+        { name: "Noir", component: NoirLayout, testId: "noir-tools" },
+        { name: "Vogue", component: VogueLayout, testId: "vogue-tools" },
+        { name: "Atelier", component: AtelierLayout, testId: "atelier-tools" },
+        { name: "Cyber", component: CyberLayout, testId: "cyber-tools" },
+      ];
+
+      for (const { component, testId } of themes) {
+        const html = renderToStaticMarkup(
+          React.createElement(component, { portfolio: mockPublicPortfolio })
+        );
+        expect(html).toContain(`data-testid="${testId}"`);
+        expect(html).toContain('href="#tools"');
+        expect(html).toContain("DaVinci Resolve Studio");
+        expect(html).toContain("Adobe Premiere Pro");
+      }
+    });
+
+    it("falls back to project tools when profile skills are empty", () => {
+      const portfolioWithProjectToolsOnly: PublicPortfolioData = {
+        ...mockPublicPortfolio,
+        skills: [],
+      };
+
+      const html = renderToStaticMarkup(
+        React.createElement(CinemaLayout, { portfolio: portfolioWithProjectToolsOnly })
+      );
+      expect(html).toContain('data-testid="cinema-tools"');
+      expect(html).toContain('href="#tools"');
+      expect(html).toContain("DaVinci Resolve");
+    });
+
+    it("omits tools section and tools nav link when no skills or project tools exist", () => {
+      const emptyToolsPortfolio: PublicPortfolioData = {
+        ...mockPublicPortfolio,
+        skills: [],
+        projects: mockPublicPortfolio.projects.map((p) => ({ ...p, tools: [] })),
+      };
+
+      const html = renderToStaticMarkup(
+        React.createElement(CinemaLayout, { portfolio: emptyToolsPortfolio })
+      );
+      expect(html).not.toContain('data-testid="cinema-tools"');
+      expect(html).not.toContain('href="#tools"');
+    });
+  });
 });
+
