@@ -34,10 +34,28 @@ export function CtaBanner() {
           </Link>
         </div>
 
-        <div className="mt-12 flex items-center justify-center gap-6 font-mono text-[11px] uppercase tracking-wider text-zinc-400">
+        {/* Product Hunt Badge */}
+        <div className="mt-10 flex justify-center">
+          <a
+            href="https://www.producthunt.com/products/gowider-broadcast?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-gowider-broadcast"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block transition-transform hover:scale-105"
+          >
+            <img
+              alt="GoWider — Broadcast - The editorial portfolio platform | Product Hunt"
+              width={250}
+              height={54}
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1273329&theme=light&t=1791432575187"
+              className="w-[250px] h-[54px]"
+            />
+          </a>
+        </div>
+
+        <div className="mt-10 flex items-center justify-center gap-6 font-mono text-[11px] uppercase tracking-wider text-zinc-400">
           <span>Google Sign In</span>
           <span>•</span>
-          <span>₹0 At Launch</span>
+          <span>Free Starter Tier</span>
           <span>•</span>
           <span>Zero Video Uploads</span>
         </div>

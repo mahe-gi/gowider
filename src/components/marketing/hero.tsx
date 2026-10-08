@@ -45,6 +45,24 @@ export function Hero() {
           </Link>
         </div>
 
+        {/* Product Hunt Featured Badge */}
+        <div className="mt-8 flex justify-center">
+          <a
+            href="https://www.producthunt.com/products/gowider-broadcast?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-gowider-broadcast"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block transition-transform hover:scale-105"
+          >
+            <img
+              alt="GoWider — Broadcast - The editorial portfolio platform | Product Hunt"
+              width={250}
+              height={54}
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1273329&theme=light&t=1791432575187"
+              className="w-[250px] h-[54px]"
+            />
+          </a>
+        </div>
+
         {/* Micro-Features Bar */}
         <div className="mt-16 pt-8 border-t border-white/[0.06] grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
           <div className="flex flex-col items-center">
