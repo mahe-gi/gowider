@@ -68,7 +68,7 @@ export function Hero() {
               ₹0 FREE
             </span>
             <span className="font-mono text-[11px] text-zinc-400 uppercase mt-1">
-              Launch Tier Access
+              Starter Plan Forever
             </span>
           </div>
         </div>

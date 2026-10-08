@@ -138,7 +138,7 @@ export function MobileDashboardNav() {
                     GoWider Pro
                   </span>
                   <span className="text-[10px] font-semibold text-amber-400">
-                    ₹299/mo →
+                    ₹99/mo →
                   </span>
                 </div>
                 <p className="mt-1 text-[11px] text-zinc-400 leading-snug">

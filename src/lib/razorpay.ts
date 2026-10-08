@@ -36,8 +36,8 @@ export const RAZORPAY_PLANS = {
   PRO_MONTHLY: {
     id: "plan_pro_monthly",
     name: "GoWider Pro (Monthly)",
-    priceInRupees: 299,
-    priceInPaise: 29900,
+    priceInRupees: 99,
+    priceInPaise: 9900,
     interval: "monthly",
     maxProjects: Infinity,
     hideBrandingAllowed: true,
@@ -47,8 +47,8 @@ export const RAZORPAY_PLANS = {
   PRO_ANNUAL: {
     id: "plan_pro_annual",
     name: "GoWider Pro (Annual)",
-    priceInRupees: 3229,
-    priceInPaise: 322900,
+    priceInRupees: 1069,
+    priceInPaise: 106900,
     interval: "yearly",
     maxProjects: Infinity,
     hideBrandingAllowed: true,

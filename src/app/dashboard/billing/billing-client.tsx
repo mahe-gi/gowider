@@ -69,6 +69,7 @@ export function BillingClient({
           razorpayOrderId: orderId,
           razorpaySubscriptionId: subscriptionId,
           razorpaySignature: "mock_signature",
+          interval: billingInterval,
         });
 
         if (activateRes.success) {
@@ -120,6 +121,7 @@ export function BillingClient({
             razorpayOrderId: response.razorpay_order_id,
             razorpaySubscriptionId: response.razorpay_subscription_id,
             razorpaySignature: response.razorpay_signature,
+            interval: billingInterval,
           });
 
           if (activateRes.success) {
@@ -217,6 +219,22 @@ export function BillingClient({
             <h2 className="text-2xl font-bold text-white mt-1">
               {isPro ? "GoWider Pro Studio" : "GoWider Starter"}
             </h2>
+
+            {isPro && subscription?.currentPeriodEnd && (() => {
+              const diffMs = new Date(subscription.currentPeriodEnd).getTime() - Date.now();
+              const daysLeft = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+              return (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-400/10 border border-amber-400/30 px-2 py-0.5 text-xs font-mono font-semibold text-amber-300">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    {daysLeft} {daysLeft === 1 ? "day" : "days"} remaining
+                  </span>
+                  <span className="text-[11px] text-zinc-500 font-mono">
+                    (Renews / expires on {new Date(subscription.currentPeriodEnd).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })})
+                  </span>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="flex items-center gap-3">
@@ -244,7 +262,7 @@ export function BillingClient({
                 disabled={isPending}
                 className="rounded-lg bg-white px-5 py-2.5 text-xs font-bold text-black hover:bg-zinc-200 transition disabled:opacity-50 shadow-lg shadow-white/5"
               >
-                {isPending ? "Processing..." : "Upgrade to Pro (₹299/mo)"}
+                {isPending ? "Processing..." : "Upgrade to Pro (₹99/mo)"}
               </button>
             )}
           </div>
@@ -467,7 +485,7 @@ export function BillingClient({
               <div>
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-3xl font-extrabold text-white">
-                    {billingInterval === "yearly" ? "₹3,229" : "₹299"}
+                    {billingInterval === "yearly" ? "₹1,069" : "₹99"}
                   </span>
                   <span className="text-xs text-zinc-400">
                     {billingInterval === "yearly" ? "/ year" : "/ month"}
@@ -475,7 +493,7 @@ export function BillingClient({
                 </div>
                 <p className="text-xs text-zinc-500 mt-1">
                   {billingInterval === "yearly"
-                    ? "Billed annually (Save 10% — ₹269/month equivalent)"
+                    ? "Billed annually (Save 10% — ₹89/month equivalent)"
                     : "Billed monthly. Cancel anytime."}
                 </p>
               </div>
@@ -519,7 +537,7 @@ export function BillingClient({
                 >
                   {isPending
                     ? "Initializing Checkout..."
-                    : `Upgrade to Pro (${billingInterval === "yearly" ? "₹3,229/yr" : "₹299/mo"})`}
+                    : `Upgrade to Pro (${billingInterval === "yearly" ? "₹1,069/yr" : "₹99/mo"})`}
                 </button>
               )}
             </div>

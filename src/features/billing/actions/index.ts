@@ -113,6 +113,7 @@ export async function verifyPaymentAndActivateAction(params: {
   razorpaySubscriptionId?: string;
   razorpayOrderId?: string;
   razorpaySignature: string;
+  interval?: "monthly" | "yearly";
 }): Promise<ActionResponse<{ activated: boolean; plan: string }>> {
   try {
     await requireAuth();
@@ -136,8 +137,10 @@ export async function verifyPaymentAndActivateAction(params: {
       }
     }
 
+    const interval = params.interval || "monthly";
+    const durationDays = interval === "yearly" ? 365 : 30;
     const currentPeriodStart = new Date();
-    const currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const currentPeriodEnd = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
 
     await activateProSubscription(params.profileId, {
       razorpaySubscriptionId: params.razorpaySubscriptionId || params.razorpayOrderId,

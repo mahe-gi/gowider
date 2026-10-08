@@ -31,7 +31,7 @@ export async function isProProfile(profileId: string): Promise<boolean> {
   // If subscription has a period end, verify it hasn't expired
   if (sub.currentPeriodEnd) {
     const isExpired = new Date(sub.currentPeriodEnd).getTime() < Date.now();
-    if (isExpired && sub.status !== "active") return false;
+    if (isExpired) return false;
   }
 
   return isPro && isActive;

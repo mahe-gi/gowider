@@ -146,14 +146,14 @@ export function PricingCard() {
                 <div className="text-right">
                   <div className="flex items-baseline justify-end gap-1">
                     <span className="font-display text-4xl sm:text-5xl font-black text-amber-300">
-                      ₹{isYearly ? "3,229" : "299"}
+                      ₹{isYearly ? "1,069" : "99"}
                     </span>
                     <span className="font-mono text-xs text-zinc-400">
                       /{isYearly ? "yr" : "mo"}
                     </span>
                   </div>
                   <span className="font-mono text-[10px] text-amber-400/80 uppercase block mt-1">
-                    {isYearly ? "Billed annually (Save 10% — ₹359 off)" : "Billed monthly via Razorpay"}
+                    {isYearly ? "Billed annually (Save 10% — ₹119 off)" : "Billed monthly via Razorpay"}
                   </span>
                 </div>
               </div>
