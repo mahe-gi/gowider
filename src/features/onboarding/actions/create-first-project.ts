@@ -6,6 +6,7 @@ import { projects } from "@/db/schema/projects";
 import { requireAuth } from "@/lib/auth-guards";
 import { AppError } from "@/lib/errors";
 import { actionError, actionSuccess, type ActionResponse } from "@/lib/types";
+import { isUniqueConstraintError } from "@/lib/db-errors";
 import { parseMediaUrl } from "@/features/media";
 import { createFirstProjectSchema, type CreateFirstProjectInput } from "../validation";
 import { eq } from "drizzle-orm";
@@ -75,9 +76,8 @@ export async function createFirstProjectAction(
         insertedProject = project;
         break;
       } catch (dbErr: unknown) {
-        const pgCode = (dbErr as { code?: string })?.code;
         // Postgres 23505 = unique_violation (e.g. uq_profile_project_slug)
-        if (pgCode === "23505") {
+        if (isUniqueConstraintError(dbErr)) {
           continue;
         }
         throw dbErr;

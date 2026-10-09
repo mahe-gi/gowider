@@ -5,6 +5,7 @@ import { profiles } from "@/db/schema/profiles";
 import { requireAuth } from "@/lib/auth-guards";
 import { AppError } from "@/lib/errors";
 import { actionError, actionSuccess, type ActionResponse } from "@/lib/types";
+import { isUniqueConstraintError, getDbErrorConstraint } from "@/lib/db-errors";
 import { claimUsernameSchema } from "../validation";
 import { isReservedUsername, normalizeUsername } from "../constants";
 import { enforceRateLimit } from "../rate-limit";
@@ -40,13 +41,25 @@ export async function checkUsernameAvailabilityAction(
       });
     }
 
+    // Check if the current user already owns this username
+    let currentUserId: string | null = null;
+    try {
+      const auth = await requireAuth();
+      currentUserId = auth.user.id;
+    } catch {
+      // Unauthenticated check is allowed
+    }
+
     const [existing] = await db
-      .select({ id: profiles.id })
+      .select({ id: profiles.id, userId: profiles.userId })
       .from(profiles)
       .where(eq(profiles.username, normalized))
       .limit(1);
 
     if (existing) {
+      if (currentUserId && existing.userId === currentUserId) {
+        return actionSuccess({ available: true });
+      }
       return actionSuccess({
         available: false,
         reason: "Username is already taken",
@@ -103,9 +116,8 @@ export async function claimUsernameAction(
             .returning();
           return actionSuccess(updated);
         } catch (dbErr: unknown) {
-          const pgCode = (dbErr as { code?: string })?.code;
-          if (pgCode === "23505") {
-            throw AppError.conflict("Username is already taken");
+          if (isUniqueConstraintError(dbErr)) {
+            throw AppError.conflict("Username is already taken. Please choose another.");
           }
           throw dbErr;
         }
@@ -128,9 +140,12 @@ export async function claimUsernameAction(
 
       return actionSuccess(newProfile);
     } catch (dbErr: unknown) {
-      const pgCode = (dbErr as { code?: string })?.code;
-      if (pgCode === "23505") {
-        throw AppError.conflict("Username is already taken");
+      if (isUniqueConstraintError(dbErr)) {
+        const constraint = getDbErrorConstraint(dbErr);
+        if (constraint === "profiles_user_id_unique") {
+          throw AppError.conflict("Profile already exists and cannot be re-claimed");
+        }
+        throw AppError.conflict("Username is already taken. Please choose another.");
       }
       throw dbErr;
     }

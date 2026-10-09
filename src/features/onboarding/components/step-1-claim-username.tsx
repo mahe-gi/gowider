@@ -7,9 +7,11 @@ import {
 } from "../actions/claim-username";
 import { normalizeUsername, USERNAME_REGEX } from "../constants";
 
+import type { Profile } from "@/db/schema";
+
 interface Step1ClaimUsernameProps {
   initialUsername?: string;
-  onSuccess: (username: string) => void;
+  onSuccess: (username: string, profile?: Profile) => void;
 }
 
 export function Step1ClaimUsername({
@@ -86,10 +88,19 @@ export function Step1ClaimUsername({
       return;
     }
 
+    if (status === "taken" || status === "invalid") {
+      setErrorMessage(statusMessage || "Please choose an available username.");
+      return;
+    }
+
+    if (status === "checking") {
+      return;
+    }
+
     startTransition(async () => {
       const res = await claimUsernameAction(normalized);
       if (res.success) {
-        onSuccess(res.data.username);
+        onSuccess(res.data.username, res.data);
       } else {
         setErrorMessage(res.error);
         if (res.code === "CONFLICT") {
@@ -204,11 +215,21 @@ export function Step1ClaimUsername({
 
         <button
           type="submit"
-          disabled={isPending || status === "taken" || status === "invalid" || !username}
+          disabled={
+            isPending ||
+            status === "checking" ||
+            status === "taken" ||
+            status === "invalid" ||
+            !username.trim()
+          }
           data-testid="claim-username-submit"
           className="w-full py-3 bg-white text-black font-semibold text-xs uppercase tracking-widest hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isPending ? "Claiming..." : "Claim Handle & Continue →"}
+          {isPending
+            ? "Claiming..."
+            : status === "checking"
+            ? "Checking Availability..."
+            : "Claim Handle & Continue →"}
         </button>
       </form>
     </div>

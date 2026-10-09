@@ -1,4 +1,5 @@
 import { AppError } from "./errors";
+import { isUniqueConstraintError } from "./db-errors";
 
 export type ActionSuccess<T> = {
   success: true;
@@ -31,10 +32,28 @@ export function actionError(error: unknown): ActionFailure {
     };
   }
 
-  if (error instanceof Error) {
+  if (isUniqueConstraintError(error)) {
     return {
       success: false,
-      error: error.message,
+      error: "This value is already taken. Please choose another.",
+      code: "CONFLICT",
+    };
+  }
+
+  if (error instanceof Error) {
+    const isLeakedQuery =
+      error.message.startsWith("Failed query:") ||
+      error.message.includes("Failed query") ||
+      error.name === "DrizzleError" ||
+      error.name === "DrizzleQueryError";
+
+    const safeMessage = isLeakedQuery
+      ? "An unexpected error occurred. Please try again."
+      : error.message;
+
+    return {
+      success: false,
+      error: safeMessage,
       code: "INTERNAL_ERROR",
     };
   }

@@ -9,6 +9,7 @@ import { portfolioSettings } from "@/db/schema/auxiliary";
 import { requireAuth, requireProfileOwner } from "@/lib/auth-guards";
 import { AppError } from "@/lib/errors";
 import { actionSuccess, actionError, type ActionResponse } from "@/lib/types";
+import { isUniqueConstraintError } from "@/lib/db-errors";
 import {
   portfolioSettingsSchema,
   updateUsernameSchema,
@@ -204,13 +205,20 @@ export async function updateUsernameAction(
       throw AppError.conflict("This username is already taken");
     }
 
-    await db
-      .update(profiles)
-      .set({
-        username: newUsername,
-        updatedAt: new Date(),
-      })
-      .where(eq(profiles.id, profileId));
+    try {
+      await db
+        .update(profiles)
+        .set({
+          username: newUsername,
+          updatedAt: new Date(),
+        })
+        .where(eq(profiles.id, profileId));
+    } catch (dbErr: unknown) {
+      if (isUniqueConstraintError(dbErr)) {
+        throw AppError.conflict("That username is already taken. Please choose another.");
+      }
+      throw dbErr;
+    }
 
     // Revalidate old and new paths
     revalidatePath(`/${oldUsername}`);

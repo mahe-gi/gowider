@@ -36,5 +36,16 @@ describe("Smoke & Foundation Harness", () => {
       expect(errorRes.code).toBe("NOT_FOUND");
       expect(errorRes.error).toBe("Item missing");
     }
+
+    // Never leak raw SQL query strings or database params
+    const rawSqlError = new Error('Failed query: insert into "profiles" ("id", "user_id") values ($1, $2) params: abc,xyz');
+    const sanitizedRes = actionError(rawSqlError);
+    expect(sanitizedRes.success).toBe(false);
+    if (!sanitizedRes.success) {
+      expect(sanitizedRes.code).toBe("INTERNAL_ERROR");
+      expect(sanitizedRes.error).not.toContain("Failed query");
+      expect(sanitizedRes.error).not.toContain("insert into");
+      expect(sanitizedRes.error).toBe("An unexpected error occurred. Please try again.");
+    }
   });
 });

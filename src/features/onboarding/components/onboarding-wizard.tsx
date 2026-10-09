@@ -38,25 +38,29 @@ export function OnboardingWizard({
   const [projectsCount, setProjectsCount] = useState<number>(initialProjectsCount);
   const [settings] = useState<PortfolioSettings | null>(initialSettings);
 
-  const handleStep1Success = (claimedUsername: string) => {
-    setProfile((prev) =>
-      prev
-        ? { ...prev, username: claimedUsername }
-        : ({
-            id: "temp-id",
-            userId: "temp-user",
-            username: claimedUsername,
-            displayName: claimedUsername,
-            headline: "Video Editor & Filmmaker",
-            bio: null,
-            avatarUrl: null,
-            location: null,
-            availability: null,
-            isPublished: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          } as Profile)
-    );
+  const handleStep1Success = (claimedUsername: string, claimedProfile?: Profile) => {
+    if (claimedProfile) {
+      setProfile(claimedProfile);
+    } else {
+      setProfile((prev) =>
+        prev
+          ? { ...prev, username: claimedUsername }
+          : ({
+              id: "temp-id",
+              userId: "temp-user",
+              username: claimedUsername,
+              displayName: claimedUsername,
+              headline: "Video Editor & Filmmaker",
+              bio: null,
+              avatarUrl: null,
+              location: null,
+              availability: null,
+              isPublished: false,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            } as Profile)
+      );
+    }
     setCurrentStep(2);
   };
 

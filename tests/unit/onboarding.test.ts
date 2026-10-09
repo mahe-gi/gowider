@@ -52,6 +52,15 @@ vi.mock("@/lib/auth-guards", () => ({
 
 import { getOnboardingProgress } from "@/features/onboarding/progress";
 import { generateDeterministicProjectSlug } from "@/features/onboarding/utils";
+import {
+  claimUsernameAction,
+  checkUsernameAvailabilityAction,
+} from "@/features/onboarding/actions/claim-username";
+import {
+  getDbErrorCode,
+  getDbErrorConstraint,
+  isUniqueConstraintError,
+} from "@/lib/db-errors";
 
 describe("Onboarding Engine & First Publication (TASK-04)", () => {
   beforeEach(() => {
@@ -354,6 +363,101 @@ describe("Onboarding Engine & First Publication (TASK-04)", () => {
       const progress = await getOnboardingProgress("user-1");
       expect(progress.currentStep).toBe(5);
       expect(progress.isComplete).toBe(true);
+    });
+  });
+
+  describe("Database Error Inspection & 23505 Collision Handling", () => {
+    it("extracts error code and constraint from driver error wrapped by Drizzle", () => {
+      // Drizzle wraps driver error in .cause
+      const drizzleQueryError = new Error(
+        'Failed query: insert into "profiles" ("id", "user_id", "username") values ($1, $2, $3)'
+      );
+      (drizzleQueryError as unknown as { cause: unknown }).cause = {
+        name: "DatabaseError",
+        code: "23505",
+        constraint: "profiles_username_unique",
+        detail: "Key (username)=(neeraja) already exists.",
+      };
+
+      expect(getDbErrorCode(drizzleQueryError)).toBe("23505");
+      expect(getDbErrorConstraint(drizzleQueryError)).toBe("profiles_username_unique");
+      expect(isUniqueConstraintError(drizzleQueryError)).toBe(true);
+      expect(isUniqueConstraintError(drizzleQueryError, "profiles_username_unique")).toBe(true);
+      expect(isUniqueConstraintError(drizzleQueryError, "other_constraint")).toBe(false);
+    });
+
+    it("returns false for unrelated errors", () => {
+      const unrelatedError = new Error("Connection timed out");
+      expect(getDbErrorCode(unrelatedError)).toBeUndefined();
+      expect(isUniqueConstraintError(unrelatedError)).toBe(false);
+    });
+  });
+
+  describe("claimUsernameAction Collision & Sanitization", () => {
+    it("catches Drizzle-wrapped 23505 unique collision and returns safe conflict response without query leakage", async () => {
+      mockRequireAuth.mockResolvedValueOnce({
+        user: { id: "user-123", name: "Alex Morgan" },
+      });
+
+      // No existing profile for user-123
+      mockSelect.mockResolvedValueOnce([]);
+
+      // Insert fails with wrapped Drizzle unique constraint error
+      const drizzleError = new Error(
+        'Failed query: insert into "profiles" ("id", "user_id", "username") values ($1, $2, $3) params: user-123,neeraja,Alex Morgan'
+      );
+      (drizzleError as unknown as { cause: unknown }).cause = {
+        code: "23505",
+        constraint: "profiles_username_unique",
+      };
+      mockInsert.mockRejectedValueOnce(drizzleError);
+
+      const result = await claimUsernameAction("neeraja");
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect(result.code).toBe("CONFLICT");
+        expect(result.error).toBe("Username is already taken. Please choose another.");
+        // Crucial security check: zero query or internal ID leakage
+        expect(result.error).not.toContain("Failed query");
+        expect(result.error).not.toContain("insert into");
+        expect(result.error).not.toContain("user-123");
+      }
+    });
+
+    it("allows user to keep/re-verify their own handle in checkUsernameAvailabilityAction", async () => {
+      mockRequireAuth.mockResolvedValueOnce({
+        user: { id: "user-owner" },
+      });
+
+      // Profile exists and belongs to current user
+      mockSelect.mockResolvedValueOnce([
+        { id: "prof-1", userId: "user-owner" },
+      ]);
+
+      const result = await checkUsernameAvailabilityAction("myhandle");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.available).toBe(true);
+      }
+    });
+
+    it("reports taken when handle belongs to another user in checkUsernameAvailabilityAction", async () => {
+      mockRequireAuth.mockResolvedValueOnce({
+        user: { id: "user-different" },
+      });
+
+      // Profile exists and belongs to someone else
+      mockSelect.mockResolvedValueOnce([
+        { id: "prof-2", userId: "user-original-owner" },
+      ]);
+
+      const result = await checkUsernameAvailabilityAction("myhandle");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.available).toBe(false);
+        expect(result.data.reason).toBe("Username is already taken");
+      }
     });
   });
 });
